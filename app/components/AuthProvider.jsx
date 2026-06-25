@@ -16,7 +16,7 @@ import {
   signIn,
   signOut,
 } from "aws-amplify/auth";
-import { initAmplify } from "../components/amplifyConfig";
+import { initAmplify } from "./amplifyConfig";
 
 
 const AuthContext = createContext(null);
