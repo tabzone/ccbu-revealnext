@@ -115,13 +115,13 @@ export default function Navbar({ onToggleSidebar }) {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200"
+            className="flex items-center cursor-pointer justify-center w-9 h-9 rounded-lg transition-all duration-200"
             style={{
               color: textSecondary,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = textPrimary;
-              e.currentTarget.style.backgroundColor = hoverBg;
+              e.currentTarget.style.backgroundColor = '';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = textSecondary;
@@ -152,7 +152,7 @@ export default function Navbar({ onToggleSidebar }) {
             onMouseLeave={handleMouseLeave}
           >
             <button
-              className="flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200"
+              className="flex items-center cursor-pointer gap-3 px-3 py-2 rounded-lg transition-all duration-200"
               style={{
                 backgroundColor: showUserMenu ? buttonActiveBg : "transparent",
                 color: textPrimary,

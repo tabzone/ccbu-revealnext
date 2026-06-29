@@ -15,6 +15,21 @@ export default function Sidebar({ isOpen }) {
 
       return [
         {
+          label: "Master Data",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 10h16M4 14h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <rect x="13" y="12" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+          ),
+          children: [
+            { label: "Products", href: `/retailerPlanogram/${id}/masterdata/products` },
+            { label: "Stores", href: `/retailerPlanogram/${id}/masterdata/stores` },
+            { label: "Weeks", href: `/retailerPlanogram/${id}/masterdata/weeks` },
+          ],
+        },
+        {
           label: "Project Setup",
           href: "#",
           icon: (
@@ -24,6 +39,7 @@ export default function Sidebar({ isOpen }) {
           ),
           children: [{ label: "Uploads", href: `/retailerPlanogram/${id}/uploads` }],
         },
+
         {
           label: "Data Validation",
           href: "#",
