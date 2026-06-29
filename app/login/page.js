@@ -92,21 +92,21 @@ export default function LoginPage() {
           <div className="flex flex-col items-center mb-8">
             <div className="flex items-center gap-4">
             <Image
-              src="/cokeunited-logo.png"
+              src="//logo.avif"
               alt="Logo"
               width={90}
               height={90}
               priority
               className="object-contain"
             />
-            <Image
+            {/* <Image
               src="/Parkers Kitchen.png"
               alt="Logo"
               width={60}
               height={60}
               priority
               className="object-contain"
-            />
+            /> */}
             </div>
             <h1 className="mt-4 text-3xl font-bold text-slate-800">
               Welcome Back
