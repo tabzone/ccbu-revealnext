@@ -1,492 +1,346 @@
 "use client";
 
 import AppLayout from "@/app/components/layout/AppLayout";
+import { useTheme } from "@/app/components/ThemeProvider";
 import { useRef, useState } from "react";
-// import { CalendarDays, Upload, FileSpreadsheet, CheckCircle2 } from "lucide-react";
+
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+const FILE_TYPES = [
+  { value: "master_product", label: "Master Product Data" },
+  { value: "store_data", label: "Store Data" },
+  { value: "weekly_sales", label: "Weekly Sales Data" },
+  { value: "planogram_data", label: "Planogram Data" },
+];
+
+const HISTORY = [
+  { dataset: "Master Product Data", file: "master_products.xlsx", user: "John Smith", status: "Completed", date: "2026-06-28" },
+  { dataset: "Store Data", file: "store_data.xlsx", user: "John Smith", status: "Completed", date: "2026-06-28" },
+  { dataset: "Weekly Sales Data", file: "weekly_sales.xlsx", user: "John Smith", status: "Pending", date: "-" },
+  { dataset: "Planogram Data", file: "-", user: "-", status: "Pending", date: "-" },
+];
 
 export default function UploadsPage() {
-  // ------------------------------------------------------------
-  // STATES
-  // ------------------------------------------------------------
-
-  const [selectedDate, setSelectedDate] = useState("");
-
-  const [activeTab, setActiveTab] = useState("product");
-
-  const [files, setFiles] = useState({
-    product: null,
-    store: null,
-    sales: null,
-  });
-
+  const { theme } = useTheme();
+  const [selectedFileType, setSelectedFileType] = useState("");
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
   const inputRef = useRef(null);
 
-  const uploadMenus = [
-    {
-      key: "product",
-      title: "Master Product",
-      description: "Upload retailer master product catalogue",
-    },
-    {
-      key: "store",
-      title: "Store Data",
-      description: "Upload retailer store information",
-    },
-    {
-      key: "sales",
-      title: "Weekly Sales",
-      description: "Upload weekly sales excel",
-    },
-  ];
+  const today = new Date();
+  const uploadDate = today.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const weekNumber = getISOWeek(today);
 
-  const current = uploadMenus.find((x) => x.key === activeTab);
+  const isDark = theme === "dark";
+  const bg = isDark ? "#191919" : "#ffffff";
+  const bgSub = isDark ? "#2a2a2a" : "#f9fafb";
+  const bgDrop = isDark ? "#242424" : "#ffffff";
+  const border = isDark ? "#333333" : "#e5e7eb";
+  const textPri = isDark ? "#e5e7eb" : "#1f2937";
+  const textSec = isDark ? "#9ca3af" : "#6b7280";
+  const hover = isDark ? "#333333" : "#f3f4f6";
+  const accent = isDark ? "#f87171" : "#dc2626";
+  const accentBg = isDark ? "#3f1a1a" : "#fef2f2";
 
-  // ------------------------------------------------------------
-  // FILE CHANGE
-  // ------------------------------------------------------------
+  const selectedLabel = FILE_TYPES.find((f) => f.value === selectedFileType)?.label ?? "";
 
-  const handleFileChange = (file) => {
-    if (!file) return;
-
-    setFiles((prev) => ({
-      ...prev,
-      [activeTab]: file,
-    }));
-  };
-
-  // ------------------------------------------------------------
-  // DRAG & DROP
-  // ------------------------------------------------------------
-
-  const [dragging, setDragging] = useState(false);
-
-  const onDragEnter = (e) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const onDragLeave = (e) => {
-    e.preventDefault();
-    setDragging(false);
-  };
-
-  const onDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const onDrop = (e) => {
-    e.preventDefault();
-
-    setDragging(false);
-
-    const file = e.dataTransfer.files[0];
-
+  const handleFile = (file) => {
     if (file) {
-      handleFileChange(file);
+      setUploadedFile(file);
+      setValidationResult(null);
     }
+  };
+
+  const handleValidation = async () => {
+    setValidating(true);
+    // Simulate validation
+    await new Promise(r => setTimeout(r, 2000));
+    setValidating(false);
+    setValidationResult({ success: true, message: `${uploadedFile?.name} validated successfully` });
   };
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="mx-auto">
 
+        {/* PAGE HEADER */}
+        <div className="mb-8">
+          <h1 style={{ color: textPri }} className="text-3xl font-bold mb-2">
+            Data Upload
+          </h1>
+          <p style={{ color: textSec }} className="text-base">
+            Upload your datasets to sync with the latest information
+          </p>
+        </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
+        {/* CONTROLS CARD */}
+        <div style={{ backgroundColor: bg, borderColor: border }} className="rounded-2xl border p-6 mb-6">
 
-          <label className="font-semibold mb-3 block">
+          {/* Upload Date and Week labels */}
+          <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+            <div>
+              <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                Fiscal Date
+              </p>
+              <p style={{ color: textPri }} className="text-sm font-bold">{uploadDate}</p>
+            </div>
+            <div style={{ width: 1, height: 32, backgroundColor: border }} />
+            <div>
+              <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                Week
+              </p>
+              <p style={{ color: textPri }} className="text-sm font-bold">Week {weekNumber}</p>
+            </div>
+          </div>
 
-            Reporting Date
+          {/* File type dropdown + Upload button */}
+          {/* File type dropdown + Upload button */}
+          <div>
+            <label style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold block mb-2">
+              File Type
+            </label>
+            <div className="flex gap-3">
+              <select
+                value={selectedFileType}
+                onChange={(e) => {
+                  setSelectedFileType(e.target.value);
+                  setUploadedFile(null);
+                  setValidationResult(null);
+                }}
+                style={{
+                  backgroundColor: bgSub,
+                  borderColor: border,
+                  color: selectedFileType ? textPri : textSec,
+                }}
+                className="flex-1 rounded-xl border px-4 py-3 text-sm outline-none appearance-none cursor-pointer transition"
+                onFocus={(e) => (e.currentTarget.style.borderColor = accent)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = border)}
+              >
+                <option value="" disabled>Select file type...</option>
+                {FILE_TYPES.map((ft) => (
+                  <option key={ft.value} value={ft.value} style={{ color: textPri, backgroundColor: bgDrop }}>
+                    {ft.label}
+                  </option>
+                ))}
+              </select>
 
-          </label>
+              <button
+                onClick={() => selectedFileType && inputRef.current?.click()}
+                disabled={!selectedFileType}
+                style={{
+                  backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
+                  color: selectedFileType ? "#fff" : textSec,
+                }}
+                className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Upload File
+              </button>
 
-          <div className="relative w-72">
+              {/* {uploadedFile && ( */}
+                <button
+                  onClick={handleValidation}
+                  disabled={validating}
+                  style={{
+                    backgroundColor: accent,
+                    color: "#fff",
+                  }}
+                  className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                >
+                  {validating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Validate
+                    </>
+                  )}
+                </button>
+              {/* )} */}
+            </div>
+          </div>
 
+          {validationResult && (
+            <div style={{ backgroundColor: accentBg, borderColor: accent }} className="border rounded-xl p-4 mt-4">
+              <p style={{ color: textPri }} className="text-sm font-semibold">
+                ✓ {validationResult.message}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* DROP ZONE - shown after a file type is selected */}
+        {selectedFileType && (
+          <div style={{ backgroundColor: bg, borderColor: border }} className="rounded-2xl border p-8 mb-8">
             <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full rounded-xl border pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
+              ref={inputRef}
+              type="file"
+              accept=".xls,.xlsx"
+              className="hidden"
+              onChange={(e) => handleFile(e.target.files[0])}
             />
 
-          </div>
-
-        </div>
-
-        {/* ===================================================== */}
-        {/* TABS */}
-        {/* ===================================================== */}
-
-        <div className="bg-white rounded-2xl border shadow-sm p-6">
-
-          <h2 className="font-semibold mb-5">
-
-            Upload Datasets
-
-          </h2>
-
-          <div className="flex border-b border-gray-200">
-
-            {uploadMenus.map(menu => {
-
-              const uploaded = files[menu.key];
-
-              return (
-
-                <button
-                  key={menu.key}
-                  disabled={!selectedDate}
-                  onClick={() => setActiveTab(menu.key)}
-                  className={`
-
-        px-6
-        py-4
-        text-sm
-        font-semibold
-        border-b-2
-        transition
-
-        ${activeTab === menu.key
-                      ? "border-[#F40009] text-[#F40009]"
-                      : "border-transparent text-gray-500 hover:text-[#F40009]"
-                    }
-
-        ${!selectedDate && "opacity-40 cursor-not-allowed"
-                    }
-
-        `}
-                >
-
-                  <div className="flex items-center gap-2">
-
-                    {uploaded && (
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="#16A34A"
-                      >
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
-                    )}
-
-                    {menu.title}
-
-                  </div>
-
-                </button>
-
-              )
-
-            })}
-
-          </div>
-
-        </div>
-
-        {/* ===================================================== */}
-        {/* UPLOAD PANEL */}
-        {/* ===================================================== */}
-
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
-
-          {!selectedDate ? (
-
-            <div className="text-center py-16">
-
-              {/* <CalendarDays
-                size={48}
-                className="mx-auto text-gray-400"
-              /> */}
-              <svg
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                className="mx-auto text-gray-400"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <path d="M16 2v4M8 2v4M3 10h18" />
-              </svg>
-
-              <h3 className="mt-4 text-xl font-semibold">
-
-                Select a reporting date
-
-              </h3>
-
-              <p className="text-gray-500 mt-2">
-
-                Choose a reporting date before uploading files.
-
-              </p>
-
-            </div>
-
-          ) : (
-
-            <>
-              <div className="flex items-center gap-3 mb-6">
-
-                <FileSpreadsheet
-                  className="text-red-600"
-                  size={28}
-                />
-
-                <div>
-
-                  <h2 className="text-2xl font-bold">
-
-                    {current.title}
-
-                  </h2>
-
-                  <p className="text-gray-500">
-
-                    {current.description}
-
+            <div
+              onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={(e) => { e.preventDefault(); setDragging(false); }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                handleFile(e.dataTransfer.files[0]);
+              }}
+              style={{
+                backgroundColor: dragging ? accentBg : bgSub,
+                borderColor: dragging ? accent : border,
+              }}
+              className="rounded-2xl border-2 border-dashed p-16 text-center transition"
+            >
+              {uploadedFile ? (
+                <>
+                  <div className="text-5xl mb-4">✅</div>
+                  <p style={{ color: textPri }} className="text-lg font-semibold">
+                    {uploadedFile.name}
                   </p>
-
-                </div>
-
-              </div>
-
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".xls,.xlsx"
-                className="hidden"
-                onChange={(e) =>
-                  handleFileChange(e.target.files[0])
-                }
-              />
-
-              <div
-                onDragEnter={onDragEnter}
-                onDragLeave={onDragLeave}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
-                className={`rounded-2xl border-2 border-dashed p-14 transition
-
-                ${dragging
-                    ? "border-red-500 bg-red-50"
-                    : "border-gray-300"
-                  }
-                `}
-              >
-                {files[activeTab] ? (
-                  <div className="text-center">
-
-                    <div className="text-6xl mb-4">
-                      ✅
-                    </div>
-
-                    <h3 className="text-xl font-semibold">
-                      {files[activeTab].name}
-                    </h3>
-
-                    <p className="text-gray-500 mt-2">
-                      File selected successfully.
-                    </p>
-
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="mt-6 rounded-lg bg-[#F40009] px-5 py-2.5 text-white hover:bg-[#d60008]"
+                  <p style={{ color: textSec }} className="mt-1 text-sm">
+                    File selected successfully
+                  </p>
+                  <button
+                    onClick={() => inputRef.current?.click()}
+                    style={{ backgroundColor: accent }}
+                    className="mt-6 rounded-lg px-6 py-2.5 text-sm text-white font-semibold hover:opacity-90 transition"
+                  >
+                    Replace File
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-center mb-6">
+                    <div
+                      style={{ backgroundColor: accentBg }}
+                      className="h-20 w-20 rounded-full flex items-center justify-center"
                     >
-                      Replace File
-                    </button>
-
-                  </div>
-                ) : (
-                  <div className="text-center">
-
-                    <div className="flex justify-center">
-
-                      <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center">
-
-                        <svg
-                          width="48"
-                          height="48"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className="text-[#F40009]"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 12v8"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8 16l4-4 4 4"
-                          />
-                        </svg>
-                      </div>
-
+                      <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={accent}
+                        strokeWidth="2"
+                      >
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
                     </div>
-
-                    <h3 className="mt-6 text-xl font-semibold">
-                      Drag & Drop Excel File
-                    </h3>
-
-                    <p className="mt-2 text-gray-500">
-                      Upload your {currentMenu.title.toLowerCase()} file.
-                    </p>
-
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="mt-8 rounded-xl bg-[#F40009] px-6 py-3 font-semibold text-white hover:bg-[#d60008]"
-                    >
-                      Browse Files
-                    </button>
-
-                    <p className="mt-5 text-sm text-gray-500">
-                      Supported formats: .xlsx & .xls
-                    </p>
-
                   </div>
-                )}
+                  <p style={{ color: textPri }} className="text-lg font-bold">
+                    Drag and Drop your file here
+                  </p>
+                  <p style={{ color: textSec }} className="text-sm mt-2">
+                    Drop your{" "}
+                    <span style={{ color: textPri }} className="font-medium">
+                      {selectedLabel}
+                    </span>{" "}
+                    file or click browse
+                  </p>
+                  <button
+                    onClick={() => inputRef.current?.click()}
+                    style={{ backgroundColor: accent }}
+                    className="mt-6 rounded-xl px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition"
+                  >
+                    Browse Files
+                  </button>
+                  <p style={{ color: textSec }} className="mt-4 text-xs">
+                    Supported formats: .xlsx and .xls
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
-              </div>
-
-            </>
-          )}
-
-        </div>
-
-        {/* ================================================= */}
-        {/* Upload History */}
-        {/* ================================================= */}
-
-        <div className="rounded-2xl bg-white border shadow-sm">
-
-          <div className="border-b px-6 py-5">
-
-            <h2 className="text-xl font-semibold">
-              Upload History
-            </h2>
-
-            <p className="text-sm text-gray-500 mt-1">
-              Previously uploaded datasets.
-            </p>
-
+        {/* UPLOAD HISTORY */}
+        <div style={{ backgroundColor: bg, borderColor: border }} className="p-4 rounded-2xl border overflow-hidden">
+          <div style={{ borderColor: border }} className="border-b px-6 py-5">
+            <h2 style={{ color: textPri }} className="text-lg font-bold">Upload History</h2>
+            <p style={{ color: textSec }} className="text-sm mt-1">Your recently uploaded datasets</p>
           </div>
 
           <div className="overflow-x-auto">
-
-            <table className="min-w-full">
-
-              <thead className="bg-gray-50">
-
-                <tr>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    Dataset
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    File Name
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    Uploaded By
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    Status
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    Date
-                  </th>
-
+            <table className="w-full">
+              <thead>
+                <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
+                  {["Dataset", "File Name", "Uploaded By", "Status", "Date"].map((h) => (
+                    <th
+                      key={h}
+                      style={{ color: textPri }}
+                      className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-
               </thead>
-
               <tbody>
-
-                {[
-                  {
-                    dataset: "Master Product",
-                    file: "master_products.xlsx",
-                    user: "John Smith",
-                    status: "Completed",
-                    date: "2026-06-28",
-                  },
-                  {
-                    dataset: "Store Data",
-                    file: "store_data.xlsx",
-                    user: "John Smith",
-                    status: "Completed",
-                    date: "2026-06-28",
-                  },
-                  {
-                    dataset: "Weekly Sales",
-                    file: "weekly_sales.xlsx",
-                    user: "John Smith",
-                    status: "Pending",
-                    date: "-",
-                  },
-                ].map((row) => (
-
+                {HISTORY.map((row) => (
                   <tr
-                    key={row.file}
-                    className="border-t hover:bg-gray-50"
+                    key={row.dataset}
+                    style={{ borderColor: border }}
+                    className="border-t transition"
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
-
-                    <td className="px-6 py-5 font-medium">
+                    <td style={{ color: textPri }} className="px-6 py-4 font-semibold">
                       {row.dataset}
                     </td>
-
-                    <td className="px-6 py-5">
-                      {row.file}
-                    </td>
-
-                    <td className="px-6 py-5">
-                      {row.user}
-                    </td>
-
-                    <td className="px-6 py-5">
-
+                    <td style={{ color: textSec }} className="px-6 py-4">{row.file}</td>
+                    <td style={{ color: textSec }} className="px-6 py-4">{row.user}</td>
+                    <td className="px-6 py-4">
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold
-
-                        ${row.status === "Completed"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                          }
-                        `}
+                        style={{
+                          backgroundColor:
+                            row.status === "Completed"
+                              ? isDark ? "#1a472a" : "#f0fdf4"
+                              : isDark ? "#3f2a0b" : "#fffbeb",
+                          color: row.status === "Completed" ? "#16A34A" : "#92400e",
+                        }}
+                        className="inline-flex rounded-full px-3 py-1 text-xs font-semibold"
                       >
                         {row.status}
                       </span>
-
                     </td>
-
-                    <td className="px-6 py-5">
-                      {row.date}
-                    </td>
-
+                    <td style={{ color: textSec }} className="px-6 py-4">{row.date}</td>
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
-
           </div>
-
         </div>
+
       </div>
     </AppLayout>
   );
