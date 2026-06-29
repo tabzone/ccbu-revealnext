@@ -94,8 +94,8 @@ export default function LoginPage() {
             <Image
               src="/logo.avif"
               alt="Logo"
-              width={90}
-              height={90}
+              width={120}
+              height={120}
               priority
               className="object-contain"
             />
