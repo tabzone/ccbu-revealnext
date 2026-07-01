@@ -149,24 +149,6 @@ export default function Sidebar({ isOpen }) {
         ${isOpen ? "w-72" : "w-20"}
       `}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-4 px-4 mt-4 ">
-        {/* <div className="flex items-center justify-center w-9 h-9 text-[#F40009] flex-shrink-0">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-          </svg>
-        </div> */}
-        {isOpen && (
-          <Link href="/" className="flex flex-col min-w-0">
-            {/* <span className="text-[#F40009] text-lg font-bold tracking-tight leading-tight">Reveal</span>
-            <span className="text-gray-500 dark:text-gray-400 text-xs truncate leading-tight">Space Analysis</span> */}
-            <img src="/logo.avif" alt="logo" className="w-auto h-10" />
-          </Link>
-        )}
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto mt-4 px-3 py-4 space-y-2" role="navigation" aria-label="Main navigation">
         {navItems.map((item) => {

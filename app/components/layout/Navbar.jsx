@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "../ThemeProvider";
 
@@ -78,6 +79,11 @@ export default function Navbar({ onToggleSidebar }) {
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
+
+        {/* Logo */}
+        <Link href="/" className="flex-shrink-0">
+          <img src="/logo.avif" alt="logo" className="h-10 w-auto" />
+        </Link>
 
         {/* Left Section - Back Button & Project Info */}
         {isRetailerPlanogram && (
