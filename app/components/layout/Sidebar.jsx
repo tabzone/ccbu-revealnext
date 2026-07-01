@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -26,56 +26,15 @@ export default function Sidebar({ isOpen }) {
           children: [
             { label: "Products", href: `/retailerPlanogram/${id}/masterdata/products` },
             { label: "Stores", href: `/retailerPlanogram/${id}/masterdata/stores` },
-            { label: "Planograms", href: `/retailerPlanogram/${id}/masterdata/planograms` },
             { label: "Time Setup", href: `/retailerPlanogram/${id}/masterdata/timesetup` },
-
           ],
         },
         {
           label: "Weekly Sales Upload",
-          href: "#",
+          href: `/retailerPlanogram/${id}/weeklySalesUpload`,
           icon: (
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
               <path d="M3 7H21V17H3z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          ),
-          children: [{ label: "Uploads", href: `/retailerPlanogram/${id}/uploads` }],
-        },
-
-        // {
-        //   label: "Data Validation",
-        //   href: "#",
-        //   icon: (
-        //     <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-        //       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-        //       <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        //     </svg>
-        //   ),
-        //   children: [
-        //     { label: "Retailer Products", href: `/retailerPlanogram/${id}/retailerProducts` },
-        //     { label: "Retailer Stores", href: `/retailerPlanogram/${id}/retailerStores` },
-        //   ],
-        // },
-        {
-          label: "Publish",
-          href: `/retailerPlanogram/${id}/publish`,
-          icon: (
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <path d="M12 3V15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M8 7L12 3L16 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M5 21H19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          ),
-        },
-        {
-          label: "Dashboards",
-          href: `/retailerPlanogram/${id}/dashboards`,
-          icon: (
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-              <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-              <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-              <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
             </svg>
           ),
         },
@@ -120,16 +79,20 @@ export default function Sidebar({ isOpen }) {
 
   const navItems = useMemo(() => getNavItems(), [pathname]);
 
-  // Auto-expand and keep expanded when navigating
-  useEffect(() => {
-    const parent = navItems.find(
-      (item) => item.children && item.children.some((c) => pathname === c.href || pathname?.startsWith(c.href + "/"))
+  // Check if item should be expanded (user toggle OR pathname match)
+  const isItemExpanded = (item) => {
+    const userToggled = expandedItems.includes(item.label);
+    const pathMatches = item.children?.some(
+      (child) => pathname === child.href || pathname?.startsWith(child.href + "/")
     );
+    return userToggled || pathMatches;
+  };
 
-    if (parent && !expandedItems.includes(parent.label)) {
-      setExpandedItems((prev) => [...prev, parent.label]);
-    }
-  }, [pathname, navItems]);
+  const isItemActive = (item) => {
+    return item.children?.some(
+      (child) => pathname === child.href || pathname?.startsWith(child.href + "/")
+    ) || (item.href !== "#" && (pathname === item.href || pathname?.startsWith(item.href + "/")));
+  };
 
   return (
     <aside
@@ -152,10 +115,8 @@ export default function Sidebar({ isOpen }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto mt-4 px-3 py-4 space-y-2" role="navigation" aria-label="Main navigation">
         {navItems.map((item) => {
-          const isExpanded = expandedItems.includes(item.label);
-          const isActive =
-            item.children?.some((child) => pathname === child.href || pathname?.startsWith(child.href + "/")) ||
-            (item.href !== "#" && (pathname === item.href || pathname?.startsWith(item.href + "/")));
+          const expanded = isItemExpanded(item);
+          const active = isItemActive(item);
 
           if (item.children) {
             const submenuId = `submenu-${item.label.replace(/\s+/g, "-")}`;
@@ -164,7 +125,7 @@ export default function Sidebar({ isOpen }) {
               <div key={item.label}>
                 <button
                   type="button"
-                  aria-expanded={isExpanded}
+                  aria-expanded={expanded}
                   aria-controls={submenuId}
                   onClick={() =>
                     setExpandedItems((prev) =>
@@ -181,7 +142,7 @@ export default function Sidebar({ isOpen }) {
                   }}
                   className={`
                     group relative w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200
-                    ${isActive
+                    ${active
                       ? "text-[#F40009] bg-[#F40009]/5 dark:bg-[#F40009]/10"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
                     }
@@ -196,7 +157,7 @@ export default function Sidebar({ isOpen }) {
                         height="18"
                         viewBox="0 0 24 24"
                         fill="none"
-                        className={`flex-shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                        className={`flex-shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
                       >
                         <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -204,7 +165,7 @@ export default function Sidebar({ isOpen }) {
                   )}
                 </button>
 
-                {isExpanded && isOpen && (
+                {expanded && isOpen && (
                   <div id={submenuId} role="group" aria-label={`${item.label} submenu`} className="mt-1 space-y-1">
                     {item.children.map((child) => {
                       const childActive = pathname === child.href || pathname?.startsWith(child.href + "/");
@@ -237,11 +198,11 @@ export default function Sidebar({ isOpen }) {
             <Link
               key={item.label}
               href={item.href}
-              aria-current={isActive ? "page" : undefined}
+              aria-current={active ? "page" : undefined}
               className={`
                 flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200
                 border-l-2
-                ${isActive
+                ${active
                   ? "border-l-[#F40009] text-[#F40009] bg-[#F40009]/5 dark:bg-[#F40009]/10 font-medium"
                   : "border-l-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50"
                 }

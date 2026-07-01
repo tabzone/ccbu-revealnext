@@ -5,6 +5,8 @@ import AppLayout from "@/app/components/layout/AppLayout";
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import { StoreModal } from "@/app/components/modal/StoreModal";
 import { StoresTable } from "@/app/components/table/StoresTable";
+import { Toast } from "@/app/components/Toast";
+import { UploadStoresTab } from "@/app/components/UploadStoresTab";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { apiGet } from "@/lib/api";
 import { PAGE_SIZE } from "@/data/constants";
@@ -45,8 +47,19 @@ export default function MasterStoresPage() {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
+  const [activeTab, setActiveTab] = useState("stores");
+
   const [modal, setModal]               = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toasts, setToasts]             = useState([]);
+
+  const addToast = (message, type = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  };
+
+  const dismissToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   const fetchStores = useCallback(async () => {
     setLoading(true);
@@ -60,8 +73,8 @@ export default function MasterStoresPage() {
         state:    stateFilter,
         district: districtFilter,
       });
-      setStores(data.stores ?? []);
-      setTotal(data.total ?? 0);
+      setStores(data?.data?.stores ?? []);
+      setTotal(data?.data?.total ?? 0);   
     } catch (err) {
       setApiError(err.message);
     } finally {
@@ -74,7 +87,7 @@ export default function MasterStoresPage() {
   useEffect(() => {
     apiGet("/stores", { limit: 100 })
       .then((data) => {
-        const s = data.stores ?? [];
+        const s = data?.data?.stores ?? [];
         setOpts({
           regions:   [...new Set(s.map((x) => x.region).filter(Boolean))].sort(),
           states:    [...new Set(s.map((x) => x.state).filter(Boolean))].sort(),
@@ -108,71 +121,102 @@ export default function MasterStoresPage() {
 
   const handleDeleteStore = (store) => setDeleteTarget(store);
 
-  const handleSaveStore = () => { 
-    setModal(null); 
-    fetchStores(); 
+  const handleSaveStore = (result) => {
+    setModal(null);
+    fetchStores();
+    addToast(result?.message ?? "Store saved successfully");
   };
 
-  const handleDeleteConfirm = () => { 
-    setDeleteTarget(null); 
-    fetchStores(); 
+  const handleDeleteConfirm = (result) => {
+    setDeleteTarget(null);
+    fetchStores();
+    addToast(result?.message ?? "Store deleted successfully");
   };
+
+  const TABS = [
+    { key: "stores", label: "Master Stores" },
+    { key: "upload", label: "Upload Master Stores" },
+  ];
 
   return (
     <AppLayout>
       <div className="h-full flex flex-col gap-4">
-        {/* Page header */}
-        <div className="flex items-start justify-between flex-shrink-0">
-          <div>
-            <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Stores</h1>
-            <p style={{ color: th.textSec }} className="mt-1 text-sm">
-              {loading ? "Loading…" : `${total} store${total !== 1 ? "s" : ""} total`}
-            </p>
+        {/* Page header + tab bar */}
+        <div className="flex-shrink-0">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Stores</h1>
+              {/* {activeTab === "stores" && (
+                <p style={{ color: th.textSec }} className="mt-1 text-sm">
+                  {loading ? "Loading…" : `${total} store${total !== 1 ? "s" : ""} total`}
+                </p>
+              )} */}
+            </div>
+            {/* {activeTab === "stores" && (
+              <button
+                onClick={handleAddStore}
+                style={{ backgroundColor: th.accent }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add Store
+              </button>
+            )} */}
           </div>
-          <button
-            onClick={handleAddStore}
-            style={{ backgroundColor: th.accent }}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Add Store
-          </button>
+
+          {/* Tab switcher */}
+          <div className="flex border-b" style={{ borderColor: th.border }}>
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px"
+                style={{
+                  color: activeTab === tab.key ? th.accent : th.textSec,
+                  borderBottomColor: activeTab === tab.key ? th.accent : "transparent",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Filter bar */}
-        <FilterBar
-          searchQuery={searchQuery}
-          regionFilter={regionFilter}
-          stateFilter={stateFilter}
-          districtFilter={districtFilter}
-          regions={opts.regions}
-          states={opts.states}
-          districts={opts.districts}
-          hasFilters={hasFilters}
-          onSearchChange={handleSearchChange}
-          onRegionChange={handleFilterChange(setRegionFilter)}
-          onStateChange={handleFilterChange(setStateFilter)}
-          onDistrictChange={handleFilterChange(setDistrictFilter)}
-          onClearFilters={handleClearFilters}
-          theme={th}
-        />
-
-        {/* Table — flex-1 fills remaining height */}
-        <StoresTable
-          stores={stores}
-          total={total}
-          page={page}
-          totalPages={totalPages}
-          loading={loading}
-          apiError={apiError}
-          onPageChange={setPage}
-          onEdit={handleEditStore}
-          onDelete={handleDeleteStore}
-          onRetry={fetchStores}
-          theme={th}
-        />
+        {/* Tab content */}
+        {activeTab === "stores" ? (
+          <>
+            <FilterBar
+              searchQuery={searchQuery}
+              searchPlaceholder="Search stores…"
+              dropdowns={[
+                { allLabel: "All Regions",   value: regionFilter,   options: opts.regions,   onChange: handleFilterChange(setRegionFilter) },
+                { allLabel: "All States",    value: stateFilter,    options: opts.states,    onChange: handleFilterChange(setStateFilter) },
+                { allLabel: "All Districts", value: districtFilter, options: opts.districts, onChange: handleFilterChange(setDistrictFilter) },
+              ]}
+              hasFilters={hasFilters}
+              onSearchChange={handleSearchChange}
+              onClearFilters={handleClearFilters}
+              theme={th}
+            />
+            <StoresTable
+              stores={stores}
+              total={total}
+              page={page}
+              totalPages={totalPages}
+              loading={loading}
+              apiError={apiError}
+              onPageChange={setPage}
+              onEdit={handleEditStore}
+              onDelete={handleDeleteStore}
+              onRetry={fetchStores}
+              theme={th}
+            />
+          </>
+        ) : (
+          <UploadStoresTab theme={th} addToast={addToast} />
+        )}
       </div>
 
       {/* Modals */}
@@ -187,12 +231,17 @@ export default function MasterStoresPage() {
 
       {deleteTarget && (
         <DeleteModal
-          store={deleteTarget}
+          displayName={`Store #${deleteTarget.store}`}
+          detailLine1={deleteTarget.store_leader || "No leader"}
+          detailLine2={[deleteTarget.city, deleteTarget.state].filter(Boolean).join(", ")}
+          apiPath={`/stores/${deleteTarget.store}`}
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleteConfirm}
           theme={th}
         />
       )}
+
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </AppLayout>
   );
 }

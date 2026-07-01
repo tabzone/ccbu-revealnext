@@ -62,12 +62,12 @@ export default function Navbar({ onToggleSidebar }) {
         borderColor: borderColor,
       }}
     >
-      <div className="flex items-center justify-between h-16 px-6 gap-6">
+      <div className="flex items-center justify-between h-16 px-6 gap-4">
 
         {/* Sidebar toggle */}
         <button
           onClick={onToggleSidebar}
-          className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 flex-shrink-0"
+          className="flex items-center cursor-pointer justify-center w-9 h-9 rounded-lg transition-all duration-200 flex-shrink-0"
           style={{ color: textSecondary }}
           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; e.currentTarget.style.color = textPrimary; }}
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = textSecondary; }}
@@ -84,12 +84,13 @@ export default function Navbar({ onToggleSidebar }) {
         <Link href="/" className="flex-shrink-0">
           <img src="/logo.avif" alt="logo" className="h-10 w-auto" />
         </Link>
+        <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} className="ml-5"/>
 
         {/* Left Section - Back Button & Project Info */}
         {isRetailerPlanogram && (
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/manageReports")}
               className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 cursor-pointer"
               style={{
                 color: textSecondary,
@@ -115,7 +116,7 @@ export default function Navbar({ onToggleSidebar }) {
               </svg>
             </button>
 
-            <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} />
+            <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }}  />
 
             <div className="flex flex-col gap-1">
               <h1 style={{ color: textPrimary }} className="text-base font-semibold">
@@ -223,7 +224,7 @@ export default function Navbar({ onToggleSidebar }) {
               <div
                 className="absolute right-0 mt-3  rounded-xl shadow-2xl overflow-hidden z-50"
                 style={{
-                     width: "200px",
+                  width: "200px",
                   backgroundColor: dropdownBg,
                   border: `1px solid ${dropdownBorder}`,
                 }}

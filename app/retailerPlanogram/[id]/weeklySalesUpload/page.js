@@ -26,7 +26,7 @@ const HISTORY = [
   { dataset: "Planogram Data", file: "-", user: "-", status: "Pending", date: "-" },
 ];
 
-export default function UploadsPage() {
+export default function WeeklySalesUploadPage() {
   const { theme } = useTheme();
   const [selectedFileType, setSelectedFileType] = useState("");
   const [uploadedFile, setUploadedFile] = useState(null);

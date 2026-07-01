@@ -2,12 +2,10 @@
 
 import { PAGE_SIZE } from "@/data/constants";
 
+const COLS = ["UPC", "Item Description", "Brand", "Manufacturer", "Category", "Sub-Category", "Segment", "Size", ""];
 
-
-const COLS = ["Store #", "Store Leader", "Address", "City", "State", "District", "Region", "Phone", "Opened", "Kitchen", ""];
-
-export function StoresTable({
-  stores,
+export function ProductsTable({
+  products,
   total,
   page,
   totalPages,
@@ -20,16 +18,15 @@ export function StoresTable({
   theme,
 }) {
   const { bg, bgSub, border, textPri, textSec, hover, accent } = theme;
-  const isDark = theme.accent === "#f87171";
 
   const pageNumbers = (() => {
-    const max = Math.min(totalPages, 5);
+    const max   = Math.min(totalPages, 5);
     const start = Math.max(0, Math.min(page - 2, totalPages - max));
     return Array.from({ length: max }, (_, i) => start + i);
   })();
 
   const paginationStart = page * PAGE_SIZE + 1;
-  const paginationEnd = Math.min((page + 1) * PAGE_SIZE, total);
+  const paginationEnd   = Math.min((page + 1) * PAGE_SIZE, total);
 
   return (
     <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden">
@@ -42,7 +39,6 @@ export function StoresTable({
         </div>
       ) : (
         <>
-          {/* Table — scrollable body, sticky header */}
           <div className="overflow-auto flex-1 min-h-0">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
@@ -64,72 +60,52 @@ export function StoresTable({
                       <tr key={i} style={{ borderColor: border }} className="border-b">
                         {COLS.map((_, j) => (
                           <td key={j} className="px-5 py-4">
-                            <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-20" />
+                            <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-24" />
                           </td>
                         ))}
                       </tr>
                     ))
-                  : stores.length === 0
+                  : products.length === 0
                   ? (
                       <tr>
                         <td colSpan={COLS.length} className="py-16 text-center">
-                          <p style={{ color: textSec }} className="text-sm">No stores found</p>
+                          <p style={{ color: textSec }} className="text-sm">No products found</p>
                         </td>
                       </tr>
                     )
-                  : stores.map((row) => (
+                  : products.map((row) => (
                       <tr
-                        key={row.store}
+                        key={row.upc}
                         style={{ borderColor: border }}
-                        className="border-b transition-colors cursor-pointer"
+                        className="border-b transition-colors"
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
-                        <td style={{ color: accent }} className="px-5 py-3.5 font-bold text-sm">{row.store}</td>
-                        <td style={{ color: textPri }} className="px-5 py-3.5 font-medium text-sm whitespace-nowrap">
-                          {row.store_leader ?? "—"}
+                        <td style={{ color: accent }} className="px-5 py-3.5 font-bold text-sm whitespace-nowrap">
+                          {row.upc}
                         </td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.address ?? "—"}</td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.city ?? "—"}</td>
+                        <td style={{ color: textPri }} className="px-5 py-3.5 font-medium text-sm max-w-[220px] truncate" title={row.item_desc}>
+                          {row.item_desc ?? "—"}
+                        </td>
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.brand ?? "—"}</td>
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.manufacturer ?? "—"}</td>
                         <td className="px-5 py-3.5">
-                          {row.state ? (
+                          {row.category ? (
                             <span
-                              style={{
-                                backgroundColor: isDark ? "#1e2d45" : "#eff6ff",
-                                color: isDark ? "#93c5fd" : "#1d4ed8",
-                              }}
-                              className="inline-flex px-2.5 py-1 rounded text-xs font-semibold"
+                              style={{ backgroundColor: "#eff6ff", color: "#1d4ed8" }}
+                              className="inline-flex px-2.5 py-1 rounded text-xs font-semibold whitespace-nowrap"
                             >
-                              {row.state}
+                              {row.category}
                             </span>
                           ) : <span style={{ color: textSec }}>—</span>}
                         </td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.district ?? "—"}</td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.region ?? "—"}</td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.phone ?? "—"}</td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.opened ?? "—"}</td>
-                        <td className="px-5 py-3.5">
-                          {row.kitchen ? (
-                            <span
-                              style={{
-                                backgroundColor: isDark ? "#1a472a" : "#f0fdf4",
-                                color: "#16a34a",
-                              }}
-                              className="inline-flex px-2.5 py-1 rounded text-xs font-semibold"
-                            >
-                              Yes
-                            </span>
-                          ) : (
-                            <span style={{ color: textSec }}>—</span>
-                          )}
-                        </td>
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.sub_category_desc ?? "—"}</td>
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.segment ?? "—"}</td>
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.size_desc ?? "—"}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(row);
-                              }}
+                              onClick={(e) => { e.stopPropagation(); onEdit(row); }}
                               style={{ color: textSec }}
                               className="p-1.5 rounded hover:opacity-60 transition"
                               title="Edit"
@@ -139,12 +115,10 @@ export function StoresTable({
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                               </svg>
                             </button>
-                            {/* <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(row);
-                              }}
-                              className="p-1.5 rounded hover:opacity-60 transition text-red-500"
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onDelete(row); }}
+                              className="p-1.5 rounded hover:opacity-60 transition"
+                              style={{ color: "#dc2626" }}
                               title="Delete"
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -153,7 +127,7 @@ export function StoresTable({
                                 <path d="M10 11v6M14 11v6" />
                                 <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                               </svg>
-                            </button> */}
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -162,34 +136,20 @@ export function StoresTable({
             </table>
           </div>
 
-          {/* Pagination footer — always visible at bottom */}
+          {/* Pagination footer */}
           <div style={{ borderColor: border, backgroundColor: bg }} className="border-t px-5 py-4 flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
             <span style={{ color: textSec }} className="text-sm">
               {loading
                 ? "Loading…"
                 : total === 0
                 ? "No results"
-                : `${paginationStart}–${paginationEnd} of ${total} stores`}
+                : `${paginationStart}–${paginationEnd} of ${total} products`}
             </span>
 
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => onPageChange(0)}
-                  disabled={page === 0}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {"<<"}
-                </button>
-                <button
-                  onClick={() => onPageChange(page - 1)}
-                  disabled={page === 0}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {"<"}
-                </button>
+                <button onClick={() => onPageChange(0)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<<"}</button>
+                <button onClick={() => onPageChange(page - 1)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<"}</button>
 
                 {pageNumbers.map((p) => (
                   <button
@@ -206,22 +166,8 @@ export function StoresTable({
                   </button>
                 ))}
 
-                <button
-                  onClick={() => onPageChange(page + 1)}
-                  disabled={page >= totalPages - 1}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {">"}
-                </button>
-                <button
-                  onClick={() => onPageChange(totalPages - 1)}
-                  disabled={page >= totalPages - 1}
-                  style={{ borderColor: border, color: textPri }}
-                  className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition"
-                >
-                  {">>"}
-                </button>
+                <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">"}</button>
+                <button onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">>"}</button>
               </div>
             )}
           </div>

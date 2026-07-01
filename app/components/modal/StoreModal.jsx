@@ -49,10 +49,12 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
         body.store = parseInt(body.store, 10);
       }
 
+      
+
       if (isEdit) delete body.store;
 
       const savedStore = isEdit
-        ? await apiPatch(`/stores/${store.store}`, body)
+        ? await apiPost(`/stores/${store.store}`, body)
         : await apiPost("/stores", body);
 
       onSaved(savedStore);
