@@ -32,7 +32,7 @@ export function StoresTable({
   const paginationEnd = Math.min((page + 1) * PAGE_SIZE, total);
 
   return (
-    <div style={{ backgroundColor: bg, borderColor: border }} className="rounded-xl border overflow-hidden shadow-sm">
+    <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden">
       {apiError ? (
         <div className="py-20 text-center">
           <p style={{ color: accent }} className="font-medium text-sm">Failed to load: {apiError}</p>
@@ -42,15 +42,15 @@ export function StoresTable({
         </div>
       ) : (
         <>
-          {/* Table */}
-          <div className="overflow-x-auto">
+          {/* Table — scrollable body, sticky header */}
+          <div className="overflow-auto flex-1 min-h-0">
             <table className="w-full">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
                   {COLS.map((h) => (
                     <th
                       key={h}
-                      style={{ color: textSec }}
+                      style={{ color: textSec, backgroundColor: bgSub }}
                       className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
                     >
                       {h}
@@ -126,7 +126,10 @@ export function StoresTable({
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={() => onEdit(row)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(row);
+                              }}
                               style={{ color: textSec }}
                               className="p-1.5 rounded hover:opacity-60 transition"
                               title="Edit"
@@ -137,7 +140,10 @@ export function StoresTable({
                               </svg>
                             </button>
                             <button
-                              onClick={() => onDelete(row)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(row);
+                              }}
                               className="p-1.5 rounded hover:opacity-60 transition text-red-500"
                               title="Delete"
                             >
@@ -156,8 +162,8 @@ export function StoresTable({
             </table>
           </div>
 
-          {/* Pagination footer */}
-          <div style={{ borderColor: border }} className="border-t px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+          {/* Pagination footer — always visible at bottom */}
+          <div style={{ borderColor: border, backgroundColor: bg }} className="border-t px-5 py-4 flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
             <span style={{ color: textSec }} className="text-sm">
               {loading
                 ? "Loading…"

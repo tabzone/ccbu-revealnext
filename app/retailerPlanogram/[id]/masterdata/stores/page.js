@@ -6,7 +6,8 @@ import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import { StoreModal } from "@/app/components/modal/StoreModal";
 import { StoresTable } from "@/app/components/table/StoresTable";
 import { useTheme } from "@/app/components/ThemeProvider";
-import { PAGE_SIZE, url } from "@/data/constants";
+import { apiGet } from "@/lib/api";
+import { PAGE_SIZE } from "@/data/constants";
 import { useCallback, useEffect, useState } from "react";
 
 
@@ -32,10 +33,17 @@ export default function MasterStoresPage() {
 
   const [opts, setOpts] = useState({ regions: [], states: [], districts: [] });
 
+  const [searchQuery,    setSearchQuery]    = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [regionFilter,   setRegionFilter]   = useState("");
   const [stateFilter,    setStateFilter]    = useState("");
   const [districtFilter, setDistrictFilter] = useState("");
   const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(0); }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   const [modal, setModal]               = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -44,15 +52,14 @@ export default function MasterStoresPage() {
     setLoading(true);
     setApiError(null);
     try {
-      const res  = await fetch(url("/stores", {
+      const data = await apiGet("/stores", {
         skip:     page * PAGE_SIZE,
         limit:    PAGE_SIZE,
+        search:   debouncedSearch,
         region:   regionFilter,
         state:    stateFilter,
         district: districtFilter,
-      }));
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      });
       setStores(data.stores ?? []);
       setTotal(data.total ?? 0);
     } catch (err) {
@@ -60,13 +67,12 @@ export default function MasterStoresPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, regionFilter, stateFilter, districtFilter]);
+  }, [page, debouncedSearch, regionFilter, stateFilter, districtFilter]);
 
   useEffect(() => { fetchStores(); }, [fetchStores]);
 
   useEffect(() => {
-    fetch(url("/stores", { limit: 100 }))
-      .then((r) => r.json())
+    apiGet("/stores", { limit: 100 })
       .then((data) => {
         const s = data.stores ?? [];
         setOpts({
@@ -79,17 +85,20 @@ export default function MasterStoresPage() {
   }, []);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const hasFilters = regionFilter || stateFilter || districtFilter;
+  const hasFilters = searchQuery || regionFilter || stateFilter || districtFilter;
 
-  const handleFilterChange = (setter) => (e) => { 
-    setter(e.target.value); 
-    setPage(0); 
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(0);
   };
 
   const handleClearFilters = () => {
-    setRegionFilter(""); 
-    setStateFilter(""); 
-    setDistrictFilter(""); 
+    setSearchQuery("");
+    setRegionFilter("");
+    setStateFilter("");
+    setDistrictFilter("");
     setPage(0);
   };
 
@@ -111,9 +120,9 @@ export default function MasterStoresPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto">
+      <div className="h-full flex flex-col gap-4">
         {/* Page header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between flex-shrink-0">
           <div>
             <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Stores</h1>
             <p style={{ color: th.textSec }} className="mt-1 text-sm">
@@ -133,7 +142,8 @@ export default function MasterStoresPage() {
         </div>
 
         {/* Filter bar */}
-        <FilterBar 
+        <FilterBar
+          searchQuery={searchQuery}
           regionFilter={regionFilter}
           stateFilter={stateFilter}
           districtFilter={districtFilter}
@@ -141,6 +151,7 @@ export default function MasterStoresPage() {
           states={opts.states}
           districts={opts.districts}
           hasFilters={hasFilters}
+          onSearchChange={handleSearchChange}
           onRegionChange={handleFilterChange(setRegionFilter)}
           onStateChange={handleFilterChange(setStateFilter)}
           onDistrictChange={handleFilterChange(setDistrictFilter)}
@@ -148,8 +159,8 @@ export default function MasterStoresPage() {
           theme={th}
         />
 
-        {/* Table */}
-        <StoresTable 
+        {/* Table — flex-1 fills remaining height */}
+        <StoresTable
           stores={stores}
           total={total}
           page={page}

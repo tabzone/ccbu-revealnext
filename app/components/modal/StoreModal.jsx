@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { EMPTY_FORM, FIELDS, url } from "@/data/constants";
+import { EMPTY_FORM, FIELDS } from "@/data/constants";
+import { apiPost, apiPatch } from "@/lib/api";
 
 export function StoreModal({ store, onClose, onSaved, theme }) {
   const isEdit = !!store;
@@ -49,28 +49,13 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
         body.store = parseInt(body.store, 10);
       }
 
-      const endpoint = `/stores`
-      const method = isEdit ? "PATCH" : "POST";
-
       if (isEdit) delete body.store;
 
-      const res = await fetch(url(endpoint), {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
+      const savedStore = isEdit
+        ? await apiPatch(`/stores/${store.store}`, body)
+        : await apiPost("/stores", body);
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const msg = Array.isArray(err.detail)
-          ? err.detail.map((d) => d.msg).join(", ")
-          : err.detail ?? `Error ${res.status}`;
-        throw new Error(msg);
-      }
-
-      onSaved(await res.json());
+      onSaved(savedStore);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -82,25 +67,6 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
     backgroundColor: bgSub,
     border: `1px solid ${border}`,
     color: textPri,
-  };
-
-  const overlayStyle = {
-    position: "fixed",
-    inset: 0,
-    zIndex: 9999,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  };
-
-  const modalStyle = {
-    backgroundColor: bg,
-    borderColor: border,
-    height: "min(90vh, calc(100vh - 2rem))",
-    maxHeight: "calc(100vh - 2rem)",
-    minHeight: 0,
   };
 
   const fieldByKey = Object.fromEntries(FIELDS.map((field) => [field.key, field]));
@@ -145,16 +111,18 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
     </section>
   );
 
-  const modal = (
+  return (
     <div
-      className="p-4 backdrop-blur-sm sm:p-6"
-      style={overlayStyle}
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm sm:p-6"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
-        style={modalStyle}
+        className="flex h-[90dvh] max-h-[calc(100dvh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl sm:max-h-[calc(100dvh-3rem)]"
+        style={{
+          backgroundColor: bg,
+          borderColor: border,
+        }}
       >
         <div
           className="shrink-0 border-b px-6 py-5"
@@ -181,15 +149,8 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-1 flex-col"
-          style={{ minHeight: 0 }}
-        >
-          <div
-            className="flex-1 p-5 sm:p-6 lg:p-8"
-            style={{ minHeight: 0, overflowY: "auto", overscrollBehavior: "contain" }}
-          >
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6 lg:p-8">
             {error && (
               <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
                 {error}
@@ -266,8 +227,4 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
       </div>
     </div>
   );
-
-  if (typeof document === "undefined") return null;
-
-  return createPortal(modal, document.body);
 }

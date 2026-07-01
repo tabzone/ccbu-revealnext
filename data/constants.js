@@ -1,4 +1,4 @@
-const BASE = "https://zu1h93jspd.execute-api.us-east-1.amazonaws.com/";
+const BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const PAGE_SIZE = 20;
 
 export function url(path, params = {}) {
