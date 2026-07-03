@@ -296,7 +296,7 @@ export default function MasterStoresPage() {
           displayName={`Store #${deleteTarget.store}`}
           detailLine1={deleteTarget.store_leader || "No leader"}
           detailLine2={[deleteTarget.city, deleteTarget.state].filter(Boolean).join(", ")}
-          apiPath={`/stores/${deleteTarget.store}`}
+          apiPath={`/deletestore/${deleteTarget.store}`}
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleteConfirm}
           theme={th}

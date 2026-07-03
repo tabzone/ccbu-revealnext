@@ -54,7 +54,7 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
       if (isEdit) delete body.store;
 
       const savedStore = isEdit
-        ? await apiPost(`/stores/${store.store}`, body)
+        ? await apiPost(`/updatestore/${store.store}`, body)
         : await apiPost("/stores", body);
 
       onSaved(savedStore);

@@ -1,6 +1,6 @@
 "use client";
 
-import { apiDelete } from "@/lib/api";
+import { apiDelete, apiPost } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -38,7 +38,7 @@ export function DeleteModal({
     setDeleting(true);
     setError(null);
     try {
-      const result = await apiDelete(apiPath);
+      const result = await apiPost(apiPath);
       onDeleted(result);
     } catch (err) {
       setError(err.message);

@@ -214,7 +214,7 @@ export function UploadTab({ cards, theme, addToast }) {
     addToast?.(message);
     fetchHistory();
   };
-
+ 
   return (
     <div className="flex flex-col gap-5 flex-1 min-h-0">
       {/* Download templates row */}

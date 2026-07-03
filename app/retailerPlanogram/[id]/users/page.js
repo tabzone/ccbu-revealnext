@@ -7,7 +7,7 @@ import { UserModal } from "@/app/components/modal/UserModal";
 import { UsersTable } from "@/app/components/table/UsersTable";
 import { Toast } from "@/app/components/Toast";
 import { useTheme } from "@/app/components/ThemeProvider";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPut } from "@/lib/api";
 import { PAGE_SIZE } from "@/data/constants";
 import { useCallback, useEffect, useState } from "react";
 
@@ -44,35 +44,30 @@ export default function MasterUsersPage() {
   const isDark = mode === "dark";
 
   const th = {
-    bg:       isDark ? "#191919" : "#ffffff",
-    bgSub:    isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop:   isDark ? "#242424" : "#ffffff",
-    border:   isDark ? "#333333" : "#e5e7eb",
-    textPri:  isDark ? "#e5e7eb" : "#1f2937",
-    textSec:  isDark ? "#9ca3af" : "#6b7280",
-    hover:    isDark ? "#242424" : "#f9fafb",
-    accent:   isDark ? "#f87171" : "#dc2626",
+    bg: isDark ? "#191919" : "#ffffff",
+    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
+    bgDrop: isDark ? "#242424" : "#ffffff",
+    border: isDark ? "#333333" : "#e5e7eb",
+    textPri: isDark ? "#e5e7eb" : "#1f2937",
+    textSec: isDark ? "#9ca3af" : "#6b7280",
+    hover: isDark ? "#242424" : "#f9fafb",
+    accent: isDark ? "#f87171" : "#dc2626",
   };
 
-  const [users, setUsers]       = useState([]);
-  const [total, setTotal]       = useState(0);
-  const [loading, setLoading]   = useState(true);
+  const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
 
   const [opts, setOpts] = useState({ roles: [] });
 
-  const [searchQuery,    setSearchQuery]    = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [roleFilter,     setRoleFilter]     = useState("");
-  const [statusFilter,   setStatusFilter]   = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(0);
   const [sortBy, setSortBy] = useState("");
   const [sortDir, setSortDir] = useState("asc");
-
-  // Reset page immediately when search starts (not in debounce)
-  useEffect(() => {
-    setPage(0);
-  }, [searchQuery]);
 
   // Debounce the search query separately
   useEffect(() => {
@@ -90,9 +85,10 @@ export default function MasterUsersPage() {
     setPage(0);
   };
 
-  const [modal, setModal]               = useState(null);
+  const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [toasts, setToasts]             = useState([]);
+  const [toasts, setToasts] = useState([]);
+  const [statusUpdatingUserId, setStatusUpdatingUserId] = useState(null);
 
   const addToast = (message, type = "success") => {
     const id = Date.now();
@@ -115,18 +111,18 @@ export default function MasterUsersPage() {
       } else {
         // List API: pagination + filters only (no sort params)
         res = await apiGet("/users", {
-          skip:   page * PAGE_SIZE,
-          limit:  PAGE_SIZE,
-          role:   roleFilter,
+          skip: page * PAGE_SIZE,
+          limit: PAGE_SIZE,
+          role: roleFilter,
           active: statusFilter,
         });
       }
       const payload = res?.data ?? res;
       let fetchedUsers = payload?.users ?? [];
-      
+
       // Apply frontend sorting
       fetchedUsers = sortUsers(fetchedUsers, sortBy, sortDir);
-      
+
       setUsers(fetchedUsers);
       setTotal(payload?.total ?? 0);
     } catch (err) {
@@ -136,6 +132,7 @@ export default function MasterUsersPage() {
     }
   }, [page, debouncedSearch, roleFilter, statusFilter, sortBy, sortDir]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   // Populate filter dropdowns
@@ -147,13 +144,16 @@ export default function MasterUsersPage() {
           roles: [...new Set(u.map((x) => x.role).filter(Boolean))].sort(),
         });
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const hasFilters = searchQuery || roleFilter || statusFilter;
 
-  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPage(0);
+  };
 
   const handleFilterChange = (setter) => (e) => {
     setter(e.target.value);
@@ -186,22 +186,58 @@ export default function MasterUsersPage() {
   };
 
   const handleToggleStatus = async (user) => {
+    if (statusUpdatingUserId === user.userid) return;
+
+    const isActive = typeof user.active === "boolean"
+      ? user.active
+      : user.status === "Active";
+    const nextActive = !isActive;
+
+    setStatusUpdatingUserId(user.userid);
     try {
-      const response = await fetch(`/api/users/${user.uid}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: !user.active }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to update status");
-      
-      fetchUsers();
-      const status = !user.active ? "activated" : "deactivated";
+      const body = { active: nextActive };
+      const status = nextActive ? "activated" : "deactivated";
+      await apiPut(`/users/${user.userid}/status`, body);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.userid === user.userid
+            ? {
+              ...u,
+              active: nextActive,
+              status: nextActive ? "Active" : "Inactive",
+            }
+            : u
+        )
+      );
       addToast(`User ${status} successfully`);
     } catch (err) {
       addToast(err.message, "error");
+    } finally {
+      setStatusUpdatingUserId(null);
     }
   };
+  // const handleToggleStatus = async (user) => {
+  //   try {
+  //     await apiPut(`/users/${user.userid}/status`, {
+  //       status: user.status === "Active" ? "Inactive" : "Active",
+  //     });
+
+  //     setUsers((prev) =>
+  //       prev.map((u) =>
+  //         u.userid === user.userid
+  //           ? {
+  //             ...u,
+  //             status: u.status === "Active" ? "Inactive" : "Active",
+  //           }
+  //           : u
+  //       )
+  //     );
+
+  //     addToast("User status updated successfully");
+  //   } catch (err) {
+  //     addToast(err.message, "error");
+  //   }
+  // };
 
   return (
     <AppLayout>
@@ -234,17 +270,17 @@ export default function MasterUsersPage() {
           searchQuery={searchQuery}
           searchPlaceholder="Search users by name or email…"
           dropdowns={[
-            { 
-              allLabel: "All Roles", 
-              value: roleFilter, 
-              options: opts.roles, 
-              onChange: handleFilterChange(setRoleFilter) 
+            {
+              allLabel: "All Roles",
+              value: roleFilter,
+              options: opts.roles,
+              onChange: handleFilterChange(setRoleFilter)
             },
-            { 
-              allLabel: "All Statuses", 
-              value: statusFilter, 
-              options: ["active", "inactive"], 
-              onChange: handleFilterChange(setStatusFilter) 
+            {
+              allLabel: "All Statuses",
+              value: statusFilter,
+              options: ["active", "inactive"],
+              onChange: handleFilterChange(setStatusFilter)
             },
           ]}
           hasFilters={hasFilters}
@@ -267,6 +303,7 @@ export default function MasterUsersPage() {
           onEdit={handleEditUser}
           onDelete={handleDeleteUser}
           onToggleStatus={handleToggleStatus}
+          statusUpdatingUserId={statusUpdatingUserId}
           onRetry={fetchUsers}
           theme={th}
         />
@@ -287,7 +324,7 @@ export default function MasterUsersPage() {
           displayName={`${deleteTarget.fname} ${deleteTarget.lname}`}
           detailLine1={deleteTarget.email}
           detailLine2={deleteTarget.role || "User"}
-          apiPath={`/users/${deleteTarget.uid}`}
+          apiPath={`/users/${deleteTarget.userid}`}
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleteConfirm}
           theme={th}

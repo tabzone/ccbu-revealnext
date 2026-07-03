@@ -352,7 +352,7 @@ export default function MasterProductsPage() {
           displayName={`UPC ${deleteTarget.upc}`}
           detailLine1={deleteTarget.item_desc || "—"}
           detailLine2={[deleteTarget.brand, deleteTarget.manufacturer].filter(Boolean).join(" — ")}
-          apiPath={`/products/${deleteTarget.upc}`}
+          apiPath={`/deleteproduct/${deleteTarget.upc}`}
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleteConfirm}
           theme={th}

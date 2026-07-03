@@ -15,7 +15,7 @@ const UppyDash = ({ uppy }) => {
         height={'300px'}
         style={{ border: 0 }}
       />
-    </div>
+    </div> 
   )
 }
 export default UppyDash

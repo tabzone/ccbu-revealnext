@@ -33,7 +33,7 @@ export function ProductModal({ product, onClose, onSaved, theme }) {
       if (isEdit) delete body.upc;
 
       const result = isEdit
-        ? await apiPost(`/products/${product.upc}`, body)
+        ? await apiPost(`/updateproduct/${product.upc}`, body)
         : await apiPost("/products", body);
 
       onSaved(result);
