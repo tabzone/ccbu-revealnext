@@ -15,7 +15,7 @@ export default function ManageReports() {
     setError(null);
     try {
       const res = await apiGet("/retailers");
-      const list = res?.data?.retailers ?? res?.data ?? [];
+      const list = res?.retailers ?? res?.data ?? [];
       setRetailers(list);
     } catch (err) {
       setError(err.message);

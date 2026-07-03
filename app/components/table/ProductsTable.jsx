@@ -163,7 +163,7 @@ export function ProductsTable({
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                               </svg>
                             </button>
-                            <button
+                            {/* <button
                               onClick={(e) => { e.stopPropagation(); onDelete(row); }}
                               className="p-1.5 rounded hover:opacity-60 transition"
                               style={{ color: "#dc2626" }}
@@ -175,7 +175,7 @@ export function ProductsTable({
                                 <path d="M10 11v6M14 11v6" />
                                 <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                               </svg>
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </tr>

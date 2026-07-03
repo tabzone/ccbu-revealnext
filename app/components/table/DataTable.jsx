@@ -33,9 +33,9 @@ export default function DataTable({ rows, loading }) {
         <table className="min-w-full">
           <thead className="sticky top-0 bg-gray-50 border-b z-10">
             <tr>
-              {COLUMNS.map((col) => (
+              {COLUMNS.map((col,ind) => (
                 <th
-                  key={col}
+                  key={ind}
                   className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
                 >
                   {col}
@@ -59,7 +59,7 @@ export default function DataTable({ rows, loading }) {
               </tr>
             ) : rows.length ? (
               rows.map((row) => {
-                const rid = row.rid ?? row.id;
+                const rid = row.retailerid ?? row.id;
                 const name = row.name ?? row.retailer_name ?? "—";
                 const setStatus = row.set_status ?? row.setStatus ?? "—";
                 const status = row.status ?? "—";

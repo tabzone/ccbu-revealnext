@@ -1,62 +1,43 @@
 "use client";
 
+import { createPortal } from "react-dom";
+import Uppy from "@uppy/core";
+import Dashboard from "@uppy/react/dashboard";
+import "@uppy/core/css/style.min.css";
+import "@uppy/dashboard/css/style.css";
 import AppLayout from "@/app/components/layout/AppLayout";
 import { FilterBar } from "@/app/components/FilterBar";
 import { ProductsTable } from "@/app/components/table/ProductsTable";
 import { ProductModal } from "@/app/components/modal/ProductModal";
 import { DeleteModal } from "@/app/components/modal/DeleteModal";
 import { Toast } from "@/app/components/Toast";
-import { UploadTab } from "@/app/components/UploadTab";
 import { useTheme } from "@/app/components/ThemeProvider";
-import { apiGet } from "@/lib/api";
-import { PAGE_SIZE } from "@/data/constants";
-import { useCallback, useEffect, useState } from "react";
+import { apiGet, apiPost } from "@/lib/api";
+import { PAGE_SIZE, url } from "@/data/constants";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // ─── Icons for upload cards ───────────────────────────────────────────────────
 
-function ProductIcon({ color }) {
+function DownloadIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <path d="M16 10a4 4 0 01-8 0" />
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
 }
 
-function PlanogramIcon({ color }) {
+function UploadIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
   );
 }
-
-const UPLOAD_CARDS = [
-  {
-    key: "products",
-    title: "Products Upload",
-    description: "Upload master products data (CSV or Excel)",
-    uploadPath: "/products/upload",
-    downloadPath: "/products/template",
-    downloadLabel: "Products Template",
-    historyPath: "/products/uploads",
-    Icon: ProductIcon,
-  },
-  {
-    key: "planograms",
-    title: "Planogram Upload",
-    description: "Upload planogram master data (CSV or Excel)",
-    uploadPath: "/planograms/upload",
-    downloadPath: "/planograms/template",
-    downloadLabel: "Planogram Template",
-    historyPath: "/planograms/uploads",
-    Icon: PlanogramIcon,
-  },
-];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -93,7 +74,443 @@ function sortProducts(products, sortBy, sortDir) {
   return sortDir === "desc" ? sorted.reverse() : sorted;
 }
 
+const PRODUCT_UPLOAD_POLL_INTERVAL_MS = 2000;
+const PRODUCT_UPLOAD_TIMEOUT_MS = 2 * 60 * 1000;
+const PRODUCT_UPLOAD_FILE_TYPES = [".xlsx", ".xls", ".csv"];
+
+function normalizeUploadStatus(value) {
+  const status = String(value ?? "").toLowerCase();
+  if (["success", "succeeded", "completed", "complete"].includes(status)) return "success";
+  if (["failed", "failure", "error"].includes(status)) return "failed";
+  return "pending";
+}
+
+function extractUploadRows(payload) {
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.uploads)) return data.uploads;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.history)) return data.history;
+  return [];
+}
+
+function StatusBadge({ status }) {
+  const normalized = normalizeUploadStatus(status);
+  const config = {
+    success: { bg: "#dcfce7", color: "#15803d", label: "Success" },
+    failed: { bg: "#fee2e2", color: "#dc2626", label: "Failed" },
+    pending: { bg: "#fef9c3", color: "#b45309", label: "Pending" },
+  }[normalized];
+
+  return (
+    <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: config.bg, color: config.color }}>
+      {config.label}
+    </span>
+  );
+}
+
+function waitForUploadPoll(ms, timerRef, cancelledRef) {
+  return new Promise((resolve, reject) => {
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      if (cancelledRef.current) {
+        reject(new Error("Upload status polling was cancelled"));
+      } else {
+        resolve();
+      }
+    }, ms);
+  });
+}
+
+function uploadFileToS3({ uppy, file, uploadUrl, s3Key, xhrRef }) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhrRef.current = xhr;
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      uppy.emit("upload-progress", file, {
+        uploader: "s3-presigned-url",
+        bytesUploaded: event.loaded,
+        bytesTotal: event.total,
+      });
+    };
+
+    xhr.onload = () => {
+      xhrRef.current = null;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        uppy.emit("upload-success", file, {
+          status: xhr.status,
+          uploadURL: s3Key ?? uploadUrl,
+          body: null,
+        });
+        resolve();
+        return;
+      }
+
+      reject(new Error(`S3 upload failed (${xhr.status})`));
+    };
+
+    xhr.onerror = () => {
+      xhrRef.current = null;
+      reject(new Error("S3 upload failed"));
+    };
+
+    xhr.onabort = () => {
+      xhrRef.current = null;
+      reject(new Error("S3 upload was cancelled"));
+    };
+
+    xhr.open("PUT", uploadUrl);
+    if (file.type) xhr.setRequestHeader("Content-Type", file.type);
+    xhr.send(file.data);
+  });
+}
+
+function ProductUploadModal({ retailerId, theme, onClose, onSuccess, onError }) {
+  const { bg, border, textPri, textSec, accent } = theme;
+  const [phase, setPhase] = useState("preparing");
+  const [session, setSession] = useState(null);
+  const [uppy, setUppy] = useState(null);
+  const [error, setError] = useState(null);
+  const pollTimerRef = useRef(null);
+  const cancelledRef = useRef(false);
+  const xhrRef = useRef(null);
+
+  const canClose = phase === "ready" || phase === "error";
+
+  const closeModal = useCallback(() => {
+    if (!canClose) return;
+    onClose();
+  }, [canClose, onClose]);
+
+  const pollUploadStatus = useCallback(async (requestid) => {
+    const startedAt = Date.now();
+
+    while (!cancelledRef.current && Date.now() - startedAt < PRODUCT_UPLOAD_TIMEOUT_MS) {
+      const res = await apiGet(`/retailers/${retailerId}/uploads/${requestid}`);
+      const payload = res?.data ?? res;
+      const status = normalizeUploadStatus(payload?.status);
+
+      if (status === "success") {
+        onSuccess(payload?.message ?? "Products uploaded successfully");
+        return;
+      }
+
+      if (status === "failed") {
+        throw new Error(payload?.message ?? payload?.detail ?? "Product upload processing failed");
+      }
+
+      await waitForUploadPoll(PRODUCT_UPLOAD_POLL_INTERVAL_MS, pollTimerRef, cancelledRef);
+    }
+
+    throw new Error("Product upload status timed out after 2 minutes");
+  }, [onSuccess, retailerId]);
+
+  useEffect(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+
+    const requestUploadSession = async () => {
+      try {
+        const res = await apiPost(`/retailers/${retailerId}/uploads`, {
+          filetype: "PRD",
+          filename: "retailerProduct.xlsx",
+          week: "",
+          fiscal_date: "",
+        });
+        if (cancelledRef.current) return;
+
+        const payload = res?.data ?? res;
+        const uploadSession = {
+          upload_url: payload?.upload_url,
+          requestid: payload?.requestid,
+          filename: payload?.filename,
+          s3_key: payload?.s3_key,
+        };
+
+        if (!uploadSession.upload_url || !uploadSession.requestid) {
+          throw new Error("Upload session response is missing required data");
+        }
+
+        const nextUppy = new Uppy({
+          restrictions: {
+            maxNumberOfFiles: 1,
+            allowedFileTypes: PRODUCT_UPLOAD_FILE_TYPES,
+          },
+          autoProceed: false,
+        });
+
+        nextUppy.addUploader(async (fileIDs) => {
+          const file = nextUppy.getFile(fileIDs[0]);
+          if (!file) return;
+
+          setPhase("uploading");
+          setError(null);
+
+          try {
+            await uploadFileToS3({
+              uppy: nextUppy,
+              file,
+              uploadUrl: uploadSession.upload_url,
+              s3Key: uploadSession.s3_key,
+              xhrRef,
+            });
+            setPhase("polling");
+            await pollUploadStatus(uploadSession.requestid);
+          } catch (err) {
+            if (!cancelledRef.current) {
+              setPhase("error");
+              setError(err.message);
+              onError(err.message);
+            }
+            throw err;
+          }
+        });
+
+        setSession(uploadSession);
+        setUppy(nextUppy);
+        setPhase("ready");
+      } catch (err) {
+        if (!cancelledRef.current) {
+          onError(err.message);
+          onClose();
+        }
+      }
+    };
+
+    requestUploadSession();
+
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [onClose, onError, pollUploadStatus, retailerId]);
+
+  useEffect(() => {
+    return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (xhrRef.current) xhrRef.current.abort();
+      uppy?.destroy();
+    };
+  }, [uppy]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={closeModal}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ backgroundColor: bg, borderColor: border }}
+        className="w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
+          <div>
+            <h2 className="text-xl font-semibold" style={{ color: textPri }}>Upload Products</h2>
+            {session?.filename && <p className="mt-1 text-xs" style={{ color: textSec }}>{session.filename}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={closeModal}
+            disabled={!canClose}
+            className="text-2xl leading-none hover:opacity-60 transition disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ color: textSec }}
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div className="p-6">
+          {phase === "preparing" ? (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
+              <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-transparent" style={{ borderTopColor: accent }} />
+              <p className="text-sm font-medium" style={{ color: textSec }}>Preparing upload...</p>
+            </div>
+          ) : (
+            <>
+              {uppy && (
+                <Dashboard
+                  uppy={uppy}
+                  proudlyDisplayPoweredByUppy={false}
+                  width="100%"
+                  height={340}
+                  hideCancelButton={phase === "uploading" || phase === "polling"}
+                  disabled={phase === "uploading" || phase === "polling"}
+                />
+              )}
+              {phase === "polling" && (
+                <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: textSec }}>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" style={{ borderTopColor: accent }} />
+                  Processing uploaded file...
+                </div>
+              )}
+              {error && (
+                <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function ProductUploadSection({ retailerId, theme, addToast }) {
+  const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+
+  const fetchHistory = useCallback(() => {
+    if (!retailerId) return;
+
+    setHistoryLoading(true);
+    apiGet(`/retailers/${retailerId}/uploads`)
+      .then((res) => {
+        const rows = extractUploadRows(res)
+          .sort((a, b) => new Date(b.created_at ?? b.uploaded_at ?? 0) - new Date(a.created_at ?? a.uploaded_at ?? 0));
+        setHistory(rows);
+      })
+      .catch(() => setHistory([]))
+      .finally(() => setHistoryLoading(false));
+  }, [retailerId]);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+  const handleUploadClose = useCallback(() => {
+    setUploadModalOpen(false);
+  }, []);
+
+  const handleUploadError = useCallback((message) => {
+    addToast(message, "error");
+  }, [addToast]);
+
+  const handleUploadSuccess = useCallback((message) => {
+    addToast(message);
+    fetchHistory();
+    setUploadModalOpen(false);
+  }, [addToast, fetchHistory]);
+
+  return (
+    <div className="flex flex-col gap-5 flex-1 min-h-0">
+      <div
+        className="flex items-center justify-between gap-3 flex-shrink-0 rounded-xl border px-5 py-3.5"
+        style={{ backgroundColor: bgSub, borderColor: border }}
+      >
+        <a
+          href={url("/products/template")}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition hover:opacity-80"
+          style={{ borderColor: border, color: textPri, backgroundColor: bg }}
+        >
+          <DownloadIcon />
+          Products Template
+        </a>
+
+        <button
+          type="button"
+          onClick={() => setUploadModalOpen(true)}
+          style={{ backgroundColor: accent }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition"
+        >
+          <UploadIcon />
+          Upload Products
+        </button>
+      </div>
+
+      <div
+        className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden"
+        style={{ backgroundColor: bg, borderColor: border }}
+      >
+        <div className="px-5 py-4 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: border }}>
+          <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2>
+          <button onClick={fetchHistory} className="text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+            Refresh
+          </button>
+        </div>
+
+        <div className="overflow-auto flex-1 min-h-0">
+          <table className="min-w-full text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr>
+                {["File Name", "Uploaded At", "Status"].map((col) => (
+                  // "Week", "Failed Rows"
+                  <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {historyLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-14 text-center text-sm" style={{ color: textSec }}>Loading...</td>
+                </tr>
+              ) : history.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-14 text-center text-sm" style={{ color: textSec }}>No uploads yet.</td>
+                </tr>
+              ) : (
+                history.map((row, i) => (
+                  <tr
+                    key={row.requestid ?? row.id ?? i}
+                    className="border-b transition"
+                    style={{ borderColor: border }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
+                  >
+                    <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
+                      {row.file_name ?? row.filename ?? "-"}
+                    </td>
+                    <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
+                      {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
+                    </td>
+                    <td className="px-5 py-3"><StatusBadge status={row.status} /></td>
+                    {/* <td className="px-5 py-3" style={{ color: textPri }}>{row.total_rows ?? row.records ?? "-"}</td>
+                    <td className="px-5 py-3" style={{ color: (row.failed_rows ?? 0) > 0 ? "#dc2626" : textSec }}>
+                      {row.failed_rows ?? "-"}
+                    </td> */}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {uploadModalOpen && (
+        <ProductUploadModal
+          retailerId={retailerId}
+          theme={theme}
+          onClose={handleUploadClose}
+          onSuccess={handleUploadSuccess}
+          onError={handleUploadError}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function MasterProductsPage() {
+  const params = useParams();
+  const retailerId = params?.id;
   const { theme: mode } = useTheme();
   const isDark = mode === "dark";
 
@@ -140,11 +557,6 @@ export default function MasterProductsPage() {
     }
     setPage(0);
   };
-
-  // Reset page immediately when search starts (not in debounce)
-  useEffect(() => {
-    setPage(0);
-  }, [searchQuery]);
 
   // Debounce the search query separately
   useEffect(() => {
@@ -205,6 +617,7 @@ export default function MasterProductsPage() {
     }
   }, [page, debouncedSearch, categoryFilter, brandFilter, manufacturerFilter, segmentFilter, sortBy, sortDir]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   // ── populate filter dropdowns ──────────────────────────────────────────────
@@ -227,7 +640,10 @@ export default function MasterProductsPage() {
   const hasFilters = searchQuery || categoryFilter || brandFilter || manufacturerFilter || segmentFilter;
 
   // ── handlers ───────────────────────────────────────────────────────────────
-  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setPage(0);
+  };
 
   const handleFilterChange = (setter) => (e) => { setter(e.target.value); setPage(0); };
 
@@ -266,7 +682,7 @@ export default function MasterProductsPage() {
                 </p>
               )}
             </div>
-            {activeTab === "products" && (
+            {/* {activeTab === "products" && (
               <button
                 onClick={() => setModal("add")}
                 style={{ backgroundColor: th.accent }}
@@ -277,7 +693,7 @@ export default function MasterProductsPage() {
                 </svg>
                 Add Product
               </button>
-            )}
+            )} */}
           </div>
 
           {/* Tab switcher */}
@@ -333,7 +749,7 @@ export default function MasterProductsPage() {
             />
           </>
         ) : (
-          <UploadTab cards={UPLOAD_CARDS} theme={th} addToast={addToast} />
+          <ProductUploadSection retailerId={retailerId} theme={th} addToast={addToast} />
         )}
       </div>
 
