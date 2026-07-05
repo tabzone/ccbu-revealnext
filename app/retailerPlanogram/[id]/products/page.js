@@ -392,11 +392,11 @@ export default function MasterProductsPage() {
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Products</h1>
-              {activeTab === "products" && (
+              {/* {activeTab === "products" && (
                 <p style={{ color: th.textSec }} className="mt-1 text-sm">
                   {loading ? "Loading…" : `${total} product${total !== 1 ? "s" : ""} total`}
                 </p>
-              )}
+              )} */}
             </div>
             {/* {activeTab === "products" && (
               <button

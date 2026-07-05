@@ -9,7 +9,7 @@ import { Toast } from "@/app/components/Toast";
 import { UploadStoresTab } from "@/app/components/UploadStoresTab";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { apiGet } from "@/lib/api";
-import { PAGE_SIZE, url } from "@/data/constants";
+import { CARDS, PAGE_SIZE, url } from "@/data/constants";
 import {
   DownloadIcon,
   UploadIcon,
@@ -30,6 +30,7 @@ const UPLOAD_TYPE_BADGE_COLORS = {
   POG: { bg: "#ede9fe", color: "#7c3aed" },
 };
 const PREVIEWABLE_UPLOAD_TYPES = ["STR"];
+
 
 function UploadTypeBadge({ filetype }) {
   const colors = UPLOAD_TYPE_BADGE_COLORS[filetype] ?? { bg: "#f3f4f6", color: "#6b7280" };
@@ -93,9 +94,12 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
     POG: { filename: "retailerPlanogram.xlsx", title: "Upload Planogram" },
   }[activeUploadType];
 
+  const cards = CARDS;
+
+
   return (
     <div className="flex flex-col gap-5 flex-1 min-h-0">
-      <div
+      {/* <div
         className="flex items-center justify-between gap-3 flex-shrink-0 rounded-xl border px-5 py-3.5"
         style={{ backgroundColor: bgSub, borderColor: border }}
       >
@@ -142,8 +146,72 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
             Upload Planogram
           </button>
         </div>
-      </div>
+      </div> */}
+      <div
+        className={`grid gap-4 flex-shrink-0 ${cards.length === 1
+            ? "grid-cols-1 max-w-md"
+            : "grid-cols-1 sm:grid-cols-2"
+          }`}
+      >
+        {cards.map((card) => (
+          <div
+            key={card.key}
+            className="rounded-xl border p-6 flex flex-col gap-5"
+            style={{ backgroundColor: bg, borderColor: border }}
+          >
+            <div className="flex items-start gap-4">
+              <div
+                className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${accent}1a` }}
+              >
+                <card.Icon color={accent} />
+              </div>
 
+              <div className="min-w-0">
+                <h3
+                  className="font-semibold text-base"
+                  style={{ color: textPri }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: textSec }}
+                >
+                  {card.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <a
+                href={url(card.downloadPath)}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition hover:opacity-80"
+                style={{
+                  borderColor: border,
+                  color: textPri,
+                  backgroundColor: bg,
+                }}
+              >
+                <DownloadIcon />
+                Template
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setActiveUploadType(card.filetype)}
+                style={{ backgroundColor: accent }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                <UploadIcon />
+                Upload
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
       <div
         className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden"
         style={{ backgroundColor: bg, borderColor: border }}
@@ -282,27 +350,27 @@ export default function MasterStoresPage() {
   const isDark = mode === "dark";
 
   const th = {
-    bg:       isDark ? "#191919" : "#ffffff",
-    bgSub:    isDark ? "#2a2a2a" : "#f9fafb",
-    bgDrop:   isDark ? "#242424" : "#ffffff",
-    border:   isDark ? "#333333" : "#e5e7eb",
-    textPri:  isDark ? "#e5e7eb" : "#1f2937",
-    textSec:  isDark ? "#9ca3af" : "#6b7280",
-    hover:    isDark ? "#242424" : "#f9fafb",
-    accent:   isDark ? "#f87171" : "#dc2626",
+    bg: isDark ? "#191919" : "#ffffff",
+    bgSub: isDark ? "#2a2a2a" : "#f9fafb",
+    bgDrop: isDark ? "#242424" : "#ffffff",
+    border: isDark ? "#333333" : "#e5e7eb",
+    textPri: isDark ? "#e5e7eb" : "#1f2937",
+    textSec: isDark ? "#9ca3af" : "#6b7280",
+    hover: isDark ? "#242424" : "#f9fafb",
+    accent: isDark ? "#f87171" : "#dc2626",
   };
 
-  const [stores, setStores]     = useState([]);
-  const [total, setTotal]       = useState(0);
-  const [loading, setLoading]   = useState(true);
+  const [stores, setStores] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
 
   const [opts, setOpts] = useState({ regions: [], states: [], districts: [] });
 
-  const [searchQuery,    setSearchQuery]    = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [regionFilter,   setRegionFilter]   = useState("");
-  const [stateFilter,    setStateFilter]    = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
   const [districtFilter, setDistrictFilter] = useState("");
   const [page, setPage] = useState(0);
   const [sortBy, setSortBy] = useState("");
@@ -331,9 +399,9 @@ export default function MasterStoresPage() {
 
   const [activeTab, setActiveTab] = useState("stores");
 
-  const [modal, setModal]               = useState(null);
+  const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [toasts, setToasts]             = useState([]);
+  const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = "success") => {
     const id = Date.now();
@@ -356,19 +424,19 @@ export default function MasterStoresPage() {
       } else {
         // List API: pagination + filters only (no sort params)
         res = await apiGet("/liststores", {
-          skip:     page * PAGE_SIZE,
-          limit:    PAGE_SIZE,
-          region:   regionFilter,
-          state:    stateFilter,
+          skip: page * PAGE_SIZE,
+          limit: PAGE_SIZE,
+          region: regionFilter,
+          state: stateFilter,
           district: districtFilter,
         });
       }
       const payload = res?.data ?? res;
       let fetchedStores = payload?.stores ?? [];
-      
+
       // Apply frontend sorting
       fetchedStores = sortStores(fetchedStores, sortBy, sortDir);
-      
+
       setStores(fetchedStores);
       setTotal(payload?.total ?? 0);
     } catch (err) {
@@ -385,12 +453,12 @@ export default function MasterStoresPage() {
       .then((res) => {
         const s = (res?.data ?? res)?.stores ?? [];
         setOpts({
-          regions:   [...new Set(s.map((x) => x.region).filter(Boolean))].sort(),
-          states:    [...new Set(s.map((x) => x.state).filter(Boolean))].sort(),
+          regions: [...new Set(s.map((x) => x.region).filter(Boolean))].sort(),
+          states: [...new Set(s.map((x) => x.state).filter(Boolean))].sort(),
           districts: [...new Set(s.map((x) => x.district).filter(Boolean))].sort(),
         });
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -487,8 +555,8 @@ export default function MasterStoresPage() {
               searchQuery={searchQuery}
               searchPlaceholder="Search stores…"
               dropdowns={[
-                { allLabel: "All Regions",   value: regionFilter,   options: opts.regions,   onChange: handleFilterChange(setRegionFilter) },
-                { allLabel: "All States",    value: stateFilter,    options: opts.states,    onChange: handleFilterChange(setStateFilter) },
+                { allLabel: "All Regions", value: regionFilter, options: opts.regions, onChange: handleFilterChange(setRegionFilter) },
+                { allLabel: "All States", value: stateFilter, options: opts.states, onChange: handleFilterChange(setStateFilter) },
                 { allLabel: "All Districts", value: districtFilter, options: opts.districts, onChange: handleFilterChange(setDistrictFilter) },
               ]}
               hasFilters={hasFilters}
