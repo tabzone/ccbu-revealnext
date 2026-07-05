@@ -94,6 +94,14 @@ function extractUploadRows(payload) {
   return [];
 }
 
+function getPreviewColumns(rows) {
+  const keys = new Set();
+  rows.slice(0, 10).forEach((row) => {
+    Object.keys(row ?? {}).forEach((key) => keys.add(key));
+  });
+  return [...keys].slice(0, 8);
+}
+
 function StatusBadge({ status }) {
   const normalized = normalizeUploadStatus(status);
   const config = {
@@ -106,6 +114,196 @@ function StatusBadge({ status }) {
     <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: config.bg, color: config.color }}>
       {config.label}
     </span>
+  );
+}
+
+function ProductPreviewModal({ retailerId, upload, theme, onClose, onConfirmed, onError }) {
+  const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
+  const requestid = upload?.requestid ?? upload?.id;
+  const canLoadPreview = Boolean(retailerId && requestid);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(canLoadPreview);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState(canLoadPreview ? null : "Upload request id is missing");
+
+  useEffect(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPreview = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiPost(`/uploadproducts/${retailerId}/${requestid}/preview`);
+        if (!cancelled) setPreview(res?.data ?? res);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    if (canLoadPreview) fetchPreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canLoadPreview, requestid, retailerId]);
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    setError(null);
+    try {
+      const res = await apiPost(`/uploadproducts/${retailerId}/${requestid}/confirm`);
+      onConfirmed(res?.message ?? "Product upload confirmed");
+    } catch (err) {
+      setError(err.message);
+      onError(err.message);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  if (typeof document === "undefined") return null;
+
+  const rows = Array.isArray(preview?.rows) ? preview.rows : [];
+  const errors = Array.isArray(preview?.errors) ? preview.errors : [];
+  const columns = getPreviewColumns(rows);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ backgroundColor: bg, borderColor: border }}
+        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
+          <div>
+            <h2 className="text-xl font-semibold" style={{ color: textPri }}>Preview Upload</h2>
+            <p className="mt-1 text-xs" style={{ color: textSec }}>{requestid}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={confirming}
+            className="text-2xl leading-none hover:opacity-60 transition disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ color: textSec }}
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-auto p-6">
+          {loading ? (
+            <div className="flex min-h-[260px] flex-col items-center justify-center gap-4">
+              <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-transparent" style={{ borderTopColor: accent }} />
+              <p className="text-sm font-medium" style={{ color: textSec }}>Loading preview...</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+          ) : (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {[
+                  ["File Type", preview?.filetype],
+                  ["Total Rows", preview?.total_rows],
+                  ["Valid Rows", preview?.valid_rows],
+                  ["Invalid Rows", preview?.invalid_rows],
+                  ["Errors", errors.length],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border p-3" style={{ backgroundColor: bgSub, borderColor: border }}>
+                    <div className="text-xs" style={{ color: textSec }}>{label}</div>
+                    <div className="mt-1 text-lg font-semibold" style={{ color: textPri }}>{value ?? "-"}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <h3 className="mb-2 text-sm font-semibold" style={{ color: textPri }}>Rows</h3>
+                <div className="max-h-72 overflow-auto rounded-lg border" style={{ borderColor: border }}>
+                  <table className="min-w-full text-xs">
+                    <thead className="sticky top-0 z-10">
+                      <tr>
+                        {columns.length > 0 ? columns.map((col) => (
+                          <th key={col} className="px-3 py-2 text-left font-semibold uppercase whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
+                            {col}
+                          </th>
+                        )) : (
+                          <th className="px-3 py-8 text-center font-normal" style={{ backgroundColor: bgSub, color: textSec }}>No rows to preview.</th>
+                        )}
+                      </tr>
+                    </thead>
+                    {columns.length > 0 && (
+                      <tbody>
+                        {rows.slice(0, 50).map((row, index) => (
+                          <tr key={index} className="border-t" style={{ borderColor: border }}>
+                            {columns.map((col) => (
+                              <td key={col} className="max-w-[220px] truncate px-3 py-2" style={{ color: textPri }} title={String(row?.[col] ?? "")}>
+                                {String(row?.[col] ?? "-")}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    )}
+                  </table>
+                </div>
+              </div>
+
+              {errors.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold" style={{ color: textPri }}>Validation Errors</h3>
+                  <div className="max-h-52 overflow-auto rounded-lg border" style={{ borderColor: border }}>
+                    <table className="min-w-full text-xs">
+                      <thead className="sticky top-0 z-10">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Row</th>
+                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {errors.map((item, index) => (
+                          <tr key={index} className="border-t transition" style={{ borderColor: border }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
+                            <td className="px-3 py-2 align-top" style={{ color: textPri }}>{item?.row ?? "-"}</td>
+                            <td className="whitespace-pre-wrap px-3 py-2 align-top" style={{ color: textPri }}>{item?.reason ?? JSON.stringify(item)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t px-6 py-4" style={{ borderColor: border }}>
+          <button type="button" onClick={onClose} disabled={confirming} className="rounded-lg border px-4 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50" style={{ borderColor: border, color: textPri }}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={loading || confirming || !preview}
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: accent }}
+          >
+            {confirming ? "Confirming..." : "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -177,7 +375,7 @@ function ProductUploadModal({ retailerId, theme, onClose, onSuccess, onError }) 
   const cancelledRef = useRef(false);
   const xhrRef = useRef(null);
 
-  const canClose = phase === "ready" || phase === "error";
+  const canClose = phase === "ready" || phase === "uploading" || phase === "error";
 
   const closeModal = useCallback(() => {
     if (!canClose) return;
@@ -373,6 +571,7 @@ function ProductUploadModal({ retailerId, theme, onClose, onSuccess, onError }) 
 function ProductUploadSection({ retailerId, theme, addToast }) {
   const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [previewUpload, setPreviewUpload] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
 
@@ -405,6 +604,12 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
     addToast(message);
     fetchHistory();
     setUploadModalOpen(false);
+  }, [addToast, fetchHistory]);
+
+  const handlePreviewConfirmed = useCallback((message) => {
+    addToast(message);
+    setPreviewUpload(null);
+    fetchHistory();
   }, [addToast, fetchHistory]);
 
   return (
@@ -450,7 +655,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
-                {["File Name", "Uploaded At", "Status"].map((col) => (
+                {["File Name", "Uploaded At", "Status", "Actions"].map((col) => (
                   // "Week", "Failed Rows"
                   <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
                     {col}
@@ -461,11 +666,11 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
             <tbody>
               {historyLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-14 text-center text-sm" style={{ color: textSec }}>Loading...</td>
+                  <td colSpan={4} className="py-14 text-center text-sm" style={{ color: textSec }}>Loading...</td>
                 </tr>
               ) : history.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-14 text-center text-sm" style={{ color: textSec }}>No uploads yet.</td>
+                  <td colSpan={4} className="py-14 text-center text-sm" style={{ color: textSec }}>No uploads yet.</td>
                 </tr>
               ) : (
                 history.map((row, i) => (
@@ -483,6 +688,17 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
                       {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
                     </td>
                     <td className="px-5 py-3"><StatusBadge status={row.status} /></td>
+                    <td className="px-5 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewUpload(row)}
+                        disabled={row.status === "Pending"}
+                        className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ borderColor: border, color: textPri, backgroundColor: bg }}
+                      >
+                        Preview
+                      </button>
+                    </td>
                     {/* <td className="px-5 py-3" style={{ color: textPri }}>{row.total_rows ?? row.records ?? "-"}</td>
                     <td className="px-5 py-3" style={{ color: (row.failed_rows ?? 0) > 0 ? "#dc2626" : textSec }}>
                       {row.failed_rows ?? "-"}
@@ -501,6 +717,17 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           theme={theme}
           onClose={handleUploadClose}
           onSuccess={handleUploadSuccess}
+          onError={handleUploadError}
+        />
+      )}
+
+      {previewUpload && (
+        <ProductPreviewModal
+          retailerId={retailerId}
+          upload={previewUpload}
+          theme={theme}
+          onClose={() => setPreviewUpload(null)}
+          onConfirmed={handlePreviewConfirmed}
           onError={handleUploadError}
         />
       )}

@@ -166,6 +166,11 @@ function UploadModal({ card, theme, onClose, onSuccess }) {
 
 const HISTORY_COLS = ["Type", "File Name", "Uploaded At", "Status", "Total Rows", "Failed Rows"];
 
+function matchesFiletype(row, filetype) {
+  if (!filetype) return true;
+  return String(row?.filetype ?? row?.file_type ?? "").toUpperCase() === String(filetype).toUpperCase();
+}
+
 // ─── Main generic component ───────────────────────────────────────────────────
 
 /**
@@ -194,7 +199,9 @@ export function UploadTab({ cards, theme, addToast }) {
     Promise.all(
       cards.map((card, idx) =>
         apiGet(card.historyPath)
-          .then((d) => (d?.data ?? []).map((r) => ({ ...r, _type: card.key, _typeLabel: card.title, _typeIdx: idx })))
+          .then((d) => (d?.data ?? [])
+            .filter((r) => matchesFiletype(r, card.historyFiletype))
+            .map((r) => ({ ...r, _type: card.key, _typeLabel: card.title, _typeIdx: idx })))
           .catch(() => [])
       )
     )
