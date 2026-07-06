@@ -305,6 +305,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
         <SessionPreviewModal
           retailerId={retailerId}
           upload={previewUpload}
+          previewPath="/uploadstores"
           theme={theme}
           onClose={() => setPreviewUpload(null)}
           onConfirmed={handlePreviewConfirmed}
