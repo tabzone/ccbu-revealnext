@@ -335,11 +335,15 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
 
 // ─── Upload modal ─────────────────────────────────────────────────────────────
 
+const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT"];
+
 export function SessionUploadModal({
   retailerId,
   filetype = "PRD",
   filename = "retailerProduct.xlsx",
   title = "Upload Products",
+  week = "",
+  fiscalDate = "",
   theme,
   onClose,
   onSuccess,
@@ -391,8 +395,13 @@ export function SessionUploadModal({
       }
 
       if (status === "pending") {
-        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Preview" });
-        onSuccess(payload?.message ?? "File uploaded. Ready for preview.");
+        if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
+          await apiPost(`/retailers/${retailerId}/uploads/${requestid}/process`);
+          onSuccess(payload?.message ?? "File uploaded and processed successfully");
+        } else {
+          await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Preview" });
+          onSuccess(payload?.message ?? "File uploaded. Ready for preview.");
+        }
         return;
       }
 
@@ -400,7 +409,7 @@ export function SessionUploadModal({
     }
 
     throw new Error("Upload status timed out after 2 minutes");
-  }, [onSuccess, retailerId]);
+  }, [onSuccess, retailerId, filetype]);
 
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -420,8 +429,8 @@ export function SessionUploadModal({
         const res = await apiPost(`/retailers/${retailerId}/uploads`, {
           filetype,
           filename,
-          week: "",
-          fiscal_date: "",
+          week,
+          fiscal_date: fiscalDate,
         });
         if (cancelledRef.current) return;
 
@@ -488,7 +497,7 @@ export function SessionUploadModal({
     return () => {
       cancelledRef.current = true;
     };
-  }, [onClose, onError, pollUploadStatus, retailerId, filetype, filename]);
+  }, [onClose, onError, pollUploadStatus, retailerId, filetype, filename, week, fiscalDate]);
 
   useEffect(() => {
     return () => {
