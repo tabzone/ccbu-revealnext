@@ -395,13 +395,8 @@ export function SessionUploadModal({
       }
 
       if (status === "pending") {
-        if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
-          await apiPost(`/retailers/${retailerId}/uploads/${requestid}/process`);
-          onSuccess(payload?.message ?? "File uploaded and processed successfully");
-        } else {
-          await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Preview" });
-          onSuccess(payload?.message ?? "File uploaded. Ready for preview.");
-        }
+        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Preview" });
+        onSuccess(payload?.message ?? "File uploaded. Ready for preview.");
         return;
       }
 
@@ -409,7 +404,7 @@ export function SessionUploadModal({
     }
 
     throw new Error("Upload status timed out after 2 minutes");
-  }, [onSuccess, retailerId, filetype]);
+  }, [onSuccess, retailerId]);
 
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -470,7 +465,12 @@ export function SessionUploadModal({
               xhrRef,
             });
             setPhase("polling");
-            await pollUploadStatus(uploadSession.requestid);
+            if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
+              await apiPost(`/retailers/${retailerId}/uploads/${uploadSession.requestid}/process`);
+              onSuccess("File uploaded and processed successfully");
+            } else {
+              await pollUploadStatus(uploadSession.requestid);
+            }
           } catch (err) {
             if (!cancelledRef.current) {
               setPhase("error");
@@ -497,7 +497,7 @@ export function SessionUploadModal({
     return () => {
       cancelledRef.current = true;
     };
-  }, [onClose, onError, pollUploadStatus, retailerId, filetype, filename, week, fiscalDate]);
+  }, [onClose, onError, onSuccess, pollUploadStatus, retailerId, filetype, filename, week, fiscalDate]);
 
   useEffect(() => {
     return () => {
