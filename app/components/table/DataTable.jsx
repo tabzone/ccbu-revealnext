@@ -28,15 +28,15 @@ const COLUMNS = [
 
 export default function DataTable({ rows, loading }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+    <div className="bg-white dark:bg-[#191919] rounded-xl shadow-sm border border-gray-200 dark:border-[#333333] overflow-hidden">
       <div className="overflow-auto">
         <table className="min-w-full">
-          <thead className="sticky top-0 bg-gray-50 border-b z-10">
+          <thead className="sticky top-0 bg-gray-50 dark:bg-[#2a2a2a] border-b border-gray-200 dark:border-[#333333] z-10">
             <tr>
               {COLUMNS.map((col,ind) => (
                 <th
                   key={ind}
-                  className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400"
                 >
                   {col}
                 </th>
@@ -47,7 +47,7 @@ export default function DataTable({ rows, loading }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={COLUMNS.length} className="py-16 text-center text-gray-400 text-sm">
+                <td colSpan={COLUMNS.length} className="py-16 text-center text-gray-400 dark:text-gray-500 text-sm">
                   <span className="inline-flex items-center gap-2">
                     <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-20" />
@@ -65,8 +65,8 @@ export default function DataTable({ rows, loading }) {
                 const status = row.status ?? "—";
 
                 return (
-                  <tr key={rid} className="border-b hover:bg-gray-50 transition">
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                  <tr key={rid} className="border-b border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:hover:bg-[#242424] transition">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {formatDate(row.created_at ?? row.created)}
                     </td>
 
@@ -79,19 +79,19 @@ export default function DataTable({ rows, loading }) {
                       </Link>
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {setStatus}
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {row.planograms ?? "—"}
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {row.products ?? "—"}
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {row.stores ?? "—"}
                     </td>
 
@@ -99,15 +99,15 @@ export default function DataTable({ rows, loading }) {
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
                           status === "Archived"
-                            ? "bg-gray-100 text-gray-700"
-                            : "bg-green-100 text-green-700"
+                            ? "bg-gray-100 dark:bg-[#2a2a2a] text-gray-700 dark:text-gray-300"
+                            : "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
                         }`}
                       >
                         {status}
                       </span>
                     </td>
 
-                    <td className="px-5 py-4 text-sm text-gray-600">
+                    <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {row.users ?? row.user ?? "—"}
                     </td>
                   </tr>
@@ -115,7 +115,7 @@ export default function DataTable({ rows, loading }) {
               })
             ) : (
               <tr>
-                <td colSpan={COLUMNS.length} className="py-16 text-center text-gray-500">
+                <td colSpan={COLUMNS.length} className="py-16 text-center text-gray-500 dark:text-gray-400">
                   No retailers found
                 </td>
               </tr>
@@ -124,8 +124,8 @@ export default function DataTable({ rows, loading }) {
         </table>
       </div>
 
-      <div className="flex items-center justify-between px-5 py-4 border-t bg-gray-50">
-        <div className="text-sm text-gray-600">
+      <div className="flex items-center justify-between px-5 py-4 border-t border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#2a2a2a]">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {loading ? "Loading…" : `Showing ${rows.length} retailer${rows.length !== 1 ? "s" : ""}`}
         </div>
       </div>

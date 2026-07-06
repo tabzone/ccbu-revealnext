@@ -129,7 +129,7 @@ function UploadModal({ card, theme, onClose, onSuccess }) {
       >
         <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
           <h2 className="text-xl font-semibold" style={{ color: textPri }}>{card.title}</h2>
-          <button type="button" onClick={onClose} className="text-2xl leading-none hover:opacity-60 transition" style={{ color: textSec }} aria-label="Close">
+          <button type="button" onClick={onClose} className="text-2xl cursor-pointer leading-none hover:opacity-60 transition" style={{ color: textSec }} aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -142,7 +142,7 @@ function UploadModal({ card, theme, onClose, onSuccess }) {
         </div>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t" style={{ borderColor: border }}>
-          <button type="button" onClick={onClose} className="rounded-lg border px-5 py-2 text-sm font-medium transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+          <button type="button" onClick={onClose} className="cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
             Cancel
           </button>
           <button
@@ -150,7 +150,7 @@ function UploadModal({ card, theme, onClose, onSuccess }) {
             onClick={handleUpload}
             disabled={uploading}
             style={{ backgroundColor: accent }}
-            className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-60"
+            className="flex items-center gap-2 cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold text-white hover:opacity-90 transition disabled:opacity-60"
           >
             {uploading && <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
             {uploading ? "Uploading…" : "Upload"}
@@ -271,7 +271,7 @@ export function UploadTab({ cards, theme, addToast }) {
               <button
                 onClick={() => setActiveCard(card.key)}
                 style={{ backgroundColor: accent }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition"
+                className="flex items-center gap-2 px-4 cursor-pointer py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition"
               >
                 <UploadIcon />
                 Upload
@@ -288,7 +288,7 @@ export function UploadTab({ cards, theme, addToast }) {
       >
         <div className="px-5 py-4 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: border }}>
           <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2>
-          <button onClick={fetchHistory} className="text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+          <button onClick={fetchHistory} className="text-xs px-3 py-1.5 rounded-lg border cursor-pointer transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
             Refresh
           </button>
         </div>

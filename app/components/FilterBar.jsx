@@ -52,7 +52,7 @@ export function FilterBar({
         {searchQuery && (
           <button
             onClick={() => onSearchChange({ target: { value: "" } })}
-            className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60 transition"
+            className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60 transition"
             style={{ color: textSec }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -74,7 +74,7 @@ export function FilterBar({
         <button
           onClick={onClearFilters}
           style={{ color: accent, borderColor: border }}
-          className="px-4 py-2.5 rounded-lg border text-sm font-medium hover:opacity-70 transition"
+          className="px-4 py-2.5 rounded-lg border text-sm font-medium hover:opacity-70 transition cursor-pointer"
         >
           Clear filters
         </button>

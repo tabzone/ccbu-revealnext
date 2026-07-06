@@ -76,7 +76,7 @@ export function UserModal({ user, onClose, onSaved, theme }) {
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-1 hover:opacity-75 transition"
+                        className="p-1 hover:opacity-75 transition cursor-pointer"
                         style={{ color: theme.textSec }}
                     >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -221,7 +221,7 @@ export function UserModal({ user, onClose, onSaved, theme }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 rounded-lg border text-sm font-medium transition hover:opacity-75"
+                            className="flex-1 px-4 cursor-pointer py-2 rounded-lg border text-sm font-medium transition hover:opacity-75"
                             style={{
                                 borderColor: theme.border,
                                 color: theme.textPri,
@@ -233,7 +233,7 @@ export function UserModal({ user, onClose, onSaved, theme }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+                            className="flex-1 px-4 cursor-pointer py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
                             style={{ backgroundColor: theme.accent }}
                         >
                             {loading ? "Saving…" : isAdd ? "Create User" : "Update User"}

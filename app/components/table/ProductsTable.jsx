@@ -66,7 +66,7 @@ export function ProductsTable({
       {apiError ? (
         <div className="py-20 text-center">
           <p style={{ color: accent }} className="font-medium text-sm">Failed to load: {apiError}</p>
-          <button onClick={onRetry} style={{ color: accent }} className="text-sm mt-2 underline hover:opacity-70">
+          <button onClick={onRetry} style={{ color: accent }} className="text-sm mt-2 underline hover:opacity-70 cursor-pointer">
             Retry
           </button>
         </div>
@@ -196,8 +196,8 @@ export function ProductsTable({
 
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                <button onClick={() => onPageChange(0)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<<"}</button>
-                <button onClick={() => onPageChange(page - 1)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{"<"}</button>
+                <button onClick={() => onPageChange(0)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs cursor-pointer font-medium disabled:opacity-30 hover:opacity-70 transition">{"<<"}</button>
+                <button onClick={() => onPageChange(page - 1)} disabled={page === 0} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs cursor-pointer font-medium disabled:opacity-30 hover:opacity-70 transition">{"<"}</button>
 
                 {pageNumbers.map((p) => (
                   <button
@@ -208,14 +208,14 @@ export function ProductsTable({
                       borderColor: p === page ? accent : border,
                       color: p === page ? "#fff" : textPri,
                     }}
-                    className="w-8 h-8 rounded-lg border text-xs font-medium hover:opacity-80 transition"
+                    className="w-8 h-8 rounded-lg border text-xs font-medium hover:opacity-80 transition cursor-pointer"
                   >
                     {p + 1}
                   </button>
                 ))}
 
-                <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">"}</button>
-                <button onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">>"}</button>
+                <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="cursor-pointer px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">"}</button>
+                <button onClick={() => onPageChange(totalPages - 1)} disabled={page >= totalPages - 1} style={{ borderColor: border, color: textPri }} className="cursor-pointer px-2.5 py-1.5 rounded-lg border text-xs font-medium disabled:opacity-30 hover:opacity-70 transition">{">>"}</button>
               </div>
             )}
           </div>

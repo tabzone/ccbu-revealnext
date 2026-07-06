@@ -37,7 +37,7 @@ export default function ManageReports() {
   }, [retailers, search]);
 
   return (
-    <div className="p-6 bg-[#f8f9fb] min-h-screen">
+    <div className="p-6 bg-[#f8f9fb] dark:bg-[#191919] min-h-screen">
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -47,10 +47,10 @@ export default function ManageReports() {
               placeholder="Search retailer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-80 pl-10 pr-4 border rounded-lg bg-white"
+              className="h-10 w-80 pl-10 pr-4 border border-gray-300 dark:border-[#333333] rounded-lg bg-white dark:bg-[#242424] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
             />
             <svg
-              className="absolute left-3 top-3 text-gray-400"
+              className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -64,7 +64,7 @@ export default function ManageReports() {
           <button
             onClick={fetchRetailers}
             disabled={loading}
-            className="h-10 px-4 border rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50"
+            className="h-10 px-4 border border-gray-300 dark:border-[#333333] cursor-pointer rounded-lg bg-white dark:bg-[#242424] text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[#2a2a2a] disabled:opacity-50"
           >
             Reload
           </button>
@@ -72,7 +72,7 @@ export default function ManageReports() {
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-sm">
           {error}
         </div>
       )}

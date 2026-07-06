@@ -142,7 +142,7 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
             <button
               type="button"
               onClick={onClose}
-              className="ml-4 shrink-0 text-2xl leading-none transition hover:opacity-60"
+              className="ml-4 shrink-0 text-2xl leading-none transition hover:opacity-60 cursor-pointer"
               style={{ color: textSec }}
               aria-label="Close"
             >
@@ -210,7 +210,7 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border px-5 py-2 text-sm font-medium"
+              className="rounded-lg border px-5 py-2 text-sm font-medium cursor-pointer"
               style={{ borderColor: border, color: textSec }}
             >
               Cancel
@@ -219,7 +219,7 @@ export function StoreModal({ store, onClose, onSaved, theme }) {
             <button
               disabled={saving}
               type="submit"
-              className="rounded-lg px-5 py-2 text-sm font-medium text-white disabled:opacity-70"
+              className="rounded-lg px-5 py-2 text-sm font-medium text-white disabled:opacity-70 cursor-pointer"
               style={{ backgroundColor: accent }}
             >
               {saving ? "Saving..." : isEdit ? "Save Changes" : "Create Store"}

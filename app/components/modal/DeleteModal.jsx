@@ -98,7 +98,7 @@ export function DeleteModal({
           <button
             onClick={onClose}
             disabled={deleting}
-            className="rounded-lg border px-4 py-2 text-sm font-medium transition hover:opacity-80"
+            className="rounded-lg border cursor-pointer px-4 py-2 text-sm font-medium transition hover:opacity-80"
             style={{ borderColor: border, color: textSec }}
           >
             Cancel
@@ -106,7 +106,7 @@ export function DeleteModal({
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex min-w-[100px] items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            className="flex min-w-[100px] items-center cursor-pointer justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: accent }}
           >
             {deleting && (

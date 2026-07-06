@@ -139,7 +139,7 @@ export default function WeeklySalesUploadPage() {
                   backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
                   color: selectedFileType ? "#fff" : textSec,
                 }}
-                className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
+                className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
               >
                 <svg
                   width="15"
@@ -164,7 +164,7 @@ export default function WeeklySalesUploadPage() {
                     backgroundColor: accent,
                     color: "#fff",
                   }}
-                  className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                  className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
                 >
                   {validating ? (
                     <>

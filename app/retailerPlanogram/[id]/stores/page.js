@@ -203,7 +203,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
                 type="button"
                 onClick={() => setActiveUploadType(card.filetype)}
                 style={{ backgroundColor: accent }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold cursor-pointer hover:opacity-90 transition"
               >
                 <UploadIcon />
                 Upload
@@ -269,7 +269,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
                             type="button"
                             onClick={() => setPreviewUpload(row)}
                             disabled={normalizeUploadStatus(row.status) !== "preview"}
-                            className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             style={{ borderColor: border, color: textPri, backgroundColor: bg }}
                           >
                             Preview
@@ -536,7 +536,7 @@ export default function MasterStoresPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px"
+                className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
                 style={{
                   color: activeTab === tab.key ? th.accent : th.textSec,
                   borderBottomColor: activeTab === tab.key ? th.accent : "transparent",

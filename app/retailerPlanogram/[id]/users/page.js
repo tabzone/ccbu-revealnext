@@ -254,7 +254,7 @@ export default function MasterUsersPage() {
             <button
               onClick={handleAddUser}
               style={{ backgroundColor: th.accent }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+              className="flex items-center gap-2 px-5 cursor-pointer py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="12" y1="5" x2="12" y2="19" />

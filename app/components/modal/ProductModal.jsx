@@ -104,7 +104,7 @@ export function ProductModal({ product, onClose, onSaved, theme }) {
                 {PRODUCT_FIELDS.length} fields
               </p>
             </div>
-            <button type="button" onClick={onClose} className="ml-4 shrink-0 text-2xl leading-none hover:opacity-60 transition" style={{ color: textSec }} aria-label="Close">
+            <button type="button" onClick={onClose} className="cursor-pointer ml-4 shrink-0 text-2xl leading-none hover:opacity-60 transition" style={{ color: textSec }} aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -153,7 +153,7 @@ export function ProductModal({ product, onClose, onSaved, theme }) {
 
           {/* Footer */}
           <div className="flex shrink-0 justify-end gap-3 border-t px-6 py-4" style={{ borderColor: border }}>
-            <button type="button" onClick={onClose} className="rounded-lg border px-5 py-2 text-sm font-medium" style={{ borderColor: border, color: textSec }}>
+            <button type="button" onClick={onClose} className="cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium" style={{ borderColor: border, color: textSec }}>
               Cancel
             </button>
             <button

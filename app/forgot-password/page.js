@@ -247,7 +247,7 @@ export default function ForgotPasswordPage() {
                   setError("");
                   setSuccess("");
                 }}
-                className="w-full text-sm text-slate-500 hover:text-slate-700"
+                className="w-full text-sm text-slate-500 hover:text-slate-700 cursor-pointer"
               >
                 Use a different email
               </button>
@@ -260,7 +260,7 @@ export default function ForgotPasswordPage() {
               onClick={() =>
                 router.push("/login")
               }
-              className="text-sm cursor-pointer text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-sm cursor-pointer text-blue-600 hover:text-blue-700 hover:underline "
             >
               Back to Login
             </button>
