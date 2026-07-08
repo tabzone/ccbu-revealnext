@@ -191,7 +191,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
 
             <div className="flex items-center justify-between gap-3">
               <a
-                href={url(card.downloadPath)}
+                href={card.downloadPath}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition hover:opacity-80"

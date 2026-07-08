@@ -108,7 +108,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
         style={{ backgroundColor: bgSub, borderColor: border }}
       >
         <a
-          href={url("/products/template")}
+          href={"/Products_template.xlsx"}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition hover:opacity-80"

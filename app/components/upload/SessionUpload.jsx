@@ -546,7 +546,7 @@ export function SessionUploadModal({
         <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
           <div>
             <h2 className="text-xl font-semibold" style={{ color: textPri }}>{title}</h2>
-            {session?.filename && <p className="mt-1 text-xs" style={{ color: textSec }}>{session.filename}</p>}
+            {/* {session?.filename && <p className="mt-1 text-xs" style={{ color: textSec }}>{session.filename}</p>} */}
           </div>
           <button
             type="button"
