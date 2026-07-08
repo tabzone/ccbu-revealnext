@@ -4,12 +4,13 @@ import { PAGE_SIZE } from "@/data/constants";
 
 const COLS = [
   { label: "Store #", key: "store" },
-  { label: "Store Leader", key: "store_leader" },
+  { label: "Region", key: "region" },
+
+  // { label: "Store Leader", key: "store_leader" },
   { label: "Address", key: null },
   { label: "City", key: "city" },
   { label: "State", key: "state" },
   { label: "District", key: "district" },
-  { label: "Region", key: "region" },
   { label: "Phone", key: null },
   { label: "Opened", key: "opened" },
   { label: "Kitchen", key: null },
@@ -133,9 +134,11 @@ export function StoresTable({
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
                         <td style={{ color: accent }} className="px-5 py-3.5 font-bold text-sm">{row.store}</td>
-                        <td style={{ color: textPri }} className="px-5 py-3.5 font-medium text-sm whitespace-nowrap">
+                        {/* <td style={{ color: textPri }} className="px-5 py-3.5 font-medium text-sm whitespace-nowrap">
                           {row.store_leader ?? "—"}
-                        </td>
+                        </td> */}
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.region ?? "—"}</td>
+
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.address ?? "—"}</td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.city ?? "—"}</td>
                         <td className="px-5 py-3.5">
@@ -152,7 +155,6 @@ export function StoresTable({
                           ) : <span style={{ color: textSec }}>—</span>}
                         </td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.district ?? "—"}</td>
-                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm">{row.region ?? "—"}</td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.phone ?? "—"}</td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.opened ?? "—"}</td>
                         <td className="px-5 py-3.5">

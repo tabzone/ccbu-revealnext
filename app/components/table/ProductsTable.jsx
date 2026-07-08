@@ -1,6 +1,8 @@
 "use client";
 
 import { PAGE_SIZE } from "@/data/constants";
+import { ProductDetailModal } from "../modal/ProductDetailModal ";
+import { useState } from "react";
 
 const COLS = [
   { label: "UPC", key: "upc" },
@@ -52,6 +54,7 @@ export function ProductsTable({
 }) {
   const { bg, bgSub, border, textPri, textSec, hover, accent } = theme;
   const isDark = theme.accent === "#f87171";
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const pageNumbers = (() => {
     const max = Math.min(totalPages, 5);
@@ -127,8 +130,18 @@ export function ProductsTable({
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
-                        <td style={{ color: accent }} className="px-5 py-3.5 font-bold text-sm whitespace-nowrap">
+                        {/* <td style={{ color: accent }} className="px-5 py-3.5 font-bold text-sm whitespace-nowrap">
                           {row.upc}
+                        </td> */}
+                        <td className="px-5 py-3.5 font-bold text-sm whitespace-nowrap">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedProduct(row); }}
+                            style={{ color: "#7195f8" }}
+                            className="hover:underline cursor-pointer"
+                            title="View details"
+                          >
+                            {row.upc}
+                          </button>
                         </td>
                         <td style={{ color: textPri }} className="px-5 py-3.5 font-medium text-sm max-w-[220px] truncate" title={row.item_desc}>
                           {row.item_desc ?? "—"}
@@ -236,6 +249,12 @@ export function ProductsTable({
           </div>
         </>
       )}
+      <ProductDetailModal
+        product={selectedProduct}
+        theme={theme}
+        onClose={() => setSelectedProduct(null)}
+        onEdit={onEdit}
+      />
     </div>
   );
 }
