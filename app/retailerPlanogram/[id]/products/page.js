@@ -67,10 +67,10 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
     if (!retailerId) return;
 
     setHistoryLoading(true);
-    apiGet(`/retailers/${retailerId}/uploads`)
+    apiGet(`/retailers/${retailerId}/uploads/prd`)
       .then((res) => {
         const rows = extractUploadRows(res)
-          .filter((row) => (row.filetype ?? row.file_type) === "PRD")
+          // .filter((row) => (row.filetype ?? row.file_type) === "PRD")
           .sort((a, b) => new Date(b.created_at ?? b.uploaded_at ?? 0) - new Date(a.created_at ?? a.uploaded_at ?? 0));
         setHistory(rows);
       })

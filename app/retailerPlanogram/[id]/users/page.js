@@ -9,6 +9,7 @@ import { Toast } from "@/app/components/Toast";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { apiGet, apiPut } from "@/lib/api";
 import { PAGE_SIZE } from "@/data/constants";
+import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 // ─── Helper: Frontend sorting ──────────────────────────────────────────────────
@@ -40,6 +41,8 @@ function sortUsers(users, sortBy, sortDir) {
 }
 
 export default function MasterUsersPage() {
+  const params = useParams();
+  const retailerId = params?.id;
   const { theme: mode } = useTheme();
   const isDark = mode === "dark";
 
@@ -266,7 +269,7 @@ export default function MasterUsersPage() {
         </div>
 
         {/* Filter and Table */}
-        <FilterBar
+        {/* <FilterBar
           searchQuery={searchQuery}
           searchPlaceholder="Search users by name or email…"
           dropdowns={[
@@ -287,7 +290,7 @@ export default function MasterUsersPage() {
           onSearchChange={handleSearchChange}
           onClearFilters={handleClearFilters}
           theme={th}
-        />
+        /> */}
 
         <UsersTable
           users={users}
@@ -313,6 +316,7 @@ export default function MasterUsersPage() {
       {modal && (
         <UserModal
           user={modal === "add" ? null : modal}
+          retailerId={retailerId}
           onClose={() => setModal(null)}
           onSaved={handleSaveUser}
           theme={th}

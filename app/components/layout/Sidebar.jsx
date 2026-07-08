@@ -183,8 +183,8 @@ export default function Sidebar({ isOpen }) {
                             }
                           `}
                         >
-                          <span className="w-2 h-2 rounded-full bg-current flex-shrink-0" />
-                          <span>{child.label}</span>
+                          <span className="w-2 h-2 ml-4" />
+                          <span >{child.label}</span>
                         </Link>
                       );
                     })}

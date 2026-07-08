@@ -3,7 +3,7 @@
 import { apiPost, apiPut } from "@/lib/api";
 import { useState, useEffect } from "react";
 
-export function UserModal({ user, onClose, onSaved, theme }) {
+export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
     const isAdd = !user;
 
     const [formData, setFormData] = useState({
@@ -37,9 +37,10 @@ export function UserModal({ user, onClose, onSaved, theme }) {
             //     headers: { "Content-Type": "application/json" },
             //     body: JSON.stringify(formData),
             //   });
+            const payload = { ...formData, retailerid: retailerId };
             const savedUser = isAdd
-                ? await apiPost("/users", formData)
-                : await apiPut(`/users/${user.userid}`, formData);
+                ? await apiPost("/users", payload)
+                : await apiPut(`/users/${user.userid}`, payload);
             // if (!response.ok) {
             //     const errorData = await response.json();
             //     throw new Error(errorData.message || "Failed to save user");
@@ -193,7 +194,7 @@ export function UserModal({ user, onClose, onSaved, theme }) {
                     )}
 
                     {/* Role */}
-                    <div>
+                    {isAdd && (<div>
                         <label style={{ color: theme.textPri }} className="block text-sm font-medium mb-1">
                             Role *
                         </label>
@@ -209,13 +210,11 @@ export function UserModal({ user, onClose, onSaved, theme }) {
                                 "--tw-ring-color": theme.accent,
                             }}
                         >
-                            <option value="User">User</option>
-                            <option value="Admin">Admin</option>
                             <option value="Manager">Manager</option>
-                            <option value="Editor">Editor</option>
+                            <option value="User">User</option>
                         </select>
                     </div>
-
+                    )}
                     {/* Buttons */}
                     <div className="flex gap-2 pt-4">
                         <button

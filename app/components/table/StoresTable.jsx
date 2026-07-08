@@ -3,17 +3,20 @@
 import { PAGE_SIZE } from "@/data/constants";
 
 const COLS = [
-  { label: "Store #",      key: "store" },
+  { label: "Store #", key: "store" },
   { label: "Store Leader", key: "store_leader" },
-  { label: "Address",      key: null },
-  { label: "City",         key: "city" },
-  { label: "State",        key: "state" },
-  { label: "District",     key: "district" },
-  { label: "Region",       key: "region" },
-  { label: "Phone",        key: null },
-  { label: "Opened",       key: "opened" },
-  { label: "Kitchen",      key: null },
-  { label: "",             key: null },
+  { label: "Address", key: null },
+  { label: "City", key: "city" },
+  { label: "State", key: "state" },
+  { label: "District", key: "district" },
+  { label: "Region", key: "region" },
+  { label: "Phone", key: null },
+  { label: "Opened", key: "opened" },
+  { label: "Kitchen", key: null },
+  { label: "Status", key: null },
+  { label: "POG Status", key: null },
+
+  { label: "", key: null },
 ];
 
 function SortIcon({ active, dir }) {
@@ -105,23 +108,23 @@ export function StoresTable({
               <tbody>
                 {loading
                   ? Array.from({ length: 8 }).map((_, i) => (
-                      <tr key={i} style={{ borderColor: border }} className="border-b">
-                        {COLS.map((col) => (
-                          <td key={col.label} className="px-5 py-4">
-                            <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-20" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
+                    <tr key={i} style={{ borderColor: border }} className="border-b">
+                      {COLS.map((col) => (
+                        <td key={col.label} className="px-5 py-4">
+                          <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-20" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
                   : stores.length === 0
-                  ? (
+                    ? (
                       <tr>
                         <td colSpan={COLS.length} className="py-16 text-center">
                           <p style={{ color: textSec }} className="text-sm">No stores found</p>
                         </td>
                       </tr>
                     )
-                  : stores.map((row) => (
+                    : stores.map((row) => (
                       <tr
                         key={row.store}
                         style={{ borderColor: border }}
@@ -167,6 +170,48 @@ export function StoresTable({
                             <span style={{ color: textSec }}>—</span>
                           )}
                         </td>
+                        <td
+                          style={{ color: textSec }}
+                          className="px-5 py-3.5 text-sm whitespace-nowrap"
+                        >
+                          <span
+                            style={
+                              row.status === "Archived"
+                                ? {
+                                  backgroundColor: isDark ? "#7f1d1d" : "#fee2e2",
+                                  color: isDark ? "#fca5a5" : "#dc2626",
+                                }
+                                : {
+                                  backgroundColor: isDark ? "#14532d" : "#dcfce7",
+                                  color: isDark ? "#86efac" : "#15803d",
+                                }
+                            }
+                            className="inline-flex px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                          >
+                            {row.status ?? "—"}
+                          </span>
+                        </td>
+                        <td
+                          style={{ color: textSec }}
+                          className="px-5 py-3.5 text-sm whitespace-nowrap"
+                        >
+                          <span
+                            style={
+                              row.pog_status
+                                ? {
+                                  backgroundColor: isDark ? "#14532d" : "#dcfce7",
+                                  color: isDark ? "#86efac" : "#15803d",
+                                }
+                                : {
+                                  backgroundColor: isDark ? "#7f1d1d" : "#fee2e2",
+                                  color: isDark ? "#fca5a5" : "#dc2626",
+                                }
+                            }
+                            className="inline-flex px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                          >
+                            {row.pog_status ? "Active" : "Inactive"}
+                          </span>
+                        </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1">
                             <button
@@ -194,8 +239,8 @@ export function StoresTable({
               {loading
                 ? "Loading…"
                 : total === 0
-                ? "No results"
-                : `${paginationStart}–${paginationEnd} of ${total} stores`}
+                  ? "No results"
+                  : `${paginationStart}–${paginationEnd} of ${total} stores`}
             </span>
 
             {totalPages > 1 && (

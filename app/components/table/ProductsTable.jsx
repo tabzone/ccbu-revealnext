@@ -3,15 +3,16 @@
 import { PAGE_SIZE } from "@/data/constants";
 
 const COLS = [
-  { label: "UPC",              key: "upc" },
+  { label: "UPC", key: "upc" },
   { label: "Item Description", key: "item_desc" },
-  { label: "Brand",            key: "brand" },
-  { label: "Manufacturer",     key: "manufacturer" },
-  { label: "Category",         key: "category" },
-  { label: "Sub-Category",     key: null },
-  { label: "Segment",          key: "segment" },
-  { label: "Size",             key: null },
-  { label: "",                 key: null },
+  { label: "Brand", key: "brand" },
+  { label: "Manufacturer", key: "manufacturer" },
+  { label: "Category", key: "category" },
+  { label: "Sub-Category", key: null },
+  { label: "Segment", key: "segment" },
+  { label: "Size", key: null },
+  { label: "Status", key: null },
+  { label: "", key: null },
 ];
 
 function SortIcon({ active, dir }) {
@@ -53,13 +54,13 @@ export function ProductsTable({
   const isDark = theme.accent === "#f87171";
 
   const pageNumbers = (() => {
-    const max   = Math.min(totalPages, 5);
+    const max = Math.min(totalPages, 5);
     const start = Math.max(0, Math.min(page - 2, totalPages - max));
     return Array.from({ length: max }, (_, i) => start + i);
   })();
 
   const paginationStart = page * PAGE_SIZE + 1;
-  const paginationEnd   = Math.min((page + 1) * PAGE_SIZE, total);
+  const paginationEnd = Math.min((page + 1) * PAGE_SIZE, total);
 
   return (
     <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden">
@@ -102,23 +103,23 @@ export function ProductsTable({
               <tbody>
                 {loading
                   ? Array.from({ length: 8 }).map((_, i) => (
-                      <tr key={i} style={{ borderColor: border }} className="border-b">
-                        {COLS.map((col) => (
-                          <td key={col.label} className="px-5 py-4">
-                            <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-24" />
-                          </td>
-                        ))}
-                      </tr>
-                    ))
+                    <tr key={i} style={{ borderColor: border }} className="border-b">
+                      {COLS.map((col) => (
+                        <td key={col.label} className="px-5 py-4">
+                          <div style={{ backgroundColor: bgSub }} className="h-4 rounded animate-pulse w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
                   : products.length === 0
-                  ? (
+                    ? (
                       <tr>
                         <td colSpan={COLS.length} className="py-16 text-center">
                           <p style={{ color: textSec }} className="text-sm">No products found</p>
                         </td>
                       </tr>
                     )
-                  : products.map((row) => (
+                    : products.map((row) => (
                       <tr
                         key={row.upc}
                         style={{ borderColor: border }}
@@ -150,6 +151,20 @@ export function ProductsTable({
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.sub_category_desc ?? "—"}</td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.segment ?? "—"}</td>
                         <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">{row.size_desc ?? "—"}</td>
+
+                        <td style={{ color: textSec }} className="px-5 py-3.5 text-sm whitespace-nowrap">
+                          <span
+                            style={
+                              status === "Archived"
+                                ? { backgroundColor: bgSub, color: textSec }
+                                : { backgroundColor: isDark ? "#14532d" : "#dcfce7", color: isDark ? "#86efac" : "#15803d" }
+                            }
+                            className="inline-flex px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+                          >
+                            {row.status ?? "—"}
+                          </span>
+                        </td>
+
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-1">
                             <button
@@ -190,8 +205,8 @@ export function ProductsTable({
               {loading
                 ? "Loading…"
                 : total === 0
-                ? "No results"
-                : `${paginationStart}–${paginationEnd} of ${total} products`}
+                  ? "No results"
+                  : `${paginationStart}–${paginationEnd} of ${total} products`}
             </span>
 
             {totalPages > 1 && (

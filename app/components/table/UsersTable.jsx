@@ -225,7 +225,7 @@ export function UsersTable({
                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                             </svg>
                                         </button>
-                                        <button
+                                        {/* <button
                                             onClick={() => onDelete(user)}
                                             className="p-2 rounded hover:opacity-75 transition"
                                             style={{ backgroundColor: theme.bgSub }}
@@ -245,7 +245,7 @@ export function UsersTable({
                                                 <line x1="10" y1="11" x2="10" y2="17" />
                                                 <line x1="14" y1="11" x2="14" y2="17" />
                                             </svg>
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </td>
                             </tr>

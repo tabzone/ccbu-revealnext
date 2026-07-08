@@ -204,7 +204,7 @@ export default function WeeklySalesUploadPage() {
               </button>
 
               <button
-                onClick={""}
+                // onClick={""}
                 disabled={true}
                 style={{
                   backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
