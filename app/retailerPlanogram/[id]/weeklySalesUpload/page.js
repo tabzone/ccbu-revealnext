@@ -96,7 +96,6 @@ export default function WeeklySalesUploadPage() {
   const handleUploadSuccess = useCallback((message) => {
     addToast(message);
     fetchHistory();
-    setActiveUploadType(null);
     setSelectedFileType("");
   }, [addToast, fetchHistory]);
 

@@ -48,6 +48,11 @@ export function normalizeUploadStatus(value) {
   return "pending";
 }
 
+export function getUploadFilename(row) {
+  if (normalizeUploadStatus(row?.status) === "cancelled") return "-";
+  return row?.file_name ?? row?.filename ?? "-";
+}
+
 export function extractUploadRows(payload) {
   const data = payload?.data ?? payload;
   if (Array.isArray(data)) return data;
@@ -336,6 +341,9 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
 // ─── Upload modal ─────────────────────────────────────────────────────────────
 
 const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT", "POG"];
+const PREVIEW_STATUS_FILETYPES = ["PRD", "STR"];
+const SESSION_UPLOAD_SUCCESS_MESSAGE =
+  "Upload completed successfully. Your upload has started processing. You can monitor its progress and validate the uploaded data from the History table using the Preview action.";
 
 export function SessionUploadModal({
   retailerId,
@@ -355,11 +363,12 @@ export function SessionUploadModal({
   const [session, setSession] = useState(null);
   const [uppy, setUppy] = useState(null);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const pollTimerRef = useRef(null);
   const cancelledRef = useRef(false);
   const xhrRef = useRef(null);
 
-  const canClose = phase === "ready" || phase === "polling" || phase === "error";
+  const canClose = phase === "ready" || phase === "polling" || phase === "error" || phase === "success";
 
   const closeModal = useCallback(async () => {
     if (!canClose) return;
@@ -381,13 +390,11 @@ export function SessionUploadModal({
       const status = normalizeUploadStatus(payload?.status);
 
       if (status === "success") {
-        onSuccess(payload?.message ?? "File uploaded successfully");
-        return;
+        return payload?.message ?? "File uploaded successfully";
       }
 
       if (status === "preview") {
-        onSuccess(payload?.message ?? "File processed. Ready for preview.");
-        return;
+        return payload?.message ?? "File processed. Ready for preview.";
       }
 
       if (status === "failed") {
@@ -396,15 +403,14 @@ export function SessionUploadModal({
 
       if (status === "pending") {
         await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Preview" });
-        onSuccess(payload?.message ?? "File uploaded. Ready for preview.");
-        return;
+        return payload?.message ?? "File uploaded. Ready for preview.";
       }
 
       await waitForUploadPoll(SESSION_UPLOAD_POLL_INTERVAL_MS, pollTimerRef, cancelledRef);
     }
 
     throw new Error("Upload status timed out after 2 minutes");
-  }, [onSuccess, retailerId]);
+  }, [retailerId]);
 
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -464,12 +470,28 @@ export function SessionUploadModal({
               s3Key: uploadSession.s3_key,
               xhrRef,
             });
+
             setPhase("polling");
-            if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
+
+            let message;
+            if (PREVIEW_STATUS_FILETYPES.includes(filetype)) {
+              await apiPut(`/retailers/${retailerId}/uploads/${uploadSession.requestid}`, {
+                status: "Preview",
+                filename: file.name,
+              });
+              message = SESSION_UPLOAD_SUCCESS_MESSAGE;
+            } else if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
               await apiPost(`/retailers/${retailerId}/uploads/${uploadSession.requestid}/process`);
-              onSuccess("File uploaded and processed successfully");
+              message = "File uploaded and processed successfully";
             } else {
-              await pollUploadStatus(uploadSession.requestid);
+              message = await pollUploadStatus(uploadSession.requestid);
+            }
+
+            if (!cancelledRef.current) {
+              setPhase("success");
+              setSuccessMessage(message);
+              fetchHistory();
+              onSuccess(message);
             }
           } catch (err) {
             if (!cancelledRef.current) {
@@ -497,7 +519,7 @@ export function SessionUploadModal({
     return () => {
       cancelledRef.current = true;
     };
-  }, [onClose, onError, onSuccess, pollUploadStatus, retailerId, filetype, filename, week, fiscalDate]);
+  }, [onClose, onError, onSuccess, pollUploadStatus, retailerId, filetype, filename, week, fiscalDate, fetchHistory]);
 
   useEffect(() => {
     return () => {
@@ -539,33 +561,56 @@ export function SessionUploadModal({
         </div>
 
         <div className="p-6">
-          {phase === "preparing" ? (
+          {phase === "preparing" && (
             <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
               <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-transparent" style={{ borderTopColor: accent }} />
               <p className="text-sm font-medium" style={{ color: textSec }}>Preparing upload...</p>
             </div>
-          ) : (
-            <>
-              {uppy && (
-                <Dashboard
-                  uppy={uppy}
-                  proudlyDisplayPoweredByUppy={false}
-                  width="100%"
-                  height={340}
-                  hideCancelButton={phase === "uploading" || phase === "polling"}
-                  disabled={phase === "uploading" || phase === "polling"}
-                />
-              )}
-              {phase === "polling" && (
-                <div className="mt-3 flex items-center gap-2 text-sm" style={{ color: textSec }}>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" style={{ borderTopColor: accent }} />
-                  Processing uploaded file...
-                </div>
-              )}
-              {error && (
-                <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-              )}
-            </>
+          )}
+
+          {phase === "ready" && uppy && (
+            <Dashboard
+              uppy={uppy}
+              proudlyDisplayPoweredByUppy={false}
+              width="100%"
+              height={340}
+            />
+          )}
+
+          {(phase === "uploading" || phase === "polling") && (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
+              <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-transparent" style={{ borderTopColor: accent }} />
+              <p className="text-sm font-medium" style={{ color: textSec }}>
+                {phase === "uploading" ? "Uploading file..." : "Processing uploaded file..."}
+              </p>
+            </div>
+          )}
+
+          {phase === "success" && (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 px-4 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <p className="max-w-md text-sm font-medium" style={{ color: textPri }}>
+                {successMessage || "Upload completed successfully."}
+              </p>
+            </div>
+          )}
+
+          {phase === "error" && (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 px-4 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </div>
+              <p className="max-w-md text-sm font-medium" style={{ color: "#dc2626" }}>
+                {error || "Upload failed."}
+              </p>
+            </div>
           )}
         </div>
       </div>

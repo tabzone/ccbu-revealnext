@@ -16,6 +16,7 @@ import {
   StatusBadge,
   normalizeUploadStatus,
   extractUploadRows,
+  getUploadFilename,
   SessionUploadModal,
   SessionPreviewModal,
 } from "@/app/components/upload/SessionUpload";
@@ -86,7 +87,6 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
   const handleUploadSuccess = useCallback((message) => {
     addToast(message);
     fetchHistory();
-    setActiveUploadType(null);
   }, [addToast, fetchHistory]);
 
   const handlePreviewConfirmed = useCallback((message) => {
@@ -279,8 +279,8 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                     >
                       <td className="px-5 py-3"><UploadTypeBadge filetype={filetype} /></td>
-                      <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
-                        {row.file_name ?? row.filename ?? "-"}
+                      <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={getUploadFilename(row)}>
+                        {getUploadFilename(row)}
                       </td>
                       <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
                         {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
