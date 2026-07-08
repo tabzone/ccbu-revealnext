@@ -109,7 +109,7 @@ export default function Sidebar({ isOpen }) {
         duration-300
         flex
         flex-col
-        ${isOpen ? "w-72" : "w-20"}
+        ${isOpen ? "w-64" : "w-20"}
       `}
     >
       {/* Navigation */}

@@ -144,7 +144,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
-                {["Id", "File Name", "Uploaded At", "Status", "Actions"].map((col) => (
+                {[ "File Name", "Uploaded At", "Status", "Actions"].map((col) => (
                   // "Week", "Failed Rows"
                   <th key={col} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
                     {col}
@@ -170,9 +170,9 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
                   >
-                    <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
+                    {/* <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={row.file_name ?? row.filename}>
                       {row.requestid ?? row.requestid ?? "-"}
-                    </td>
+                    </td> */}
                     <td className="px-5 py-3 font-medium max-w-[260px] truncate" style={{ color: textPri }} title={getUploadFilename(row)}>
                       {getUploadFilename(row)}
                     </td>

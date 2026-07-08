@@ -108,7 +108,7 @@ export default function Navbar({ onToggleSidebar }) {
 
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
-          <img src="/logo.avif" alt="logo" className="h-10 w-auto" />
+          <img src="/logo.avif" alt="logo" className="h-8 w-auto" />
         </Link>
         <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} className="ml-5"/>
 

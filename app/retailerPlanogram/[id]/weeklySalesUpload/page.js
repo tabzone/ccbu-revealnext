@@ -58,6 +58,8 @@ export default function WeeklySalesUploadPage() {
   const [historyTab, setHistoryTab] = useState("SALES");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [unpublishedWeek, setUnpublishedWeek] = useState(null);
+  const [unpublishedWeekLoading, setUnpublishedWeekLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = "success") => {
@@ -85,6 +87,22 @@ export default function WeeklySalesUploadPage() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+  const fetchUnpublishedWeek = useCallback(() => {
+    if (!retailerId) return;
+
+    setUnpublishedWeekLoading(true);
+    apiGet(`/retailers/${retailerId}/weeks/unpublished`)
+      .then((res) => {
+        const payload = res?.data ?? res;
+        setUnpublishedWeek(payload && Object.keys(payload).length > 0 ? payload : null);
+      })
+      .catch(() => setUnpublishedWeek(null))
+      .finally(() => setUnpublishedWeekLoading(false));
+  }, [retailerId]);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchUnpublishedWeek(); }, [fetchUnpublishedWeek]);
 
   const handleUploadClose = useCallback(() => {
     setActiveUploadType(null);
@@ -114,8 +132,10 @@ export default function WeeklySalesUploadPage() {
   }, [addToast]);
 
   const today = new Date();
-  const uploadDate = today.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   const weekNumber = getISOWeek(today);
+
+  const dataWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.dataweek ?? "-");
+  const fiscalWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.fiscal_week ?? "-");
 
   const isDark = theme === "dark";
   const bg = isDark ? "#191919" : "#ffffff";
@@ -137,98 +157,142 @@ export default function WeeklySalesUploadPage() {
       <div className="mx-auto">
 
         {/* PAGE HEADER */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h1 style={{ color: textPri }} className="text-3xl font-bold mb-2">
             Data Upload
           </h1>
           <p style={{ color: textSec }} className="text-base">
             Upload your datasets to sync with the latest information
           </p>
-        </div>
+        </div> */}
 
-        {/* CONTROLS CARD */}
-        <div style={{ backgroundColor: bg, borderColor: border }} className="rounded-2xl border p-6 mb-6">
+        {/* CONTROLS + PUBLISH ROW */}
+       <div className="flex flex-col lg:flex-row gap-4 mb-6">
 
-          {/* Upload Date and Week labels */}
-          <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
-            <div>
-              <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
-                Fiscal Date
-              </p>
-              <p style={{ color: textPri }} className="text-sm font-bold">{uploadDate}</p>
+          {/* CONTROLS CARD */}
+          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4">
+
+            {/* Upload Date and Week labels */}
+            <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+              <div>
+                <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                  Data Week
+                </p>
+                <p style={{ color: textPri }} className="text-sm font-bold">{dataWeekValue}</p>
+              </div>
+              <div style={{ width: 1, height: 32, backgroundColor: border }} />
+              <div>
+                <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                  Fiscal Week
+                </p>
+                <p style={{ color: textPri }} className="text-sm font-bold">{fiscalWeekValue}</p>
+              </div>
             </div>
-            <div style={{ width: 1, height: 32, backgroundColor: border }} />
+
+            {/* File type dropdown + Upload button */}
             <div>
-              <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
-                Week
-              </p>
-              <p style={{ color: textPri }} className="text-sm font-bold">Week {weekNumber}</p>
-            </div>
-          </div>
+              <label style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold block mb-2">
+                File Type
+              </label>
+              <div className="flex gap-3">
+                <select
+                  value={selectedFileType}
+                  onChange={(e) => setSelectedFileType(e.target.value)}
+                  style={{
+                    backgroundColor: bgSub,
+                    borderColor: border,
+                    color: selectedFileType ? textPri : textSec,
+                  }}
+                  className="flex-1 rounded-xl border px-4 py-3 text-sm outline-none appearance-none cursor-pointer transition"
+                  onFocus={(e) => (e.currentTarget.style.borderColor = accent)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = border)}
+                >
+                  <option value="" disabled>Select file type...</option>
+                  {FILE_TYPES.map((ft) => (
+                    <option key={ft.value} value={ft.value} style={{ color: textPri, backgroundColor: bgDrop }}>
+                      {ft.label}
+                    </option>
+                  ))}
+                </select>
 
-          {/* File type dropdown + Upload button */}
-          <div>
-            <label style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold block mb-2">
-              File Type
-            </label>
-            <div className="flex gap-3">
-              <select
-                value={selectedFileType}
-                onChange={(e) => setSelectedFileType(e.target.value)}
-                style={{
-                  backgroundColor: bgSub,
-                  borderColor: border,
-                  color: selectedFileType ? textPri : textSec,
-                }}
-                className="flex-1 rounded-xl border px-4 py-3 text-sm outline-none appearance-none cursor-pointer transition"
-                onFocus={(e) => (e.currentTarget.style.borderColor = accent)}
-                onBlur={(e) => (e.currentTarget.style.borderColor = border)}
-              >
-                <option value="" disabled>Select file type...</option>
-                {FILE_TYPES.map((ft) => (
-                  <option key={ft.value} value={ft.value} style={{ color: textPri, backgroundColor: bgDrop }}>
-                    {ft.label}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={() => selectedFileType && setActiveUploadType(selectedFileType)}
-                disabled={!selectedFileType}
-                style={{
-                  backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
-                  color: selectedFileType ? "#fff" : textSec,
-                }}
-                className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                Upload File
-              </button>
-
-              <button
-                // onClick={""}
-                disabled={true}
-                style={{
-                  backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
-                  color: selectedFileType ? "#fff" : textSec,
-                }}
-                className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
-              >
-                {validating ? (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
+                <button
+                  onClick={() => selectedFileType && setActiveUploadType(selectedFileType)}
+                  disabled={!selectedFileType}
+                  style={{
+                    backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
+                    color: selectedFileType ? "#fff" : textSec,
+                  }}
+                  className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
+                >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <polyline points="20 6 9 17 4 12" />
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                )}
-                {validating ? "Validating..." : "Validate"}
-              </button>
+                  Upload File
+                </button>
+
+                <button
+                  // onClick={""}
+                  disabled={true}
+                  style={{
+                    backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
+                    color: selectedFileType ? "#fff" : textSec,
+                  }}
+                  className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
+                >
+                  {validating ? (
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                  {validating ? "Validating..." : "Validate"}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* PUBLISH CARD */}
+          <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4">
+            <h2 style={{ color: textPri }} className="text-base font-semibold mb-1">Publish</h2>
+            <p style={{ color: textSec }} className="text-sm mb-6">
+              Publish the current fiscal week once all data is ready.
+            </p>
+
+            <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+              <div>
+                <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                  Status
+                </p>
+                <p style={{ color: textPri }} className="text-sm font-bold">
+                  {unpublishedWeekLoading
+                    ? "-"
+                    : unpublishedWeek?.published === true
+                      ? "Published"
+                      : unpublishedWeek?.published === false
+                        ? "Not Published"
+                        : "-"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              disabled={true}
+              style={{
+                backgroundColor: isDark ? "#333" : "#e5e7eb",
+                color: textSec,
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 mt-auto"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <path d="M4 12l6 6L20 6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Publish
+            </button>
+          </div>
+
         </div>
 
         {/* UPLOAD HISTORY */}
