@@ -6,7 +6,8 @@ import { Toast } from "@/app/components/Toast";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { apiGet } from "@/lib/api";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { WeeksTable } from "@/app/components/table/WeeksTable";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -17,44 +18,6 @@ function extractWeeks(payload) {
     if (Array.isArray(data?.items)) return data.items;
     return [];
 }
-
-function formatDate(value, withTime = false) {
-    if (value === null || value === undefined || value === "") return "-";
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return String(value);
-    return withTime ? d.toLocaleString() : d.toLocaleDateString();
-}
-
-function ReadyBadge({ value, textSec }) {
-    if (value === null || value === undefined || value === "") {
-        return <span className="text-sm" style={{ color: textSec }}>-</span>;
-    }
-    if (typeof value === "boolean") {
-        return (
-            <span
-                className="px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
-                style={value ? { backgroundColor: "#dcfce7", color: "#15803d" } : { backgroundColor: "#f3f4f6", color: "#6b7280" }}
-            >
-                {value ? "Yes" : "No"}
-            </span>
-        );
-    }
-    return <span className="text-sm whitespace-nowrap" style={{ color: textSec }}>{String(value)}</span>;
-}
-
-const WEEK_COLUMNS = [
-    "Data Week",
-    "Fiscal Week",
-    "Year",
-    "Products Ready",
-    "Stores Ready",
-    "Market Ready",
-    "Sales Ready",
-    "Planograms Ready",
-    "Published",
-    "Created At",
-    "Updated At",
-];
 
 export default function TimeSetupPage() {
     const params = useParams();
@@ -71,13 +34,14 @@ export default function TimeSetupPage() {
         hover: isDark ? "#242424" : "#f9fafb",
         accent: isDark ? "#f87171" : "#dc2626",
     };
-    const { bg, bgSub, border, textPri, textSec, hover, accent } = th;
+    const { bg, border, textPri, textSec, accent } = th;
 
     const [weeks, setWeeks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [apiError, setApiError] = useState(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [toasts, setToasts] = useState([]);
+    const [sortConfig, setSortConfig] = useState({ key: "year", direction: "desc" });
 
     const addToast = useCallback((message, type = "success") => {
         const id = Date.now();
@@ -91,14 +55,11 @@ export default function TimeSetupPage() {
         if (!retailerId) return;
         setLoading(true);
         setApiError(null);
-        // apiGet(`/retailers/${retailerId}/weeks`)
-        //   .then((res) => setWeeks(extractWeeks(res)))
         apiGet(`/retailers/${retailerId}/weeks`)
             .then((res) => {
                 const sortedWeeks = extractWeeks(res).sort(
                     (a, b) => new Date(b.created_at) - new Date(a.created_at)
                 );
-
                 setWeeks(sortedWeeks);
             })
             .catch((err) => setApiError(err.message))
@@ -113,6 +74,33 @@ export default function TimeSetupPage() {
         addToast(result?.message ?? "Week created successfully");
         fetchWeeks();
     };
+
+    const handleSort = (key) => {
+        setSortConfig((prev) => {
+            if (prev.key !== key) return { key, direction: "asc" };
+            if (prev.direction === "asc") return { key, direction: "desc" };
+            return { key: null, direction: null };
+        });
+    };
+
+    const sortedWeeks = useMemo(() => {
+        if (!sortConfig.key) return weeks;
+        const { key, direction } = sortConfig;
+        const dir = direction === "asc" ? 1 : -1;
+
+        return [...weeks].sort((a, b) => {
+            const av = a[key];
+            const bv = b[key];
+
+            if (av === null || av === undefined) return 1;
+            if (bv === null || bv === undefined) return -1;
+
+            if (typeof av === "number" && typeof bv === "number") {
+                return (av - bv) * dir;
+            }
+            return String(av).localeCompare(String(bv), undefined, { numeric: true }) * dir;
+        });
+    }, [weeks, sortConfig]);
 
     return (
         <AppLayout>
@@ -156,70 +144,13 @@ export default function TimeSetupPage() {
                         </div>
                     )}
 
-                    <div className="overflow-auto flex-1 min-h-0">
-                        <table className="min-w-full text-sm">
-                            <thead className="sticky top-0 z-10">
-                                <tr>
-                                    {WEEK_COLUMNS.map((col, ind) => (
-                                        <th
-                                            key={ind}
-                                            className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap"
-                                            style={{ backgroundColor: bgSub, color: textSec }}
-                                        >
-                                            {col}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={WEEK_COLUMNS.length} className="py-14 text-center text-sm" style={{ color: textSec }}>
-                                            Loading...
-                                        </td>
-                                    </tr>
-                                ) : weeks.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={WEEK_COLUMNS.length} className="py-14 text-center text-sm" style={{ color: textSec }}>
-                                            No fiscal weeks yet. Click &quot;Create Week&quot; to add one.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    weeks.map((row, i) => (
-                                        <tr
-                                            key={`${row.dataweek}-${row.year}-${row.fiscal_week}`}
-                                            className="border-b transition"
-                                            style={{ borderColor: border }}
-                                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
-                                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
-                                        >
-                                            <td className="px-5 py-3 font-medium whitespace-nowrap" style={{ color: textPri }}>
-                                                {row.dataweek ?? "-"}
-                                            </td>
-                                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
-                                                {row.fiscal_week ?? "-"}
-                                            </td>
-                                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
-                                                {row.year ?? "-"}
-                                            </td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.products_ready} textSec={textSec} /></td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.stores_ready} textSec={textSec} /></td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.market_ready} textSec={textSec} /></td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.sales_ready} textSec={textSec} /></td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.planograms_ready} textSec={textSec} /></td>
-                                            <td className="px-5 py-3"><ReadyBadge value={row.published} textSec={textSec} /></td>
-                                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
-                                                {formatDate(row.created_at, true)}
-                                            </td>
-                                            <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
-                                                {formatDate(row.updated_at, true)}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <WeeksTable
+                        weeks={sortedWeeks}
+                        loading={loading}
+                        theme={th}
+                        sortConfig={sortConfig}
+                        onSort={handleSort}
+                    />
                 </div>
             </div>
 
