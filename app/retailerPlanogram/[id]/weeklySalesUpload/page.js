@@ -6,6 +6,7 @@ import { Toast } from "@/app/components/Toast";
 import { apiGet } from "@/lib/api";
 import {
   extractUploadRows,
+  getUploadFilename,
   StatusBadge,
   SessionUploadModal,
 } from "@/app/components/upload/SessionUpload";
@@ -292,7 +293,7 @@ export default function WeeklySalesUploadPage() {
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
                         <td className="px-6 py-4"><UploadTypeBadge filetype={filetype} /></td>
-                        <td style={{ color: textPri }} className="px-6 py-4 font-semibold">{row.file_name ?? row.filename ?? "-"}</td>
+                        <td style={{ color: textPri }} className="px-6 py-4 font-semibold">{getUploadFilename(row)}</td>
                         <td style={{ color: textSec }} className="px-6 py-4">
                           {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
                         </td>
