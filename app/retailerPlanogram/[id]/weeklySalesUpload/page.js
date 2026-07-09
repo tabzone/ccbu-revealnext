@@ -10,6 +10,7 @@ import {
   StatusBadge,
   SessionUploadModal,
 } from "@/app/components/upload/SessionUpload";
+import { ValidationModal, extractValidationRows } from "@/app/components/modal/ValidationModal";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -37,6 +38,12 @@ const HISTORY_TABS = [
   { key: "MKT", label: "Nielsen Market Data History" },
 ];
 
+// "upload" tab removed — the upload/publish cards are now always visible above these tabs
+const PAGE_TABS = [
+  { key: "history", label: "Upload History" },
+  { key: "validationHistory", label: "Validation History" },
+];
+
 function UploadTypeBadge({ filetype }) {
   const colors = UPLOAD_TYPE_BADGE_COLORS[filetype] ?? { bg: "#f3f4f6", color: "#6b7280" };
   const label = UPLOAD_TYPE_LABELS[filetype] ?? filetype ?? "-";
@@ -52,14 +59,18 @@ export default function WeeklySalesUploadPage() {
   const retailerId = params?.id;
   const { isDark, bg, bgSub, bgDrop, border, textPri, textSec, hover, accent } = useAppTheme();
 
+  const [activeTab, setActiveTab] = useState("history");
   const [selectedFileType, setSelectedFileType] = useState("");
   const [activeUploadType, setActiveUploadType] = useState(null);
-  const [validating, setValidating] = useState(false);
+  const [validateOpen, setValidateOpen] = useState(false);
   const [historyTab, setHistoryTab] = useState("SALES");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [unpublishedWeek, setUnpublishedWeek] = useState(null);
   const [unpublishedWeekLoading, setUnpublishedWeekLoading] = useState(true);
+  const [validationHistory, setValidationHistory] = useState([]);
+  const [validationHistoryLoading, setValidationHistoryLoading] = useState(false);
+  const [validationHistoryError, setValidationHistoryError] = useState(null);
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = "success") => {
@@ -104,6 +115,22 @@ export default function WeeklySalesUploadPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchUnpublishedWeek(); }, [fetchUnpublishedWeek]);
 
+  const fetchValidationHistory = useCallback(() => {
+    if (!retailerId) return;
+
+    setValidationHistoryLoading(true);
+    setValidationHistoryError(null);
+    apiGet(`/retailers/${retailerId}/validate`)
+      .then((res) => setValidationHistory(extractValidationRows(res)))
+      .catch((err) => setValidationHistoryError(err.message))
+      .finally(() => setValidationHistoryLoading(false));
+  }, [retailerId]);
+
+  const handlePageTabClick = useCallback((tab) => {
+    setActiveTab(tab);
+    if (tab === "validationHistory") fetchValidationHistory();
+  }, [fetchValidationHistory]);
+
   const handleUploadClose = useCallback(() => {
     setActiveUploadType(null);
   }, []);
@@ -118,18 +145,13 @@ export default function WeeklySalesUploadPage() {
     setSelectedFileType("");
   }, [addToast, fetchHistory]);
 
-  const handleValidateClick = useCallback(async () => {
-    setValidating(true);
-    try {
-      // TODO: wire up the real validate endpoint once it's available.
-      await Promise.resolve();
-      addToast("Validated");
-    } catch (err) {
-      addToast(err.message, "error");
-    } finally {
-      setValidating(false);
-    }
-  }, [addToast]);
+  const handleValidateClick = useCallback(() => {
+    setValidateOpen(true);
+  }, []);
+
+  const handleValidateClose = useCallback(() => {
+    setValidateOpen(false);
+  }, []);
 
   const today = new Date();
   const weekNumber = getISOWeek(today);
@@ -144,20 +166,10 @@ export default function WeeklySalesUploadPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto">
+      <div className="h-full flex flex-col gap-4">
 
-        {/* PAGE HEADER */}
-        {/* <div className="mb-8">
-          <h1 style={{ color: textPri }} className="text-3xl font-bold mb-2">
-            Data Upload
-          </h1>
-          <p style={{ color: textSec }} className="text-base">
-            Upload your datasets to sync with the latest information
-          </p>
-        </div> */}
-
-        {/* CONTROLS + PUBLISH ROW */}
-       <div className="flex flex-col lg:flex-row gap-4 mb-6">
+        {/* CONTROLS + PUBLISH ROW — always visible now */}
+        <div className="flex flex-col lg:flex-row gap-4">
 
           {/* CONTROLS CARD */}
           <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4">
@@ -221,24 +233,23 @@ export default function WeeklySalesUploadPage() {
                   </svg>
                   Upload File
                 </button>
-
                 <button
-                  // onClick={""}
-                  disabled={true}
+                  onClick={handleValidateClick}
+                  disabled={!(unpublishedWeek?.sales_ready && unpublishedWeek?.market_ready)}
                   style={{
-                    backgroundColor: selectedFileType ? accent : (isDark ? "#333" : "#e5e7eb"),
-                    color: selectedFileType ? "#fff" : textSec,
+                    backgroundColor: validateOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
+                    color: validateOpen ? textSec : "#fff",
                   }}
                   className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
                 >
-                  {validating ? (
+                  {validateOpen ? (
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
-                  {validating ? "Validating..." : "Validate"}
+                  {validateOpen ? "Validating..." : "Validate"}
                 </button>
               </div>
             </div>
@@ -285,83 +296,170 @@ export default function WeeklySalesUploadPage() {
 
         </div>
 
-        {/* UPLOAD HISTORY */}
-        <div style={{ backgroundColor: bg, borderColor: border }} className="rounded-xl border shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: border }}>
-            <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2>
-            <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
-              Refresh
+        {/* TOP-LEVEL TABS — now just Upload History / Validation History */}
+        <div className="flex border-b " style={{ borderColor: border }}>
+          {PAGE_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => handlePageTabClick(tab.key)}
+              className="px-4 py-2.5 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
+              style={{
+                color: activeTab === tab.key ? accent : textSec,
+                borderBottomColor: activeTab === tab.key ? accent : "transparent",
+              }}
+            >
+              {tab.label}
             </button>
-          </div>
+          ))}
 
-          <div className="px-5 pt-3 flex border-b flex-shrink-0" style={{ borderColor: border }}>
-            {HISTORY_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setHistoryTab(tab.key)}
-                className="px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
-                style={{
-                  color: historyTab === tab.key ? accent : textSec,
-                  borderBottomColor: historyTab === tab.key ? accent : "transparent",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
-                  {["Type", "File Name", "Uploaded At", "Status"].map((h) => (
-                    <th
-                      key={h}
-                      style={{ color: textPri }}
-                      className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {historyLoading ? (
-                  <tr>
-                    <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</td>
-                  </tr>
-                ) : history.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No uploads yet.</td>
-                  </tr>
-                ) : (
-                  history.map((row, i) => {
-                    const filetype = row.filetype ?? row.file_type;
-                    return (
-                      <tr
-                        key={row.requestid ?? row.id ?? i}
-                        style={{ borderColor: border }}
-                        className="border-t transition"
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                      >
-                        <td className="px-6 py-4"><UploadTypeBadge filetype={filetype} /></td>
-                        <td style={{ color: textPri }} className="px-6 py-4 font-semibold">{getUploadFilename(row)}</td>
-                        <td style={{ color: textSec }} className="px-6 py-4">
-                          {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <StatusBadge status={row.status} />
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
+
+        {activeTab === "history" && (
+          <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
+
+
+            <div className="px-5 pt-3 flex justify-between border-b flex-shrink-0" style={{ borderColor: border }}>
+              <div>  {HISTORY_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setHistoryTab(tab.key)}
+                  className="px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap -mb-px cursor-pointer"
+                  style={{
+                    color: historyTab === tab.key ? accent : textSec,
+                    borderBottomColor: historyTab === tab.key ? accent : "transparent",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+              </div>
+              <div className="px-5 py-2 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
+                {/* <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2> */}
+                <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-auto">
+              <table className="w-full">
+                <thead className="sticky top-0 z-10">
+                  <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
+                    {["Type", "File Name", "Uploaded At", "Status"].map((h) => (
+                      <th
+                        key={h}
+                        style={{ color: textPri, backgroundColor: bgSub }}
+                        className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {historyLoading ? (
+                    <tr>
+                      <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</td>
+                    </tr>
+                  ) : history.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No uploads yet.</td>
+                    </tr>
+                  ) : (
+                    history.map((row, i) => {
+                      const filetype = row.filetype ?? row.file_type;
+                      return (
+                        <tr
+                          key={row.requestid ?? row.id ?? i}
+                          style={{ borderColor: border }}
+                          className="border-t transition"
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                        >
+                          <td className="px-6 py-4"><UploadTypeBadge filetype={filetype} /></td>
+                          <td style={{ color: textPri }} className="px-6 py-4 font-semibold">{getUploadFilename(row)}</td>
+                          <td style={{ color: textSec }} className="px-6 py-4">
+                            {row.created_at || row.uploaded_at ? new Date(row.created_at ?? row.uploaded_at).toLocaleString() : "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <StatusBadge status={row.status} />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "validationHistory" && (
+          <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
+              {/* <h2 className="text-base font-semibold" style={{ color: textPri }}>Validation History</h2> */}
+              <button onClick={fetchValidationHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
+                Refresh
+              </button>
+            </div>
+
+            {validationHistoryError ? (
+              <div className="p-5 text-sm text-red-600">{validationHistoryError}</div>
+            ) : (
+              <div className="flex-1 min-h-0 overflow-auto">
+                <table className="w-full">
+                  <thead className="sticky top-0 z-10">
+                    <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
+                      {["Status", "Result", "Error", "Created At", "Updated At"].map((h) => (
+                        <th
+                          key={h}
+                          style={{ color: textPri, backgroundColor: bgSub }}
+                          className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {validationHistoryLoading ? (
+                      <tr>
+                        <td colSpan={6} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</td>
+                      </tr>
+                    ) : validationHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No validation history yet.</td>
+                      </tr>
+                    ) : (
+                      validationHistory.map((row, i) => (
+                        <tr
+                          key={row.reqid ?? i}
+                          style={{ borderColor: border }}
+                          className="border-t transition"
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                        >
+                          {/* <td style={{ color: textPri }} className="px-6 py-4 font-semibold whitespace-nowrap">{row.reqid ?? "-"}</td> */}
+                          <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
+                          <td style={{ color: textPri }} className="px-6 py-4 max-w-[220px] truncate" title={row.result ?? ""}>{row.result ?? "-"}</td>
+                          <td style={{ color: textPri }} className="px-6 py-4 max-w-[260px] truncate" title={row.error ?? ""}>{row.error ?? "-"}</td>
+                          <td style={{ color: textSec }} className="px-6 py-4 whitespace-nowrap">
+                            {row.created_at ? new Date(row.created_at).toLocaleString() : "-"}
+                          </td>
+                          <td style={{ color: textSec }} className="px-6 py-4 whitespace-nowrap">
+                            {row.updated_at ? new Date(row.updated_at).toLocaleString() : "-"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 
@@ -378,6 +476,14 @@ export default function WeeklySalesUploadPage() {
           onSuccess={handleUploadSuccess}
           onError={handleUploadError}
           fetchHistory={fetchHistory}
+        />
+      )}
+
+      {validateOpen && (
+        <ValidationModal
+          retailerId={retailerId}
+          theme={{ bg, bgSub, border, textPri, textSec, accent }}
+          onClose={handleValidateClose}
         />
       )}
 
