@@ -472,8 +472,11 @@ export default function WeeklySalesUploadPage() {
               <div className="flex-1 min-h-0 overflow-auto">
                 <table className="w-full">
                   <thead className="sticky top-0 z-10">
-                    <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
-                      {["Status", "Result", "Error", "Created At", "Updated At"].map((h) => (
+                    <tr
+                      style={{ backgroundColor: bgSub, borderColor: border }}
+                      className="border-b"
+                    >
+                      {["Updated At", "Result", "Status", "Report"].map((h) => (
                         <th
                           key={h}
                           style={{ color: textPri, backgroundColor: bgSub }}
@@ -502,14 +505,60 @@ export default function WeeklySalesUploadPage() {
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
-                          <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
-                          <td style={{ color: textPri }} className="px-6 py-4 max-w-[220px] truncate" title={row.result ?? ""}>{row.result ?? "-"}</td>
-                          <td style={{ color: textPri }} className="px-6 py-4 max-w-[260px] truncate" title={row.error ?? ""}>{row.error ?? "-"}</td>
-                          <td style={{ color: textSec }} className="px-6 py-4 whitespace-nowrap">
-                            {row.created_at ? new Date(row.created_at).toLocaleString() : "-"}
+                          <td
+                            style={{ color: textSec }}
+                            className="px-6 py-4 whitespace-nowrap"
+                          >
+                            {row.updated_at
+                              ? new Date(row.updated_at).toLocaleString()
+                              : "-"}
                           </td>
-                          <td style={{ color: textSec }} className="px-6 py-4 whitespace-nowrap">
-                            {row.updated_at ? new Date(row.updated_at).toLocaleString() : "-"}
+                          <td
+                            style={{ color: textPri }}
+                            className="px-6 py-4 max-w-[240px] truncate"
+                            title={row.result || row.error || ""}
+                          >
+                            {row.result ?? "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <StatusBadge status={row.status} />
+                          </td>
+
+
+
+
+
+                          <td className="px-6 py-4">
+                            {row.presigned_url ? (
+                              <a
+                                href={row.presigned_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition hover:opacity-80"
+                                style={{
+                                  border: `1px solid ${border}`,
+                                  color: textPri,
+                                  backgroundColor: bgSub,
+                                }}
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                Download
+                              </a>
+                            ) : (
+                              <span style={{ color: textSec }}>-</span>
+                            )}
                           </td>
                         </tr>
                       ))
