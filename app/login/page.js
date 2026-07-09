@@ -246,7 +246,7 @@ export default function LoginPage() {
               priority
               className="object-contain"
             />
-            <h1 className="mt-4 text-3xl font-bold text-slate-800">
+            <h1 className="mt-4 text-3xl font-bold text-slate-500">
               Welcome Back
             </h1>
             <p className="mt-2 text-sm text-slate-500 text-center">

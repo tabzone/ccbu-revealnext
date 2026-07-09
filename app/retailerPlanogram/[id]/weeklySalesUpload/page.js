@@ -87,6 +87,16 @@ function Skeleton({ width = "60px", height = "14px", isDark }) {
 
 function UploadTypeBadgeExport() { } // (unused placeholder removed if not needed)
 
+function filenameFromUrl(url) {
+  try {
+    const { pathname } = new URL(url);
+    const last = pathname.split("/").pop();
+    return last ? decodeURIComponent(last) : "download";
+  } catch {
+    return "download";
+  }
+}
+
 export default function WeeklySalesUploadPage() {
   const params = useParams();
   const retailerId = params?.id;
@@ -104,6 +114,7 @@ export default function WeeklySalesUploadPage() {
   const [validationHistory, setValidationHistory] = useState([]);
   const [validationHistoryLoading, setValidationHistoryLoading] = useState(false);
   const [validationHistoryError, setValidationHistoryError] = useState(null);
+  const [downloadStates, setDownloadStates] = useState({}); // { [rowKey]: "loading" | "success" | "error" }
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = "success") => {
@@ -163,6 +174,43 @@ export default function WeeklySalesUploadPage() {
     setActiveTab(tab);
     if (tab === "validationHistory") fetchValidationHistory();
   }, [fetchValidationHistory]);
+
+  const handleDownload = useCallback(async (row) => {
+    const rowKey = row.reqid ?? row.presigned_url;
+    if (!row.presigned_url) return;
+
+    setDownloadStates((prev) => ({ ...prev, [rowKey]: "loading" }));
+    addToast("Starting download...");
+
+    try {
+      const res = await fetch(row.presigned_url);
+      if (!res.ok) throw new Error(`Download failed (${res.status})`);
+
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = row.filename ?? filenameFromUrl(row.presigned_url);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(objectUrl);
+
+      setDownloadStates((prev) => ({ ...prev, [rowKey]: "success" }));
+      addToast("Download complete");
+    } catch (err) {
+      setDownloadStates((prev) => ({ ...prev, [rowKey]: "error" }));
+      addToast("Failed to download file. Please try again.", "error");
+    } finally {
+      setTimeout(() => {
+        setDownloadStates((prev) => {
+          const { [rowKey]: _removed, ...rest } = prev;
+          return rest;
+        });
+      }, 2000);
+    }
+  }, [addToast]);
 
   const handleUploadClose = useCallback(() => {
     setActiveUploadType(null);
@@ -523,39 +571,43 @@ export default function WeeklySalesUploadPage() {
                           <td className="px-6 py-4">
                             <StatusBadge status={row.status} />
                           </td>
-
-
-
-
-
                           <td className="px-6 py-4">
                             {row.presigned_url ? (
-                              <a
-                                href={row.presigned_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download
-                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition hover:opacity-80"
-                                style={{
-                                  border: `1px solid ${border}`,
-                                  color: textPri,
-                                  backgroundColor: bgSub,
-                                }}
-                              >
-                                <svg
-                                  width="14"
-                                  height="14"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                >
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                  <polyline points="7 10 12 15 17 10" />
-                                  <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                Download
-                              </a>
+                              (() => {
+                                const rowKey = row.reqid ?? row.presigned_url;
+                                const downloadState = downloadStates[rowKey];
+                                const isLoading = downloadState === "loading";
+                                const isSuccess = downloadState === "success";
+                                const isError = downloadState === "error";
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownload(row)}
+                                    disabled={isLoading}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                                    style={{
+                                      border: `1px solid ${border}`,
+                                      color: isError ? "#dc2626" : isSuccess ? "#15803d" : textPri,
+                                      backgroundColor: bgSub,
+                                    }}
+                                  >
+                                    {isLoading ? (
+                                      <div className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    ) : isSuccess ? (
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
+                                        <polyline points="20 6 9 17 4 12" />
+                                      </svg>
+                                    ) : (
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                      </svg>
+                                    )}
+                                    {isLoading ? "Downloading..." : isSuccess ? "Downloaded" : isError ? "Retry" : "Download"}
+                                  </button>
+                                );
+                              })()
                             ) : (
                               <span style={{ color: textSec }}>-</span>
                             )}
