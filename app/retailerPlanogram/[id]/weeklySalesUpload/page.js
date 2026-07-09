@@ -38,7 +38,6 @@ const HISTORY_TABS = [
   { key: "MKT", label: "Nielsen Market Data History" },
 ];
 
-// "upload" tab removed — the upload/publish cards are now always visible above these tabs
 const PAGE_TABS = [
   { key: "history", label: "Upload History" },
   { key: "validationHistory", label: "Validation History" },
@@ -53,6 +52,40 @@ function UploadTypeBadge({ filetype }) {
     </span>
   );
 }
+
+// NEW: small ready/pending status pill for Sales & Market data
+function ReadyBadge({ label, ready, isDark }) {
+  const bg = ready ? (isDark ? "#14532d" : "#dcfce7") : (isDark ? "#3a3a3a" : "#f3f4f6");
+  const color = ready ? (isDark ? "#4ade80" : "#15803d") : (isDark ? "#9ca3af" : "#6b7280");
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: bg }}>
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: ready ? (isDark ? "#4ade80" : "#16a34a") : (isDark ? "#6b7280" : "#9ca3af") }}
+      />
+      <span className="text-xs font-semibold" style={{ color }}>
+        {label} {ready ? "Uploaded" : "Pending"}
+      </span>
+    </div>
+  );
+}
+
+function Skeleton({ width = "60px", height = "14px", isDark }) {
+  return (
+    <span
+      className="inline-block rounded animate-pulse"
+      style={{
+        width,
+        height,
+        backgroundColor: isDark ? "#3a3a3a" : "#e5e7eb",
+      }}
+    />
+  );
+}
+
+
+
+function UploadTypeBadgeExport() { } // (unused placeholder removed if not needed)
 
 export default function WeeklySalesUploadPage() {
   const params = useParams();
@@ -142,8 +175,9 @@ export default function WeeklySalesUploadPage() {
   const handleUploadSuccess = useCallback((message) => {
     addToast(message);
     fetchHistory();
+    fetchUnpublishedWeek(); // NEW: refresh sales_ready/market_ready after a successful upload
     setSelectedFileType("");
-  }, [addToast, fetchHistory]);
+  }, [addToast, fetchHistory, fetchUnpublishedWeek]);
 
   const handleValidateClick = useCallback(() => {
     setValidateOpen(true);
@@ -158,6 +192,9 @@ export default function WeeklySalesUploadPage() {
 
   const dataWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.dataweek ?? "-");
   const fiscalWeekValue = unpublishedWeekLoading ? "-" : (unpublishedWeek?.fiscal_week ?? "-");
+  const salesReady = !!unpublishedWeek?.sales_ready;
+  const marketReady = !!unpublishedWeek?.market_ready;
+  const canValidate = salesReady && marketReady;
 
   const uploadModalConfig = {
     SALES: { filename: "retailerSales.xlsx", title: "Upload Weekly Sales" },
@@ -175,20 +212,43 @@ export default function WeeklySalesUploadPage() {
           <div style={{ backgroundColor: bg, borderColor: border }} className="lg:basis-1/2 lg:max-w-1/2 p-4">
 
             {/* Upload Date and Week labels */}
-            <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+            <div className="flex items-center gap-8 mb-4" style={{ borderBottom: `1px solid ${border}`, paddingBottom: "1rem" }}>
               <div>
                 <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
                   Data Week
                 </p>
-                <p style={{ color: textPri }} className="text-sm font-bold">{dataWeekValue}</p>
+                {unpublishedWeekLoading ? (
+                  <Skeleton width="70px" height="16px" isDark={isDark} />
+                ) : (
+                  <p style={{ color: textPri }} className="text-sm font-bold">{dataWeekValue}</p>
+                )}
               </div>
               <div style={{ width: 1, height: 32, backgroundColor: border }} />
               <div>
                 <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
                   Fiscal Week
                 </p>
-                <p style={{ color: textPri }} className="text-sm font-bold">{fiscalWeekValue}</p>
+                {unpublishedWeekLoading ? (
+                  <Skeleton width="70px" height="16px" isDark={isDark} />
+                ) : (
+                  <p style={{ color: textPri }} className="text-sm font-bold">{fiscalWeekValue}</p>
+                )}
               </div>
+            </div>
+
+            {/* NEW: Upload readiness status pills */}
+            <div className="flex items-center gap-3 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
+              {unpublishedWeekLoading ? (
+                <>
+                  <Skeleton width="140px" height="30px" isDark={isDark} />
+                  <Skeleton width="140px" height="30px" isDark={isDark} />
+                </>
+              ) : (
+                <>
+                  <ReadyBadge label="Weekly Sales" ready={salesReady} isDark={isDark} />
+                  <ReadyBadge label="Market Data" ready={marketReady} isDark={isDark} />
+                </>
+              )}
             </div>
 
             {/* File type dropdown + Upload button */}
@@ -235,12 +295,13 @@ export default function WeeklySalesUploadPage() {
                 </button>
                 <button
                   onClick={handleValidateClick}
-                  disabled={!(unpublishedWeek?.sales_ready && unpublishedWeek?.market_ready)}
+                  disabled={!canValidate}
                   style={{
                     backgroundColor: validateOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
                     color: validateOpen ? textSec : "#fff",
                   }}
                   className="flex items-center cursor-pointer gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0 whitespace-nowrap"
+                  title={!canValidate ? "Upload both Weekly Sales and Market Data first" : undefined}
                 >
                   {validateOpen ? (
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -267,15 +328,17 @@ export default function WeeklySalesUploadPage() {
                 <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
                   Status
                 </p>
-                <p style={{ color: textPri }} className="text-sm font-bold">
-                  {unpublishedWeekLoading
-                    ? "-"
-                    : unpublishedWeek?.published === true
+                {unpublishedWeekLoading ? (
+                  <Skeleton width="90px" height="16px" isDark={isDark} />
+                ) : (
+                  <p style={{ color: textPri }} className="text-sm font-bold">
+                    {unpublishedWeek?.published === true
                       ? "Published"
                       : unpublishedWeek?.published === false
                         ? "Not Published"
                         : "-"}
-                </p>
+                  </p>
+                )}
               </div>
             </div>
 
@@ -336,7 +399,6 @@ export default function WeeklySalesUploadPage() {
               ))}
               </div>
               <div className="px-5 py-2 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
-                {/* <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2> */}
                 <button onClick={fetchHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
                   Refresh
                 </button>
@@ -399,7 +461,6 @@ export default function WeeklySalesUploadPage() {
         {activeTab === "validationHistory" && (
           <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
-              {/* <h2 className="text-base font-semibold" style={{ color: textPri }}>Validation History</h2> */}
               <button onClick={fetchValidationHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
                 Refresh
               </button>
@@ -441,7 +502,6 @@ export default function WeeklySalesUploadPage() {
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
-                          {/* <td style={{ color: textPri }} className="px-6 py-4 font-semibold whitespace-nowrap">{row.reqid ?? "-"}</td> */}
                           <td className="px-6 py-4"><StatusBadge status={row.status} /></td>
                           <td style={{ color: textPri }} className="px-6 py-4 max-w-[220px] truncate" title={row.result ?? ""}>{row.result ?? "-"}</td>
                           <td style={{ color: textPri }} className="px-6 py-4 max-w-[260px] truncate" title={row.error ?? ""}>{row.error ?? "-"}</td>
