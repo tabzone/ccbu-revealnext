@@ -36,7 +36,10 @@ export default function Sidebar({ isOpen }) {
           href: `/retailerPlanogram/${id}/weeklySalesUpload`,
           icon: (
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <path d="M3 7H21V17H3z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M5 9h14v10H5V9Z" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M4 9l1-4h14l1 4" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M12 18v-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M9.5 15.5L12 13l2.5 2.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ),
         },
@@ -218,6 +221,7 @@ export default function Sidebar({ isOpen }) {
                 borderLeftColor: active ? accent : "transparent",
                 color: active ? accent : textSec,
                 backgroundColor: active ? `${accent}1a` : "transparent",
+                fontWeight: active ? 500 : 400,
               }}
               onMouseEnter={(e) => {
                 if (active) return;

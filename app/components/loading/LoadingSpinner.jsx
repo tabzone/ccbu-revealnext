@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import logo from "@/public/logo.avif"; 
+import logo from "@/public/logo.png"; 
 
 export default function LoadingSpinner() {
   const [mounted, setMounted] = useState(false);
