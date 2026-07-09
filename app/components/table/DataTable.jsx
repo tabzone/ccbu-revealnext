@@ -26,6 +26,8 @@ const COLUMNS = [
   "Users",
 ];
 
+const SKELETON_ROWS = 8;
+
 export default function DataTable({ rows, loading, theme }) {
   const { bg, bgSub, border, textSec, hover, accent, isDark } = theme;
 
@@ -49,17 +51,26 @@ export default function DataTable({ rows, loading, theme }) {
 
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={COLUMNS.length} style={{ color: textSec }} className="py-16 text-center text-sm">
-                  <span className="inline-flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-20" />
-                      <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
-                    Loading retailers…
-                  </span>
-                </td>
-              </tr>
+              Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                <tr key={i} style={{ borderColor: border }} className="border-b">
+                  {COLUMNS.map((_, ci) => (
+                    <td key={ci} className="px-5 py-4">
+                      <div
+                        style={{ backgroundColor: bgSub }}
+                        className="h-4 rounded animate-pulse"
+                        // vary widths slightly so it doesn't look like a solid block
+                        {...{
+                          style: {
+                            backgroundColor: bgSub,
+                            width: ci === 1 ? "70%" : ci === 6 ? "60px" : "80%",
+                            borderRadius: ci === 6 ? 9999 : 6,
+                          },
+                        }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))
             ) : rows.length ? (
               rows.map((row) => {
                 const rid = row.retailerid ?? row.id;
