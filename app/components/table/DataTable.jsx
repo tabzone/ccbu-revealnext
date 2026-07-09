@@ -58,7 +58,6 @@ export default function DataTable({ rows, loading, theme }) {
                       <div
                         style={{ backgroundColor: bgSub }}
                         className="h-4 rounded animate-pulse"
-                        // vary widths slightly so it doesn't look like a solid block
                         {...{
                           style: {
                             backgroundColor: bgSub,
