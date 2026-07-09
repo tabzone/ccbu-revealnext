@@ -52,11 +52,11 @@ const SORTABLE_COLUMNS = [
 ];
 
 const STATIC_COLUMNS = [
-    "Products Ready",
-    "Stores Ready",
-    "Market Ready",
-    "Sales Ready",
-    "Planograms Ready",
+    "Products",
+    "Stores",
+    "Market",
+    "Sales",
+    "Planograms",
     "Published",
     "Created At",
     "Updated At",
