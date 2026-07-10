@@ -98,13 +98,6 @@ function filenameFromUrl(url) {
   }
 }
 
-// Upload history rows carry week as "YYYY-WNN" (e.g. "2026-W27"); extract the NN part.
-function parseWeekNumber(weekStr) {
-  if (weekStr === null || weekStr === undefined) return null;
-  const match = String(weekStr).match(/W(\d+)/i);
-  return match ? Number(match[1]) : null;
-}
-
 export default function WeeklySalesUploadPage() {
   const params = useParams();
   const retailerId = params?.id;
@@ -268,14 +261,15 @@ export default function WeeklySalesUploadPage() {
   const marketReady = !!unpublishedWeek?.market_ready;
   const canValidate = salesReady && marketReady;
 
-  // Only surface upload history rows whose week (parsed from "YYYY-WNN") matches the current dataweek.
-  const currentWeekNumber =
-    unpublishedWeek?.dataweek !== null && unpublishedWeek?.dataweek !== undefined && unpublishedWeek?.dataweek !== ""
-      ? Number(unpublishedWeek.dataweek)
-      : null;
-  const filteredHistory = currentWeekNumber === null
-    ? []
-    : history.filter((row) => parseWeekNumber(row.week) === currentWeekNumber);
+  // Only surface upload/validation history rows whose fiscal date/week matches
+  // the unpublished week's fiscal_week exactly (e.g. "2026-07-04").
+  const currentFiscalWeek = unpublishedWeek?.fiscal_week || null;
+  const filteredHistory = currentFiscalWeek
+    ? history.filter((row) => row.fiscal_date === currentFiscalWeek)
+    : [];
+  const filteredValidationHistory = currentFiscalWeek
+    ? validationHistory.filter((row) => row.fiscal_week === currentFiscalWeek)
+    : [];
 
   const uploadModalConfig = {
     SALES: { filename: "retailerSales.xlsx", title: "Upload Weekly Sales" },
@@ -591,6 +585,11 @@ export default function WeeklySalesUploadPage() {
               <div className="p-5 text-sm text-red-600">{validationHistoryError}</div>
             ) : (
               <div className="flex-1 min-h-0 overflow-auto">
+                {validationHistoryLoading ? (
+                  <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</div>
+                ) : filteredValidationHistory.length === 0 ? (
+                  <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No validation history yet for the current fiscal week.</div>
+                ) : (
                 <table className="w-full">
                   <thead className="sticky top-0 z-10">
                     <tr
@@ -609,16 +608,7 @@ export default function WeeklySalesUploadPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {validationHistoryLoading ? (
-                      <tr>
-                        <td colSpan={6} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</td>
-                      </tr>
-                    ) : validationHistory.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No validation history yet.</td>
-                      </tr>
-                    ) : (
-                      validationHistory.map((row, i) => (
+                    {filteredValidationHistory.map((row, i) => (
                         <tr
                           key={row.reqid ?? i}
                           style={{ borderColor: border }}
@@ -686,13 +676,13 @@ export default function WeeklySalesUploadPage() {
                             )}
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ))}
                   </tbody>
                 </table>
+                )}
               </div>
             )}
-          </div>
+          </div >
         )}
 
       </div>

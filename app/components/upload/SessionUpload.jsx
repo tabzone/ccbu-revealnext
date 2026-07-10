@@ -341,6 +341,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
 // ─── Upload modal ─────────────────────────────────────────────────────────────
 
 const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT", "POG"];
+const FILENAME_UPDATE_FILETYPES = ["SALES", "MKT"];
 const PREVIEW_STATUS_FILETYPES = ["PRD", "STR"];
 const SESSION_UPLOAD_SUCCESS_MESSAGE =
   "Upload completed successfully. Your upload has started processing. You can monitor its progress and validate the uploaded data from the History table using the Preview action.";
@@ -375,11 +376,13 @@ export function SessionUploadModal({
     if (phase === "ready" && session?.requestid) {
       try {
         await apiPut(`/retailers/${retailerId}/uploads/${session.requestid}`, { status: "Cancelled" });
-      } catch {}
+      } catch { }
     }
     onClose();
     fetchHistory();
   }, [canClose, onClose, phase, session, retailerId, fetchHistory]);
+
+
 
   const pollUploadStatus = useCallback(async (requestid) => {
     const startedAt = Date.now();
@@ -412,6 +415,8 @@ export function SessionUploadModal({
     throw new Error("Upload status timed out after 2 minutes");
   }, [retailerId]);
 
+
+
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
@@ -421,6 +426,8 @@ export function SessionUploadModal({
       document.body.style.overflow = "";
     };
   }, []);
+
+  
 
   useEffect(() => {
     cancelledRef.current = false;
@@ -481,6 +488,11 @@ export function SessionUploadModal({
               });
               message = SESSION_UPLOAD_SUCCESS_MESSAGE;
             } else if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
+              if (FILENAME_UPDATE_FILETYPES.includes(filetype)) {
+                await apiPut(`/retailers/${retailerId}/uploads/${uploadSession.requestid}`, {
+                  filename: file.name,
+                });
+              }
               await apiPost(`/retailers/${retailerId}/uploads/${uploadSession.requestid}/process`);
               message = "File uploaded and processed successfully";
             } else {
