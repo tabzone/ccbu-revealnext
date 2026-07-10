@@ -119,7 +119,7 @@ export default function LoginPage() {
           >
             <div className="flex flex-col items-center mb-8">
               <Image
-                src="/logo.avif"
+                src="/logo.png"
                 alt="Logo"
                 width={180}
                 height={180}
@@ -239,7 +239,7 @@ export default function LoginPage() {
         >
           <div className="flex flex-col items-center mb-8">
             <Image
-              src="/logo.avif"
+              src="/logo.png"
               alt="Logo"
               width={180}
               height={180}
@@ -259,7 +259,6 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-
           {/* Email */}
           <div className="mb-5">
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -270,22 +269,32 @@ export default function LoginPage() {
               placeholder="Enter your email"
               value={username}
               disabled={isLoading}
+              onKeyDown={(e) => {
+                if (e.key === " ") {
+                  e.preventDefault();
+                }
+              }}
               onChange={(e) => {
-                setUsername(e.target.value);
+                const noSpaces = e.target.value.replace(/\s/g, "");
+                setUsername(noSpaces);
                 clearFieldError("username");
               }}
-              className={`w-full rounded-xl border px-4 py-3 outline-none transition
-                ${errors.username
-                  ? "border-red-500 focus:ring-2 focus:ring-red-200"
-                  : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                }
-                disabled:bg-slate-100`}
+              onPaste={(e) => {
+                e.preventDefault();
+                const pasted = e.clipboardData.getData("text").replace(/\s/g, "");
+                setUsername((prev) => prev + pasted);
+                clearFieldError("username");
+              }}
+              className={`w-full rounded-xl border px-4 py-3 outline-none transition ${errors.username
+                ? "border-red-500 focus:ring-2 focus:ring-red-200"
+                : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"} disabled:bg-slate-100`}
             />
             {errors.username && (
               <p className="mt-2 text-sm text-red-500">{errors.username}</p>
             )}
           </div>
 
+          {/* Password */}
           {/* Password */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -297,16 +306,25 @@ export default function LoginPage() {
                 placeholder="Enter your password"
                 value={password}
                 disabled={isLoading}
+                onKeyDown={(e) => {
+                  if (e.key === " ") {
+                    e.preventDefault();
+                  }
+                }}
                 onChange={(e) => {
-                  setPassword(e.target.value);
+                  const noSpaces = e.target.value.replace(/\s/g, "");
+                  setPassword(noSpaces);
                   clearFieldError("password");
                 }}
-                className={`w-full rounded-xl border px-4 py-3 pr-12 outline-none transition
-                  ${errors.password
-                    ? "border-red-500 focus:ring-2 focus:ring-red-200"
-                    : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  }
-                  disabled:bg-slate-100`}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData.getData("text").replace(/\s/g, "");
+                  setPassword((prev) => prev + pasted);
+                  clearFieldError("password");
+                }}
+                className={`w-full rounded-xl border px-4 py-3 pr-12 outline-none transition ${errors.password
+                  ? "border-red-500 focus:ring-2 focus:ring-red-200"
+                  : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"} disabled:bg-slate-100`}
               />
               <button
                 type="button"
