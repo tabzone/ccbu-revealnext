@@ -266,6 +266,19 @@ export default function WeeklySalesUploadPage() {
     MKT: { filename: "retailerMarket.xlsx", title: "Upload Nielsen Market Data" },
   }[activeUploadType];
 
+
+  const status = unpublishedWeek?.status;
+
+  const displayStatus =
+    status === null
+      ? "-"
+      : status === ""
+        ? "Not Published"
+        : status;
+
+  const isProcessing = status?.toUpperCase() === "PROCESSING";
+
+
   return (
     <AppLayout>
       <div className="h-full flex flex-col gap-4">
@@ -400,31 +413,37 @@ export default function WeeklySalesUploadPage() {
             </div>
             <div className="flex items-center gap-8 mb-6 pb-5" style={{ borderBottom: `1px solid ${border}` }}>
               <div>
-                <p style={{ color: textSec }} className="text-xs uppercase tracking-widest font-semibold mb-1">
+                <p
+                  style={{ color: textSec }}
+                  className="text-xs uppercase tracking-widest font-semibold mb-1"
+                >
                   Status
                 </p>
+
                 {unpublishedWeekLoading ? (
                   <Skeleton width="90px" height="16px" isDark={isDark} />
                 ) : (
-                  <p style={{ color: textPri }} className="text-sm font-bold">
-                    {status === null
-                      ? "-"
-                      : status === ""
-                        ? "Not Published"
-                        : status}
-                  </p>
+                  <span
+                    className={`text-sm font-bold px-2 py-1 rounded-full ${isProcessing
+                        ? "bg-yellow-100 text-yellow-800"
+                        : ""
+                      }`}
+                    style={!isProcessing ? { color: textPri } : undefined}
+                  >
+                    {displayStatus}
+                  </span>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={handlePublishClick}
-                disabled={publishOpen || unpublishedWeek?.validated !== true}
+                disabled={publishOpen || unpublishedWeek?.validated !== true || isProcessing }
                 style={{
                   backgroundColor: publishOpen ? (isDark ? "#333" : "#e5e7eb") : accent,
                   color: publishOpen ? textSec : "#fff",
                 }}
-                className="flex items-center cursor-pointer justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 mt-auto"
+                className="flex items-center cursor-pointer justify-center gap-2 rounded-xl px-6 py-3  text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 mt-auto"
               >
                 {publishOpen ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
