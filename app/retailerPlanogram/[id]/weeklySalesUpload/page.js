@@ -98,6 +98,13 @@ function filenameFromUrl(url) {
   }
 }
 
+// Upload history rows carry week as "YYYY-WNN" (e.g. "2026-W27"); extract the NN part.
+function parseWeekNumber(weekStr) {
+  if (weekStr === null || weekStr === undefined) return null;
+  const match = String(weekStr).match(/W(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
 export default function WeeklySalesUploadPage() {
   const params = useParams();
   const retailerId = params?.id;
@@ -260,6 +267,15 @@ export default function WeeklySalesUploadPage() {
   const salesReady = !!unpublishedWeek?.sales_ready;
   const marketReady = !!unpublishedWeek?.market_ready;
   const canValidate = salesReady && marketReady;
+
+  // Only surface upload history rows whose week (parsed from "YYYY-WNN") matches the current dataweek.
+  const currentWeekNumber =
+    unpublishedWeek?.dataweek !== null && unpublishedWeek?.dataweek !== undefined && unpublishedWeek?.dataweek !== ""
+      ? Number(unpublishedWeek.dataweek)
+      : null;
+  const filteredHistory = currentWeekNumber === null
+    ? []
+    : history.filter((row) => parseWeekNumber(row.week) === currentWeekNumber);
 
   const uploadModalConfig = {
     SALES: { filename: "retailerSales.xlsx", title: "Upload Weekly Sales" },
@@ -515,31 +531,27 @@ export default function WeeklySalesUploadPage() {
             </div>
 
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full">
-                <thead className="sticky top-0 z-10">
-                  <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
-                    {["Type", "File Name", "Uploaded At", "Status"].map((h) => (
-                      <th
-                        key={h}
-                        style={{ color: textPri, backgroundColor: bgSub }}
-                        className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {historyLoading ? (
-                    <tr>
-                      <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</td>
+              {historyLoading ? (
+                <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</div>
+              ) : filteredHistory.length === 0 ? (
+                <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No uploads yet for the current week.</div>
+              ) : (
+                <table className="w-full">
+                  <thead className="sticky top-0 z-10">
+                    <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">
+                      {["Type", "File Name", "Uploaded At", "Status"].map((h) => (
+                        <th
+                          key={h}
+                          style={{ color: textPri, backgroundColor: bgSub }}
+                          className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wide"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ) : history.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} style={{ color: textSec }} className="px-6 py-10 text-center text-sm">No uploads yet.</td>
-                    </tr>
-                  ) : (
-                    history.map((row, i) => {
+                  </thead>
+                  <tbody>
+                    {filteredHistory.map((row, i) => {
                       const filetype = row.filetype ?? row.file_type;
                       return (
                         <tr
@@ -559,10 +571,10 @@ export default function WeeklySalesUploadPage() {
                           </td>
                         </tr>
                       );
-                    })
-                  )}
-                </tbody>
-              </table>
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
