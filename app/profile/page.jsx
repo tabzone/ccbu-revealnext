@@ -10,6 +10,7 @@ import {
 import RoleGuard from "../components/RoleGuard";
 import AppLayout from "../components/layout/AppLayout";
 import LoadingSpinner from "../components/loading/LoadingSpinner";
+import { Toast } from "../components/Toast";
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,27 @@ export default function ProfilePage() {
       newPassword: false,
       confirmPassword: false,
     });
+
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = "success") => {
+    const id = Date.now() + Math.random();
+
+    setToasts((prev) => [
+      ...prev,
+      { id, message, type },
+    ]);
+
+    setTimeout(() => {
+      dismissToast(id);
+    }, 3000);
+  };
+
+  const dismissToast = (id) => {
+    setToasts((prev) =>
+      prev.filter((toast) => toast.id !== id)
+    );
+  };
 
   const toggleShowPassword = (field) => {
     setShowPasswords((prev) => ({
@@ -87,15 +109,14 @@ export default function ProfilePage() {
         },
       });
 
-      alert(
-        "Profile updated successfully"
-      );
+      showToast("Profile updated successfully", "success");
     } catch (error) {
       console.error(error);
 
-      alert(
+      showToast(
         error?.message ||
-        "Failed to update profile"
+          "Failed to update profile",
+        "error"
       );
     } finally {
       setSavingProfile(false);
@@ -109,15 +130,16 @@ export default function ProfilePage() {
       passwordForm.newPassword !==
       passwordForm.confirmPassword
     ) {
-      alert("Passwords do not match");
+      showToast("Passwords do not match", "error");
       return;
     }
 
     if (
       passwordForm.newPassword.length < 8
     ) {
-      alert(
-        "Password must be at least 8 characters"
+      showToast(
+        "Password must be at least 8 characters",
+        "error"
       );
       return;
     }
@@ -146,15 +168,14 @@ export default function ProfilePage() {
 
       setShowPasswordForm(false);
 
-      alert(
-        "Password updated successfully"
-      );
+      showToast("Password updated successfully", "success");
     } catch (error) {
       console.error(error);
 
-      alert(
+      showToast(
         error?.message ||
-        "Failed to update password"
+          "Failed to update password",
+        "error"
       );
     } finally {
       setSavingPassword(false);
@@ -239,6 +260,8 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
+      <Toast toasts={toasts} onDismiss={dismissToast} />
+
       <div className="max-w-5xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -485,13 +508,26 @@ export default function ProfilePage() {
                       value={
                         passwordForm.currentPassword
                       }
-                      onChange={(e) =>
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const noSpaces = e.target.value.replace(/\s/g, "");
                         setPasswordForm({
                           ...passwordForm,
-                          currentPassword:
-                            e.target.value,
-                        })
-                      }
+                          currentPassword: noSpaces,
+                        });
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text").replace(/\s/g, "");
+                        setPasswordForm((prev) => ({
+                          ...prev,
+                          currentPassword: prev.currentPassword + pasted,
+                        }));
+                      }}
                       className="
   w-full rounded-xl
   border border-gray-200 dark:border-[#2a2a2a]
@@ -539,13 +575,26 @@ export default function ProfilePage() {
                       value={
                         passwordForm.newPassword
                       }
-                      onChange={(e) =>
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const noSpaces = e.target.value.replace(/\s/g, "");
                         setPasswordForm({
                           ...passwordForm,
-                          newPassword:
-                            e.target.value,
-                        })
-                      }
+                          newPassword: noSpaces,
+                        });
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text").replace(/\s/g, "");
+                        setPasswordForm((prev) => ({
+                          ...prev,
+                          newPassword: prev.newPassword + pasted,
+                        }));
+                      }}
                       className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-[#0066B3]"
                     />
 
@@ -585,13 +634,26 @@ export default function ProfilePage() {
                       value={
                         passwordForm.confirmPassword
                       }
-                      onChange={(e) =>
+                      onKeyDown={(e) => {
+                        if (e.key === " ") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const noSpaces = e.target.value.replace(/\s/g, "");
                         setPasswordForm({
                           ...passwordForm,
-                          confirmPassword:
-                            e.target.value,
-                        })
-                      }
+                          confirmPassword: noSpaces,
+                        });
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text").replace(/\s/g, "");
+                        setPasswordForm((prev) => ({
+                          ...prev,
+                          confirmPassword: prev.confirmPassword + pasted,
+                        }));
+                      }}
                       className="w-full rounded-xl border border-gray-300 px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-[#0066B3]"
                     />
 
