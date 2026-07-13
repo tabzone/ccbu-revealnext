@@ -37,7 +37,9 @@ export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
             //     headers: { "Content-Type": "application/json" },
             //     body: JSON.stringify(formData),
             //   });
-            const payload = { ...formData, retailerid: retailerId };
+            const payload = isAdd
+                ? { ...formData, retailerid: retailerId, retailer: String(retailerId) }
+                : { ...formData, retailerid: retailerId };
             const savedUser = isAdd
                 ? await apiPost("/users", payload)
                 : await apiPut(`/users/${user.userid}`, payload);
