@@ -3,7 +3,14 @@
 import { apiPost, apiPut } from "@/lib/api";
 import { useState, useEffect } from "react";
 
-export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
+export function UserModal({
+    user,
+    retailerId,
+    roleOptions = ["Manager", "User"],
+    onClose,
+    onSaved,
+    theme,
+}) {
     const isAdd = !user;
 
     const [formData, setFormData] = useState({
@@ -11,7 +18,7 @@ export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
         lname: user?.lname ?? "",
         email: user?.email ?? "",
         temp_password: user?.temp_password ?? "",
-        role: user?.role ?? "User",
+        role: user?.role ?? roleOptions[roleOptions.length - 1],
     });
 
     const [loading, setLoading] = useState(false);
@@ -37,9 +44,12 @@ export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
             //     headers: { "Content-Type": "application/json" },
             //     body: JSON.stringify(formData),
             //   });
-            const payload = isAdd
-                ? { ...formData, retailerid: retailerId, retailer: String(retailerId) }
-                : { ...formData, retailerid: retailerId };
+            const retailerFields = retailerId != null
+                ? isAdd
+                    ? { retailerid: retailerId, retailer: String(retailerId) }
+                    : { retailerid: retailerId }
+                : {};
+            const payload = { ...formData, ...retailerFields };
             const savedUser = isAdd
                 ? await apiPost("/users", payload)
                 : await apiPut(`/users/${user.userid}`, payload);
@@ -212,8 +222,9 @@ export function UserModal({ user, retailerId, onClose, onSaved, theme }) {
                                 "--tw-ring-color": theme.accent,
                             }}
                         >
-                            <option value="Manager">Manager</option>
-                            <option value="User">User</option>
+                            {roleOptions.map((role) => (
+                                <option key={role} value={role}>{role}</option>
+                            ))}
                         </select>
                     </div>
                     )}

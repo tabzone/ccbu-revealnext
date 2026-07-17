@@ -286,7 +286,7 @@ export default function WeeklySalesUploadPage() {
         ? "Not Published"
         : status;
 
-  const isProcessing = status?.toUpperCase() === "PROCESSING";
+  const isProcessing = String(status ?? "").toUpperCase() === "PROCESSING";
 
   const refreshUploadHistory = () => {
     fetchHistory();

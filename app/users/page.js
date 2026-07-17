@@ -7,14 +7,11 @@ import { UsersTable } from "@/app/components/table/UsersTable";
 import { Toast } from "@/app/components/Toast";
 import useAppTheme from "@/app/hooks/useAppTheme";
 import { useUsersPage } from "@/app/hooks/useUsersPage";
-import { useParams } from "next/navigation";
 
-const ALLOWED_ROLES = ["User"];
-const ROLE_OPTIONS = ["Manager", "User"];
+const ALLOWED_ROLES = ["Admin", "Manager"];
+const ROLE_OPTIONS = ["Admin", "Manager"];
 
-export default function MasterUsersPage() {
-  const params = useParams();
-  const retailerId = params?.id;
+export default function UsersPage() {
   const th = useAppTheme();
 
   const {
@@ -42,7 +39,7 @@ export default function MasterUsersPage() {
     setDeleteTarget,
     dismissToast,
     fetchUsers,
-  } = useUsersPage({ retailerId, allowedRoles: ALLOWED_ROLES });
+  } = useUsersPage({ allowedRoles: ALLOWED_ROLES });
 
   return (
     <AppLayout>
@@ -50,12 +47,12 @@ export default function MasterUsersPage() {
         {/* Page header */}
         <div className="flex-shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Users</h1>
+            {/* <div>
+              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Users</h1>
               <p style={{ color: th.textSec }} className="mt-1 text-sm">
                 {loading ? "Loading…" : `${total} user${total !== 1 ? "s" : ""} total`}
               </p>
-            </div>
+            </div> */}
             <button
               onClick={handleAddUser}
               style={{ backgroundColor: th.accent }}
@@ -65,7 +62,7 @@ export default function MasterUsersPage() {
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
-              Add User
+              Create User
             </button>
           </div>
         </div>
@@ -94,7 +91,6 @@ export default function MasterUsersPage() {
       {modal && (
         <UserModal
           user={modal === "add" ? null : modal}
-          retailerId={retailerId}
           roleOptions={ROLE_OPTIONS}
           onClose={() => setModal(null)}
           onSaved={handleSaveUser}
@@ -106,7 +102,7 @@ export default function MasterUsersPage() {
         <DeleteModal
           displayName={`${deleteTarget.fname} ${deleteTarget.lname}`}
           detailLine1={deleteTarget.email}
-          detailLine2={deleteTarget.role || "User"}
+          detailLine2={deleteTarget.role || "Manager"}
           apiPath={`/users/${deleteTarget.userid}`}
           onClose={() => setDeleteTarget(null)}
           onDeleted={handleDeleteConfirm}
