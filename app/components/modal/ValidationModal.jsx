@@ -44,7 +44,7 @@ function Row({ label, value, textSec, textPri }) {
  * popup stays open and the status is "Processing". Shows current progress
  * and final status only — no tabs, no history.
  */
-export function ValidationModal({ retailerId, theme, onClose }) {
+export function ValidationModal({ retailerId, theme, onClose,fetchUnpublishedWeek }) {
   const { bg, bgSub, border, textPri, textSec, accent } = theme;
 
   const [phase, setPhase] = useState("starting"); // starting | processing | success | failed | error
@@ -68,6 +68,7 @@ export function ValidationModal({ retailerId, theme, onClose }) {
     if (!canClose) return;
     stopPolling();
     onClose();
+    fetchUnpublishedWeek()
   }, [canClose, stopPolling, onClose]);
 
   // Applies a validate response to state. Returns true when the status is terminal.
