@@ -208,7 +208,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
   const handleCancel = useCallback(async () => {
     if (requestid) {
       try {
-        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Cancelled" });
+        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Cancelled", filename: getUploadFilename(upload) });
       } catch { }
     }
     onClose();
@@ -231,7 +231,7 @@ export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConf
         <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
           <div>
             <h2 className="text-xl font-semibold" style={{ color: textPri }}>Preview Upload</h2>
-            <p className="mt-1 text-xs" style={{ color: textSec }}>{requestid}</p>
+            <p className="mt-1 text-xs" style={{ color: textSec }}>{getUploadFilename(upload)}</p>
           </div>
           <button
             type="button"
