@@ -13,11 +13,11 @@ import {
   DownloadIcon,
   UploadIcon,
   StatusBadge,
-  normalizeUploadStatus,
   extractUploadRows,
   getUploadFilename,
+  isValidUrl,
+  downloadFileFromUrl,
   SessionUploadModal,
-  SessionPreviewModal,
 } from "@/app/components/upload/SessionUpload";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -60,9 +60,9 @@ function sortProducts(products, sortBy, sortDir) {
 function ProductUploadSection({ retailerId, theme, addToast }) {
   const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [previewUpload, setPreviewUpload] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [downloadingRowId, setDownloadingRowId] = useState(null);
 
   const fetchHistory = useCallback(() => {
     if (!retailerId) return;
@@ -95,11 +95,21 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
     fetchHistory();
   }, [addToast, fetchHistory]);
 
-  const handlePreviewConfirmed = useCallback((message) => {
-    addToast(message);
-    setPreviewUpload(null);
-    fetchHistory();
-  }, [addToast, fetchHistory]);
+  const handleDownloadErrorFile = useCallback(async (row) => {
+    if (!isValidUrl(row.error_file)) return;
+
+    const rowKey = row.requestid ?? row.id;
+    setDownloadingRowId(rowKey);
+    addToast("Download started");
+    try {
+      await downloadFileFromUrl(row.error_file, `${getUploadFilename(row)}_errors.xlsx`);
+      addToast("File downloaded successfully");
+    } catch (err) {
+      addToast(err.message || "Failed to download error file", "error");
+    } finally {
+      setDownloadingRowId(null);
+    }
+  }, [addToast]);
 
   return (
     <div className="flex flex-col gap-5 flex-1 min-h-0">
@@ -183,12 +193,12 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
                     <td className="px-5 py-3">
                       <button
                         type="button"
-                        onClick={() => setPreviewUpload(row)}
-                        disabled={normalizeUploadStatus(row.status) !== "preview"}
+                        onClick={() => handleDownloadErrorFile(row)}
+                        disabled={!isValidUrl(row.error_file) || downloadingRowId === (row.requestid ?? row.id)}
                         className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                         style={{ borderColor: border, color: textPri, backgroundColor: bg }}
                       >
-                        Preview
+                        {downloadingRowId === (row.requestid ?? row.id) ? "Downloading..." : "Download"}
                       </button>
                     </td>
                     {/* <td className="px-5 py-3" style={{ color: textPri }}>{row.total_rows ?? row.records ?? "-"}</td>
@@ -209,18 +219,6 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           theme={theme}
           onClose={handleUploadClose}
           onSuccess={handleUploadSuccess}
-          onError={handleUploadError}
-          fetchHistory={fetchHistory}
-        />
-      )}
-
-      {previewUpload && (
-        <SessionPreviewModal
-          retailerId={retailerId}
-          upload={previewUpload}
-          theme={theme}
-          onClose={() => setPreviewUpload(null)}
-          onConfirmed={handlePreviewConfirmed}
           onError={handleUploadError}
           fetchHistory={fetchHistory}
         />

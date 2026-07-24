@@ -14,11 +14,11 @@ import {
   DownloadIcon,
   UploadIcon,
   StatusBadge,
-  normalizeUploadStatus,
   extractUploadRows,
   getUploadFilename,
+  isValidUrl,
+  downloadFileFromUrl,
   SessionUploadModal,
-  SessionPreviewModal,
 } from "@/app/components/upload/SessionUpload";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -30,7 +30,7 @@ const UPLOAD_TYPE_BADGE_COLORS = {
   STR: { bg: "#dbeafe", color: "#1d4ed8" },
   POG: { bg: "#ede9fe", color: "#7c3aed" },
 };
-const PREVIEWABLE_UPLOAD_TYPES = ["STR"];
+const DOWNLOADABLE_UPLOAD_TYPES = ["STR"];
 
 
 function UploadTypeBadge({ filetype }) {
@@ -53,10 +53,10 @@ const HISTORY_TABS = [
 function StoreSessionUploadSection({ retailerId, theme, addToast }) {
   const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
   const [activeUploadType, setActiveUploadType] = useState(null);
-  const [previewUpload, setPreviewUpload] = useState(null);
   const [historyTab, setHistoryTab] = useState("STR");
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [downloadingRowId, setDownloadingRowId] = useState(null);
 
   const fetchHistory = useCallback(() => {
     if (!retailerId) return;
@@ -89,11 +89,21 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
     fetchHistory();
   }, [addToast, fetchHistory]);
 
-  const handlePreviewConfirmed = useCallback((message) => {
-    addToast(message);
-    setPreviewUpload(null);
-    fetchHistory();
-  }, [addToast, fetchHistory]);
+  const handleDownloadErrorFile = useCallback(async (row) => {
+    if (!isValidUrl(row.error_file)) return;
+
+    const rowKey = row.requestid ?? row.id;
+    setDownloadingRowId(rowKey);
+    addToast("Download started");
+    try {
+      await downloadFileFromUrl(row.error_file, `${getUploadFilename(row)}_errors.xlsx`);
+      addToast("File downloaded successfully");
+    } catch (err) {
+      addToast(err.message || "Failed to download error file", "error");
+    } finally {
+      setDownloadingRowId(null);
+    }
+  }, [addToast]);
 
   const uploadModalConfig = {
     STR: { filename: "retailerStore.xlsx", title: "Upload Store Data" },
@@ -269,7 +279,8 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
               ) : (
                 history.map((row, i) => {
                   const filetype = row.filetype ?? row.file_type;
-                  const canPreview = PREVIEWABLE_UPLOAD_TYPES.includes(filetype);
+                  const canDownload = DOWNLOADABLE_UPLOAD_TYPES.includes(filetype);
+                  const rowKey = row.requestid ?? row.id;
                   return (
                     <tr
                       key={row.requestid ?? row.id ?? i}
@@ -287,15 +298,15 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
                       </td>
                       <td className="px-5 py-3"><StatusBadge status={row.status} /></td>
                       <td className="px-5 py-3">
-                        {canPreview ? (
+                        {canDownload ? (
                           <button
                             type="button"
-                            onClick={() => setPreviewUpload(row)}
-                            disabled={normalizeUploadStatus(row.status) !== "preview"}
+                            onClick={() => handleDownloadErrorFile(row)}
+                            disabled={!isValidUrl(row.error_file) || downloadingRowId === rowKey}
                             className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             style={{ borderColor: border, color: textPri, backgroundColor: bg }}
                           >
-                            Preview
+                            {downloadingRowId === rowKey ? "Downloading..." : "Download"}
                           </button>
                         ) : (
                           <span style={{ color: textSec }}>-</span>
@@ -319,19 +330,6 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
           theme={theme}
           onClose={handleUploadClose}
           onSuccess={handleUploadSuccess}
-          onError={handleUploadError}
-          fetchHistory={fetchHistory}
-        />
-      )}
-
-      {previewUpload && (
-        <SessionPreviewModal
-          retailerId={retailerId}
-          upload={previewUpload}
-          previewPath="/uploadstores"
-          theme={theme}
-          onClose={() => setPreviewUpload(null)}
-          onConfirmed={handlePreviewConfirmed}
           onError={handleUploadError}
           fetchHistory={fetchHistory}
         />

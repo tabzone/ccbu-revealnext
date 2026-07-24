@@ -28,8 +28,20 @@ export default function Sidebar({ isOpen }) {
           children: [
             { label: "Products", href: `/retailerPlanogram/${id}/products` },
             { label: "Stores", href: `/retailerPlanogram/${id}/stores` },
-            { label: "Time Setup", href: `/retailerPlanogram/${id}/timesetup` },
+            { label: "Week Setup", href: `/retailerPlanogram/${id}/timesetup` },
           ],
+        },
+        {
+          label: "Planogram",
+          href: `https://revealpog.vercel.app`,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
         },
         {
           label: "Weekly Sales Upload",
@@ -226,6 +238,8 @@ export default function Sidebar({ isOpen }) {
             <Link
               key={item.label}
               href={item.href}
+              target={item.target}
+              rel={item.rel}
               aria-current={active ? "page" : undefined}
               className="flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 border-l-2"
               style={{
@@ -246,7 +260,18 @@ export default function Sidebar({ isOpen }) {
               }}
             >
               <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
-              {isOpen && <span className="text-base font-medium">{item.label}</span>}
+              {isOpen && (
+                <span className="flex items-center gap-1.5">
+                  <span className="text-base font-medium">{item.label}</span>
+                  {item.target === "_blank" && (
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-70">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                  )}
+                </span>
+              )}
             </Link>
           );
         })}

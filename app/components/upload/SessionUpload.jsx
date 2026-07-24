@@ -62,12 +62,30 @@ export function extractUploadRows(payload) {
   return [];
 }
 
-export function getPreviewColumns(rows) {
-  const keys = new Set();
-  rows.slice(0, 10).forEach((row) => {
-    Object.keys(row ?? {}).forEach((key) => keys.add(key));
-  });
-  return [...keys].slice(0, 8);
+export function isValidUrl(value) {
+  if (!value || typeof value !== "string") return false;
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function downloadFileFromUrl(url, filename) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Download failed (${res.status})`);
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename || "download";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(objectUrl);
 }
 
 export function StatusBadge({ status }) {
@@ -146,216 +164,11 @@ function uploadFileToS3({ uppy, file, uploadUrl, s3Key, xhrRef }) {
   });
 }
 
-// ─── Preview modal ────────────────────────────────────────────────────────────
-
-export function SessionPreviewModal({ retailerId, upload, theme, onClose, onConfirmed, onError, previewPath = "/uploadproducts", fetchHistory }) {
-  const { bg, bgSub, border, textPri, textSec, accent, hover } = theme;
-  const requestid = upload?.requestid ?? upload?.id;
-  const canLoadPreview = Boolean(retailerId && requestid);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(canLoadPreview);
-  const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState(canLoadPreview ? null : "Upload request id is missing");
-
-  useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    };
-  }, []);
-
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchPreview = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await apiPost(`${previewPath}/${retailerId}/${requestid}/preview`);
-        if (!cancelled) setPreview(res?.data ?? res);
-      } catch (err) {
-        if (!cancelled) setError(err.message);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    if (canLoadPreview) fetchPreview();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [canLoadPreview, requestid, retailerId, previewPath]);
-
-  const handleConfirm = async () => {
-    setConfirming(true);
-    setError(null);
-    try {
-      const res = await apiPost(`${previewPath}/${retailerId}/${requestid}/confirm`);
-      onConfirmed(res?.message ?? "Upload confirmed");
-    } catch (err) {
-      setError(err.message);
-      onError(err.message);
-    } finally {
-      setConfirming(false);
-    }
-  };
-
-  const handleCancel = useCallback(async () => {
-    if (requestid) {
-      try {
-        await apiPut(`/retailers/${retailerId}/uploads/${requestid}`, { status: "Cancelled", filename: getUploadFilename(upload) });
-      } catch { }
-    }
-    onClose();
-    fetchHistory?.();
-  }, [retailerId, requestid, onClose, fetchHistory]);
-
-  if (typeof document === "undefined") return null;
-
-  const rows = Array.isArray(preview?.rows) ? preview.rows : [];
-  const errors = Array.isArray(preview?.errors) ? preview.errors : [];
-  const columns = getPreviewColumns(rows);
-
-  return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={handleCancel}>
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ backgroundColor: bg, borderColor: border }}
-        className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border shadow-2xl"
-      >
-        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: border }}>
-          <div>
-            <h2 className="text-xl font-semibold" style={{ color: textPri }}>Preview Upload</h2>
-            <p className="mt-1 text-xs" style={{ color: textSec }}>{getUploadFilename(upload)}</p>
-          </div>
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={confirming}
-            className="text-2xl leading-none hover:opacity-60 transition disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ color: textSec }}
-            aria-label="Close"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-auto p-6">
-          {loading ? (
-            <div className="flex min-h-[260px] flex-col items-center justify-center gap-4">
-              <div className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-transparent" style={{ borderTopColor: accent }} />
-              <p className="text-sm font-medium" style={{ color: textSec }}>Loading preview...</p>
-            </div>
-          ) : error ? (
-            <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">{error}</div>
-          ) : (
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                {[
-                  ["File Type", preview?.filetype],
-                  ["Total Rows", preview?.total_rows],
-                  ["Valid Rows", preview?.valid_rows],
-                  ["Invalid Rows", preview?.invalid_rows],
-                  ["Errors", errors.length],
-                ].map(([label, value]) => (
-                  <div key={label} className="rounded-lg border p-3" style={{ backgroundColor: bgSub, borderColor: border }}>
-                    <div className="text-xs" style={{ color: textSec }}>{label}</div>
-                    <div className="mt-1 text-lg font-semibold" style={{ color: textPri }}>{value ?? "-"}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 className="mb-2 text-sm font-semibold" style={{ color: textPri }}>Rows</h3>
-                <div className="max-h-72 overflow-auto rounded-lg border" style={{ borderColor: border }}>
-                  <table className="min-w-full text-xs">
-                    <thead className="sticky top-0 z-10">
-                      <tr>
-                        {columns.length > 0 ? columns.map((col) => (
-                          <th key={col} className="px-3 py-2 text-left font-semibold uppercase whitespace-nowrap" style={{ backgroundColor: bgSub, color: textSec }}>
-                            {col}
-                          </th>
-                        )) : (
-                          <th className="px-3 py-8 text-center font-normal" style={{ backgroundColor: bgSub, color: textSec }}>No rows to preview.</th>
-                        )}
-                      </tr>
-                    </thead>
-                    {columns.length > 0 && (
-                      <tbody>
-                        {rows.slice(0, 50).map((row, index) => (
-                          <tr key={index} className="border-t" style={{ borderColor: border }}>
-                            {columns.map((col) => (
-                              <td key={col} className="max-w-[220px] truncate px-3 py-2" style={{ color: textPri }} title={String(row?.[col] ?? "")}>
-                                {String(row?.[col] ?? "-")}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    )}
-                  </table>
-                </div>
-              </div>
-
-              {errors.length > 0 && (
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold" style={{ color: textPri }}>Validation Errors</h3>
-                  <div className="max-h-52 overflow-auto rounded-lg border" style={{ borderColor: border }}>
-                    <table className="min-w-full text-xs">
-                      <thead className="sticky top-0 z-10">
-                        <tr>
-                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Row</th>
-                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Reason</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {errors.map((item, index) => (
-                          <tr key={index} className="border-t transition" style={{ borderColor: border }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
-                            <td className="px-3 py-2 align-top" style={{ color: textPri }}>{item?.row ?? "-"}</td>
-                            <td className="whitespace-pre-wrap px-3 py-2 align-top" style={{ color: textPri }}>{item?.reason ?? JSON.stringify(item)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t px-6 py-4" style={{ borderColor: border }}>
-          <button type="button" onClick={handleCancel} disabled={confirming} className="rounded-lg border px-4 py-2 text-sm font-medium transition hover:opacity-80 disabled:opacity-50" style={{ borderColor: border, color: textPri }}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={loading || confirming || !preview}
-            className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ backgroundColor: accent }}
-          >
-            {confirming ? "Confirming..." : "Confirm"}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
 // ─── Upload modal ─────────────────────────────────────────────────────────────
 
 const PROCESS_ON_PENDING_FILETYPES = ["SALES", "MKT", "POG"];
 const FILENAME_UPDATE_FILETYPES = ["SALES", "MKT"];
-const PREVIEW_STATUS_FILETYPES = ["PRD", "STR"];
-const SESSION_UPLOAD_SUCCESS_MESSAGE =
-  "Upload completed successfully. Your upload has started processing. You can monitor its progress and validate the uploaded data from the History table using the Preview action.";
+const PROCESS_AND_REPORT_FILETYPES = ["PRD", "STR"];
 
 export function SessionUploadModal({
   retailerId,
@@ -370,12 +183,15 @@ export function SessionUploadModal({
   onError,
   fetchHistory,
 }) {
-  const { bg, border, textPri, textSec, accent } = theme;
+  const { bg, bgSub, border, textPri, textSec, accent } = theme;
   const [phase, setPhase] = useState("preparing");
   const [session, setSession] = useState(null);
   const [uppy, setUppy] = useState(null);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [uploadErrors, setUploadErrors] = useState([]);
+  const [errorFile, setErrorFile] = useState(null);
+  const [downloadingError, setDownloadingError] = useState(false);
   const pollTimerRef = useRef(null);
   const cancelledRef = useRef(false);
   const xhrRef = useRef(null);
@@ -393,7 +209,20 @@ export function SessionUploadModal({
     fetchHistory();
   }, [canClose, onClose, phase, session, retailerId, fetchHistory]);
 
+  const handleDownloadErrorFile = useCallback(async () => {
+    if (!errorFile) return;
 
+    setDownloadingError(true);
+    onSuccess("Download started");
+    try {
+      await downloadFileFromUrl(errorFile, "upload_errors.xlsx");
+      onSuccess("File downloaded successfully");
+    } catch (err) {
+      onError(err.message || "Failed to download error file");
+    } finally {
+      setDownloadingError(false);
+    }
+  }, [errorFile, onSuccess, onError]);
 
   const pollUploadStatus = useCallback(async (requestid) => {
     const startedAt = Date.now();
@@ -492,12 +321,22 @@ export function SessionUploadModal({
             setPhase("polling");
 
             let message;
-            if (PREVIEW_STATUS_FILETYPES.includes(filetype)) {
+            if (PROCESS_AND_REPORT_FILETYPES.includes(filetype)) {
               await apiPut(`/retailers/${retailerId}/uploads/${uploadSession.requestid}`, {
-                status: "Preview",
                 filename: file.name,
               });
-              message = SESSION_UPLOAD_SUCCESS_MESSAGE;
+
+              const statusRes = await apiGet(`/retailers/${retailerId}/uploads/${uploadSession.requestid}`);
+              const record = statusRes?.data ?? statusRes;
+              const rowErrors = Array.isArray(record?.errors) ? record.errors : [];
+              const rowErrorFile = record?.error_file || null;
+
+              setUploadErrors(rowErrors);
+              setErrorFile(rowErrorFile);
+
+              message = rowErrors.length > 0 || rowErrorFile
+                ? "Upload completed with validation errors."
+                : "Upload completed successfully.";
             } else if (PROCESS_ON_PENDING_FILETYPES.includes(filetype)) {
               if (FILENAME_UPDATE_FILETYPES.includes(filetype)) {
                 await apiPut(`/retailers/${retailerId}/uploads/${uploadSession.requestid}`, {
@@ -610,7 +449,7 @@ export function SessionUploadModal({
           )}
 
           {phase === "success" && (
-            <div className="flex min-h-[300px] flex-col items-center justify-center gap-4 px-4 text-center">
+            <div className="flex min-h-[300px] flex-col items-center gap-4 px-4 py-6 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
@@ -619,6 +458,43 @@ export function SessionUploadModal({
               <p className="max-w-md text-sm font-medium" style={{ color: textPri }}>
                 {successMessage || "Upload completed successfully."}
               </p>
+
+              {uploadErrors.length > 0 && (
+                <div className="w-full text-left">
+                  <h3 className="mb-2 text-sm font-semibold" style={{ color: textPri }}>Validation Errors</h3>
+                  <div className="max-h-52 overflow-auto rounded-lg border" style={{ borderColor: border }}>
+                    <table className="min-w-full text-xs">
+                      <thead className="sticky top-0 z-10">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Row</th>
+                          <th className="px-3 py-2 text-left font-semibold uppercase" style={{ backgroundColor: bgSub, color: textSec }}>Reason</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {uploadErrors.map((item, index) => (
+                          <tr key={index} className="border-t" style={{ borderColor: border }}>
+                            <td className="px-3 py-2 align-top" style={{ color: textPri }}>{item?.row ?? "-"}</td>
+                            <td className="whitespace-pre-wrap px-3 py-2 align-top" style={{ color: textPri }}>{item?.reason ?? JSON.stringify(item)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {isValidUrl(errorFile) && (
+                <button
+                  type="button"
+                  onClick={handleDownloadErrorFile}
+                  disabled={downloadingError}
+                  className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition cursor-pointer hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ backgroundColor: accent }}
+                >
+                  <DownloadIcon />
+                  {downloadingError ? "Downloading..." : "Download Error File"}
+                </button>
+              )}
             </div>
           )}
 
