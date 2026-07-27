@@ -33,7 +33,7 @@ export default function Sidebar({ isOpen }) {
         },
         {
           label: "Planogram",
-          href: `https://revealpog.vercel.app`,
+          href: `https://revealpog.vercel.app/manageReports`,
           target: "_blank",
           rel: "noopener noreferrer",
           icon: (
