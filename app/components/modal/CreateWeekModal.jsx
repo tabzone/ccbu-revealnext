@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiPost } from "@/lib/api";
 
-const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "" };
+const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "", dataweek: "" };
 
 /**
  * Create Week modal.
@@ -35,9 +35,10 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     const fiscalWeek = form.fiscal_week.trim();
     const fiscalDate = form.fiscal_date.trim();
     const year = form.year.trim();
+    const dataWeek = form.dataweek.trim();
 
-    if (!fiscalWeek || !fiscalDate || !year) {
-      setError("Fiscal Week, Fiscal Date, and Year are all required");
+    if (!fiscalWeek || !fiscalDate || !year || !dataWeek) {
+      setError("Data Week, Fiscal Week, Fiscal Date, and Year are all required");
       return;
     }
 
@@ -48,6 +49,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
         fiscal_week: fiscalWeek,
         fiscal_date: fiscalDate,
         year,
+        dataweek: dataWeek,
       });
       onCreated(result);
     } catch (err) {
@@ -92,6 +94,22 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
             {error && (
               <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>
             )}
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
+                Data Week<span style={{ color: accent }}> *</span>
+              </label>
+              <input
+                type="text"
+                value={form.dataweek}
+                onChange={set("dataweek")}
+                required
+                placeholder="e.g. 202601"
+                disabled={saving}
+                style={inputStyle}
+                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
+              />
+            </div>
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
