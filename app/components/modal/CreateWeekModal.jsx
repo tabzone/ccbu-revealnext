@@ -33,7 +33,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     e.preventDefault();
 
     const fiscalWeek = form.fiscal_week.trim();
-    const fiscalDate = form.fiscal_date.trim();
+    // const fiscalDate = form.fiscal_date.trim();
     const year = form.year.trim();
     const dataWeek = form.dataweek.trim();
 
@@ -47,7 +47,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     try {
       const result = await apiPost(`/retailers/${retailerId}/weeks`, {
         fiscal_week: fiscalWeek,
-        fiscal_date: fiscalDate,
+        // fiscal_date: fiscalDate,
         year,
         dataweek: dataWeek,
       });
@@ -127,7 +127,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
                 Fiscal Date<span style={{ color: accent }}> *</span>
               </label>
@@ -140,7 +140,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
               />
-            </div>
+            </div> */}
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
