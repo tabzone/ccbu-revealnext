@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 
-const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "", dataweek: "" };
+const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "", dataweek: "", projectid: "" };
 
 /**
  * Create Week modal.
@@ -16,6 +16,8 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
   const [form, setForm] = useState({ ...EMPTY_WEEK_FORM });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -25,6 +27,26 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
       document.body.style.overflow = "";
     };
   }, []);
+
+  useEffect(() => {
+    if (!retailerId) return;
+
+    setProjectsLoading(true);
+    apiGet(`/retailers/listprojects/${retailerId}`)
+      .then((res) => {
+        const payload = res?.data ?? res;
+        const rows = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.projects)
+            ? payload.projects
+            : Array.isArray(payload?.items)
+              ? payload.items
+              : [];
+        setProjects(rows);
+      })
+      .catch(() => setProjects([]))
+      .finally(() => setProjectsLoading(false));
+  }, [retailerId]);
 
   const set = (key) => (e) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
@@ -36,9 +58,10 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     // const fiscalDate = form.fiscal_date.trim();
     const year = form.year.trim();
     const dataWeek = form.dataweek.trim();
+    const projectId = form.projectid.trim();
 
-    if (!fiscalWeek || !fiscalDate || !year || !dataWeek) {
-      setError("Data Week, Fiscal Week, Fiscal Date, and Year are all required");
+    if (!fiscalWeek || !year || !dataWeek || !projectId) {
+      setError("Data Week, Fiscal Week, Year, and Project are all required");
       return;
     }
 
@@ -50,6 +73,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
         // fiscal_date: fiscalDate,
         year,
         dataweek: dataWeek,
+        projectid: projectId,
       });
       onCreated(result);
     } catch (err) {
@@ -104,11 +128,42 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                 value={form.dataweek}
                 onChange={set("dataweek")}
                 required
-                placeholder="e.g. 202601"
+                placeholder="e.g. 20"
                 disabled={saving}
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
+                Project<span style={{ color: accent }}> *</span>
+              </label>
+              <select
+                value={form.projectid}
+                onChange={set("projectid")}
+                required
+                disabled={saving || projectsLoading}
+                style={inputStyle}
+                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
+              >
+                <option value="" disabled>
+                  {projectsLoading ? "Loading projects..." : "Select project..."}
+                </option>
+                {projects.map((project) => {
+                  const name = project.projName ?? "";
+                  const label = name.length > 40 ? `${name.slice(0, 40)}…` : name;
+                  return (
+                    <option
+                      key={project.projectid ?? project.id}
+                      value={project.projectid ?? project.id}
+                      title={name}
+                    >
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             <div>
@@ -120,7 +175,9 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                 value={form.fiscal_week}
                 onChange={set("fiscal_week")}
                 required
-                placeholder="e.g. W01"
+                placeholder="yyyy-mm-dd"
+                pattern="\d{4}-\d{2}-\d{2}"
+                title="Format: yyyy-mm-dd"
                 disabled={saving}
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
