@@ -50,12 +50,12 @@ export default function MasterUsersPage() {
         {/* Page header */}
         <div className="flex-shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Users</h1>
+            {/* <div>
+              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Retailer Users</h1>
               <p style={{ color: th.textSec }} className="mt-1 text-sm">
                 {loading ? "Loading…" : `${total} user${total !== 1 ? "s" : ""} total`}
               </p>
-            </div>
+            </div> */}
             <button
               onClick={handleAddUser}
               style={{ backgroundColor: th.accent }}

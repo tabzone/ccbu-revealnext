@@ -4,11 +4,18 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useAppTheme from "@/app/hooks/useAppTheme";
+import { apiPost } from "@/lib/api";
 
 export default function Sidebar({ isOpen }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState([]);
   const { bg, border, textPri, textSec, hover, accent } = useAppTheme();
+
+  const handlePlanogramClick = (retailerId) => {
+    apiPost(`/retailers/${retailerId}/sync`).catch((error) => {
+      console.error("Unable to sync retailer before opening Planogram:", error);
+    });
+  };
 
   const getNavItems = () => {
     if (pathname?.startsWith("/retailerPlanogram")) {
@@ -31,18 +38,19 @@ export default function Sidebar({ isOpen }) {
             { label: "Week Setup", href: `/retailerPlanogram/${id}/timesetup` },
           ],
         },
-        // {
-        //   label: "Planogram",
-        //   href: `https://revealpog.vercel.app/manageReports`,
-        //   target: "_blank",
-        //   rel: "noopener noreferrer",
-        //   icon: (
-        //     <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-        //       <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-        //       <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        //     </svg>
-        //   ),
-        // },
+        {
+          label: "Planogram",
+          href: `https://revealv3pog.vercel.app/managereports`,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          onClick: () => handlePlanogramClick(id),
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+        },
         {
           label: "Weekly Sales Upload",
           href: `/retailerPlanogram/${id}/weeklySalesUpload`,
@@ -58,7 +66,7 @@ export default function Sidebar({ isOpen }) {
         {
           label: "Settings",
           href: "#",
-          children: [{ label: "Users", href: `/retailerPlanogram/${id}/users` }],
+          children: [{ label: "Retailer Users", href: `/retailerPlanogram/${id}/users` }],
           icon: (
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
@@ -92,7 +100,7 @@ export default function Sidebar({ isOpen }) {
         ),
       },
       {
-        label: "Users",
+        label: "Admin Users",
         href: "/users",
         icon: (
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
@@ -258,6 +266,7 @@ export default function Sidebar({ isOpen }) {
                 e.currentTarget.style.color = textSec;
                 e.currentTarget.style.backgroundColor = "transparent";
               }}
+              onClick={item.onClick}
             >
               <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
               {isOpen && (

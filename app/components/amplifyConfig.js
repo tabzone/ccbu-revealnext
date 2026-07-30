@@ -1,4 +1,6 @@
 import { Amplify } from "aws-amplify";
+import { cognitoUserPoolsTokenProvider } from "aws-amplify/auth/cognito";
+import { CookieStorage } from "aws-amplify/utils";
 
 export function initAmplify() {
   const userPoolId =
@@ -23,6 +25,16 @@ export function initAmplify() {
       },
     },
   });
+
+  // cognitoUserPoolsTokenProvider.setKeyValueStorage(
+  //   new CookieStorage({
+  //     domain: ".revealnext.com",
+  //     secure: true,
+  //     sameSite: "lax",
+  //     path: "/",
+  //     expires: 30, // days
+  //   })
+  // );
 
   return true;
 }
