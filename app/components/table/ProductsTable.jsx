@@ -65,7 +65,7 @@ export function ProductsTable({
   const paginationEnd = Math.min((page + 1) * PAGE_SIZE, total);
 
   return (
-    <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden">
+    <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden ">
       {apiError ? (
         <div className="py-20 text-center">
           <p style={{ color: accent }} className="font-medium text-sm">Failed to load: {apiError}</p>
@@ -75,7 +75,7 @@ export function ProductsTable({
         </div>
       ) : (
         <>
-          <div className="overflow-auto flex-1 min-h-0">
+          <div className="overflow-auto flex-1 min-h-[300px] max-h-[450px]">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">

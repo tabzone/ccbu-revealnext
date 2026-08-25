@@ -78,7 +78,7 @@ export function StoresTable({
         </div>
       ) : (
         <>
-          <div className="overflow-auto flex-1 min-h-0">
+          <div className="overflow-auto flex-1 min-h-[300px] max-h-[450px]">
             <table className="w-full">
               <thead className="sticky top-0 z-10">
                 <tr style={{ backgroundColor: bgSub, borderColor: border }} className="border-b">

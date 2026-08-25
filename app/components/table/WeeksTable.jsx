@@ -56,7 +56,7 @@ const STATIC_COLUMNS = [
     "Stores",
     "Market",
     "Sales",
-    "Planograms",
+    // "Planograms",
     "Published",
     "Created At",
     "Updated At",
@@ -137,7 +137,7 @@ export function WeeksTable({ weeks, loading, theme, sortConfig, onSort }) {
                                     <td className="px-5 py-3"><ReadyBadge value={row.stores_ready} textSec={textSec} /></td>
                                     <td className="px-5 py-3"><ReadyBadge value={row.market_ready} textSec={textSec} /></td>
                                     <td className="px-5 py-3"><ReadyBadge value={row.sales_ready} textSec={textSec} /></td>
-                                    <td className="px-5 py-3"><ReadyBadge value={row.planograms_ready} textSec={textSec} /></td>
+                                    {/* <td className="px-5 py-3"><ReadyBadge value={row.planograms_ready} textSec={textSec} /></td> */}
                                     <td className="px-5 py-3"><ReadyBadge value={row.published} textSec={textSec} /></td>
                                     <td className="px-5 py-3 whitespace-nowrap" style={{ color: textSec }}>
                                         {formatDate(row.created_at, true)}

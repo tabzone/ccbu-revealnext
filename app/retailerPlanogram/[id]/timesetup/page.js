@@ -95,10 +95,7 @@ export default function TimeSetupPage() {
         <AppLayout>
             <div className="h-full flex flex-col gap-4">
                 <div className="flex-shrink-0 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold" style={{ color: textPri }}>Time Setup</h1>
-                        <p className="mt-1 text-sm" style={{ color: textSec }}>Manage fiscal weeks for this retailer</p>
-                    </div>
+                   
                     <button
                         type="button"
                         onClick={() => setCreateOpen(true)}

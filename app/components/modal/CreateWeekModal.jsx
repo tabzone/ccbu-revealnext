@@ -73,7 +73,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
         // fiscal_date: fiscalDate,
         year,
         dataweek: dataWeek,
-        projectid: projectId,
+        // projectid: projectId,
       });
       onCreated(result);
     } catch (err) {
@@ -135,7 +135,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
                 Project<span style={{ color: accent }}> *</span>
               </label>
@@ -164,7 +164,7 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                   );
                 })}
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>

@@ -115,7 +115,7 @@ function StoreSessionUploadSection({ retailerId, theme, addToast }) {
 
 
   return (
-    <div className="flex flex-col gap-5 flex-1 min-h-0">
+    <div className="flex flex-col gap-5 min-h-[300px]">
       {/* <div
         className="flex items-center justify-between gap-3 flex-shrink-0 rounded-xl border px-5 py-3.5"
         style={{ backgroundColor: bgSub, borderColor: border }}
@@ -520,14 +520,7 @@ export default function MasterStoresPage() {
         {/* Page header + tab bar */}
         <div className="flex-shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Stores</h1>
-              {/* {activeTab === "stores" && (
-                <p style={{ color: th.textSec }} className="mt-1 text-sm">
-                  {loading ? "Loading…" : `${total} store${total !== 1 ? "s" : ""} total`}
-                </p>
-              )} */}
-            </div>
+            
             {/* {activeTab === "stores" && (
               <button
                 onClick={handleAddStore}

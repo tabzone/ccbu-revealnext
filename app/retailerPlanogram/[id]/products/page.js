@@ -140,8 +140,8 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
       </div>
 
       <div
-        className="flex-1 flex flex-col min-h-0 rounded-xl border shadow-sm overflow-hidden"
-        style={{ backgroundColor: bg, borderColor: border }}
+        className="flex flex-col rounded-xl border shadow-sm overflow-hidden"
+          style={{ backgroundColor: bg, borderColor: border }}
       >
         <div className="px-5 py-4 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: border }}>
           <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2>
@@ -150,7 +150,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
           </button>
         </div>
 
-        <div className="overflow-auto flex-1 min-h-0">
+        <div className="w-full min-h-[300px] overflow-auto">
           <table className="min-w-full text-sm">
             <thead className="sticky top-0 z-10">
               <tr>
@@ -377,18 +377,10 @@ export default function MasterProductsPage() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {/* Page header + tab bar */}
         <div className="flex-shrink-0">
           <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 style={{ color: th.textPri }} className="text-3xl font-bold">Master Products</h1>
-              {/* {activeTab === "products" && (
-                <p style={{ color: th.textSec }} className="mt-1 text-sm">
-                  {loading ? "Loading…" : `${total} product${total !== 1 ? "s" : ""} total`}
-                </p>
-              )} */}
-            </div>
             {/* {activeTab === "products" && (
               <button
                 onClick={() => setModal("add")}

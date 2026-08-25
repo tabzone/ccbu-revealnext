@@ -301,7 +301,7 @@ export default function WeeklySalesUploadPage() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col gap-4">
+     <div className="flex flex-col gap-4">
 
         {/* CONTROLS + PUBLISH ROW — always visible now */}
         <div className="flex flex-col lg:flex-row gap-4">
@@ -498,7 +498,10 @@ export default function WeeklySalesUploadPage() {
         </div>
 
         {activeTab === "history" && (
-          <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
+          <div
+  style={{ backgroundColor: bg, borderColor: border }}
+  className="flex flex-col rounded-xl border shadow-sm overflow-hidden"
+>
 
 
             <div className="px-5 pt-3 flex justify-between border-b flex-shrink-0" style={{ borderColor: border }}>
@@ -524,7 +527,7 @@ export default function WeeklySalesUploadPage() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-auto">
+            <div className="w-full min-h-[300px]">
               {historyLoading ? (
                 <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</div>
               ) : filteredHistory.length === 0 ? (
@@ -574,7 +577,10 @@ export default function WeeklySalesUploadPage() {
         )}
 
         {activeTab === "validationHistory" && (
-          <div style={{ backgroundColor: bg, borderColor: border }} className="flex-1 min-h-0 flex flex-col rounded-xl border shadow-sm overflow-hidden">
+          <div
+  style={{ backgroundColor: bg, borderColor: border }}
+  className="flex flex-col rounded-xl border shadow-sm overflow-hidden"
+>
             <div className="px-5 py-4 border-b flex items-center justify-end flex-shrink-0" style={{ borderColor: border }}>
               <button onClick={refreshValidationHistory} className="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition hover:opacity-80" style={{ borderColor: border, color: textSec }}>
                 Refresh
@@ -584,7 +590,7 @@ export default function WeeklySalesUploadPage() {
             {validationHistoryError ? (
               <div className="p-5 text-sm text-red-600">{validationHistoryError}</div>
             ) : (
-              <div className="flex-1 min-h-0 overflow-auto">
+              <div className="w-full min-h-[300px]">
                 {validationHistoryLoading ? (
                   <div style={{ color: textSec }} className="px-6 py-10 text-center text-sm">Loading...</div>
                 ) : filteredValidationHistory.length === 0 ? (
