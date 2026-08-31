@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { apiGet, apiPost } from "@/lib/api";
 
-const EMPTY_WEEK_FORM = { fiscal_week: "", fiscal_date: "", year: "", dataweek: "", projectid: "" };
+const EMPTY_WEEK_FORM = { fiscal_week: "", dataweek: "", projectid: "" };
 
 /**
  * Create Week modal.
@@ -54,14 +54,13 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const fiscalWeek = form.fiscal_week.trim();
-    // const fiscalDate = form.fiscal_date.trim();
-    const year = form.year.trim();
+    const fiscalWeek = form.fiscal_week;
+    const year = fiscalWeek.slice(0, 4);
     const dataWeek = form.dataweek.trim();
     // const projectId = form.projectid.trim();
 
-    if (!fiscalWeek || !year || !dataWeek ) {
-      setError("Data Week, Fiscal Week and Year are all required");
+    if (!fiscalWeek || !dataWeek) {
+      setError("Data Week and Fiscal Week are required");
       return;
     }
 
@@ -171,13 +170,10 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
                 Fiscal Week<span style={{ color: accent }}> *</span>
               </label>
               <input
-                type="text"
+                type="date"
                 value={form.fiscal_week}
                 onChange={set("fiscal_week")}
                 required
-                placeholder="yyyy-mm-dd"
-                pattern="\d{4}-\d{2}-\d{2}"
-                title="Format: yyyy-mm-dd"
                 disabled={saving}
                 style={inputStyle}
                 className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
@@ -199,22 +195,6 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
               />
             </div> */}
 
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase" style={{ color: textSec }}>
-                Year<span style={{ color: accent }}> *</span>
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={form.year}
-                onChange={set("year")}
-                required
-                placeholder="e.g. 2026"
-                disabled={saving}
-                style={inputStyle}
-                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none transition disabled:opacity-60"
-              />
-            </div>
           </div>
 
           <div className="flex justify-end gap-3 border-t px-6 py-4" style={{ borderColor: border }}>
