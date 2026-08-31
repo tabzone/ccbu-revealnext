@@ -58,10 +58,10 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     // const fiscalDate = form.fiscal_date.trim();
     const year = form.year.trim();
     const dataWeek = form.dataweek.trim();
-    const projectId = form.projectid.trim();
+    // const projectId = form.projectid.trim();
 
-    if (!fiscalWeek || !year || !dataWeek || !projectId) {
-      setError("Data Week, Fiscal Week, Year, and Project are all required");
+    if (!fiscalWeek || !year || !dataWeek ) {
+      setError("Data Week, Fiscal Week and Year are all required");
       return;
     }
 
