@@ -141,7 +141,7 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
 
       <div
         className="flex flex-col rounded-xl border shadow-sm overflow-hidden"
-          style={{ backgroundColor: bg, borderColor: border }}
+        style={{ backgroundColor: bg, borderColor: border }}
       >
         <div className="px-5 py-4 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: border }}>
           <h2 className="text-base font-semibold" style={{ color: textPri }}>Upload History</h2>
@@ -195,8 +195,8 @@ function ProductUploadSection({ retailerId, theme, addToast }) {
                         type="button"
                         onClick={() => handleDownloadErrorFile(row)}
                         disabled={!isValidUrl(row.error_file) || downloadingRowId === (row.requestid ?? row.id)}
-                        className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition cursor-pointer hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                        style={{ borderColor: border, color: textPri, backgroundColor: bg }}
+                        className="rounded-lg border px-3 py-1.5 text-xs text-red-500 font-semibold transition cursor-pointer hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ borderColor: border, backgroundColor: bg }}
                       >
                         {downloadingRowId === (row.requestid ?? row.id) ? "Downloading..." : "Download"}
                       </button>
