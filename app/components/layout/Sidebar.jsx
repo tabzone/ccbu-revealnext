@@ -83,6 +83,20 @@ export default function Sidebar({ isOpen }) {
         ),
       },
       {
+        label: "Manage Planograms",
+        href: "#",
+        icon: (
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+            <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        ),
+        children: [
+          { label: "Manage Masterdata", href: "/managePlanograms/masterdata" },
+          { label: "Manage Timeperiod", href: "/managePlanograms/timeperiod" },
+        ],
+      },
+      {
         label: "Manage Reports",
         href: "/manageReports",
         icon: (
