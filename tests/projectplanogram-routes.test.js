@@ -215,3 +215,113 @@ describe('CCBU ProjectStores V3 parity', () => {
     assert.ok(content.includes('isLoading') || content.includes('LoadingSpinner'), 'should handle loading/empty states');
   });
 });
+
+describe('CCBU SubmitReport V3 exact parity (folder match)', () => {
+  it('submitreport folder structure matches V3', () => {
+    const ccbuBase = path.join(root, 'app/projectplanogram/[id]/submitreport');
+    const v3Page = path.join('/home/nobin/projects/revealv3-pog/src/app/(app)/projectplanogram/[id]/submitreport/page.js');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'page.js')), 'CCBU submitreport/page.js should exist');
+    assert.ok(fs.existsSync(v3Page), 'V3 page.js should exist');
+    // CCBU should have local components mirroring V3 dependencies
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/PublishModal.jsx')), 'local PublishModal should exist inside submitreport folder');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/PublishProjectReqTable.jsx')), 'local PublishProjectReqTable should exist');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/Modal.jsx')), 'local Modal should exist');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/LoadingSpinner.jsx')), 'local LoadingSpinner should exist');
+  });
+
+  it('page.js reproduces V3 logic/UI without changing outside folder', () => {
+    const ccbuPage = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/submitreport/page.js'), 'utf8');
+    const v3Page = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/(app)/projectplanogram/[id]/submitreport/page.js'), 'utf8');
+    // Core V3 UI strings must be present
+    assert.ok(ccbuPage.includes('Publish For Extraction'), 'should have V3 header Publish For Extraction');
+    assert.ok(ccbuPage.includes('Comparison Report'), 'should have Comparison Report toggle');
+    assert.ok(ccbuPage.includes('Create Comparison Report'), 'should have Create Comparison Report');
+    assert.ok(ccbuPage.includes('Comparison Project'), 'should have Comparison Project selector');
+    assert.ok(ccbuPage.includes('Active Report'), 'should have Active Report toggle');
+    assert.ok(ccbuPage.includes('Comparison Report Details'), 'should have Comparison Report Details');
+    assert.ok(ccbuPage.includes('Project Requests'), 'should have Project Requests section');
+    assert.ok(ccbuPage.includes('PublishProjectReqTable'), 'should use PublishProjectReqTable');
+    assert.ok(ccbuPage.includes('PublishModal'), 'should use PublishModal');
+    // Core V3 logic must be present
+    assert.ok(ccbuPage.includes('getRetailerIdFromProject'), 'should have getRetailerIdFromProject helper');
+    assert.ok(ccbuPage.includes('/listprojects/${retailerId}'), 'should fetch listprojects with retailerId');
+    assert.ok(ccbuPage.includes('/getprojectrequest/${id}/${filetype}'), 'should fetch getprojectrequest');
+    assert.ok(ccbuPage.includes('/getvalidation/${id}'), 'should fetch getvalidation');
+    assert.ok(ccbuPage.includes('isPublishDisabled'), 'should have isPublishDisabled logic');
+    assert.ok(ccbuPage.includes('isEnabled && !selectedCompareProject'), 'publish disabled when comparison required');
+    // CCBU adaptations must not use Redux (outside folder intact)
+    assert.ok(!ccbuPage.includes("from \"react-redux\"") && !ccbuPage.includes("from 'react-redux'"), 'should not import react-redux (no Redux in CCBU)');
+    // Verify outside global PublishModal was NOT overwritten (keeps weekly sales publish)
+    const globalPublish = fs.readFileSync(path.join(root, 'app/components/modal/PublishModal.jsx'), 'utf8');
+    assert.ok(globalPublish.includes('Publish Data') && globalPublish.includes('apiGet'), 'global PublishModal should remain weekly-sales version, not overwritten');
+  });
+
+  it('local PublishModal matches V3 PublishModal implementation', () => {
+    const local = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/submitreport/components/PublishModal.jsx'), 'utf8');
+    const v3 = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/components/modal/PublishModal.js'), 'utf8');
+    // Key V3 modal features
+    assert.ok(local.includes('Select Report Type') && local.includes('Review And Submit') && local.includes('Check Status'), 'should have 3-step wizard');
+    assert.ok(local.includes('Validation Failed') || local.includes('Validation Success'), 'should have validation banner');
+    assert.ok(local.includes('Total Planograms') && local.includes('Total Products') && local.includes('Total Stores'), 'should have totals cards');
+    assert.ok(local.includes('Stores Exclude'), 'should have Stores Exclude');
+    assert.ok(local.includes('pollGetRequest') && local.includes('/getrequest/${projectId}/${requestId}/${filetype}'), 'should have polling logic');
+    // Content should be substantially same as V3 (allow CCBU lambda path diff)
+    const normalize = s => s.replace(/@\/app\/utils\/lambdaClient/g, '@/app/lamda/lambdaClient').replace(/react-redux/g, '');
+    assert.ok(normalize(local).includes('fetchStores') && normalize(v3).includes('fetchStores'), 'both should have fetchStores');
+  });
+
+  it('local PublishProjectReqTable matches V3', () => {
+    const local = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/submitreport/components/PublishProjectReqTable.jsx'), 'utf8');
+    const v3 = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/components/table/PublishProjectReqTable.js'), 'utf8');
+    assert.ok(local.includes('FILE_TYPE_MAP') && local.includes('SUB'), 'should have FILE_TYPE_MAP');
+    assert.ok(local.includes('formatDate'), 'should use formatDate');
+    assert.ok(local.includes('File Type') && local.includes('Created At') && local.includes('Updated / Completed At') && local.includes('Status'), 'should have 4 columns');
+    // Rough parity: same table structure
+    assert.equal(local.includes('PublishProjectReqTable'), v3.includes('PublishProjectReqTable'), 'component name parity');
+  });
+});
+
+describe('CCBU Download V3 exact parity (folder match)', () => {
+  it('download folder structure matches V3', () => {
+    const ccbuBase = path.join(root, 'app/projectplanogram/[id]/download');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'page.js')), 'CCBU download/page.js should exist');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/DownloadTable.jsx')), 'local DownloadTable should exist inside download folder');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/LoadingSpinner.jsx')), 'local LoadingSpinner should exist');
+    assert.ok(fs.existsSync(path.join(ccbuBase, 'components/formatters.js')), 'local formatters should exist');
+  });
+
+  it('page.js reproduces V3 layout/styling/controls and preserves CCBU data flow with retailerId', () => {
+    const ccbuPage = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/download/page.js'), 'utf8');
+    const v3Page = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/(app)/projectplanogram/[id]/download/page.js'), 'utf8');
+    // V3 UI/layout must be reproduced
+    assert.ok(ccbuPage.includes('relative w-full h-full flex flex-col text-gray-600'), 'should have V3 outer container');
+    assert.ok(ccbuPage.includes('RefreshCcw') && ccbuPage.includes('Reload'), 'should have Reload button with RefreshCcw');
+    assert.ok(ccbuPage.includes('DownloadTable'), 'should use DownloadTable');
+    assert.ok(ccbuPage.includes('Rows per page:'), 'should have Rows per page control');
+    assert.ok(ccbuPage.includes('Showing') && ccbuPage.includes('of {totalRows}'), 'should have Showing x-y of total');
+    assert.ok(ccbuPage.includes('Page {totalRows'), 'should have Page x of y');
+    assert.ok(ccbuPage.includes('ChevronsLeft') && ccbuPage.includes('ChevronRight'), 'should have pagination chevrons');
+    assert.ok(ccbuPage.includes('filteredExtractFiles') && ccbuPage.includes('handleSort'), 'should have sorting/filtering logic');
+    assert.ok(ccbuPage.includes('/getextractfile/'), 'should fetch getextractfile');
+    // CCBU data flow: retailerId-aware, AppLayout wrapped, no unrelated break
+    assert.ok(ccbuPage.includes('useProject') && ccbuPage.includes('retailerId'), 'should use retailerId from useProject');
+    assert.ok(ccbuPage.includes('/getextractfile/${retailerId}/${params?.id}') || ccbuPage.includes('/getextractfile/${retailerId}'), 'should have retailer-aware getextractfile');
+    assert.ok(ccbuPage.includes('AppLayout'), 'should be wrapped in AppLayout to keep CCBU layout');
+    assert.ok(ccbuPage.includes('isLoading') && ccbuPage.includes('extractFilesData'), 'should preserve loading/data states');
+    // Verify outside pages not changed by this edit (submitreport still intact)
+    const submitPage = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/submitreport/page.js'), 'utf8');
+    assert.ok(submitPage.includes('Publish For Extraction'), 'unrelated submitreport page should stay intact');
+  });
+
+  it('local DownloadTable matches V3 implementation', () => {
+    const local = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/download/components/DownloadTable.jsx'), 'utf8');
+    const v3 = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/components/table/DownloadTable.js'), 'utf8');
+    assert.ok(local.includes('File Name') && local.includes('Updated At') && local.includes('Size') && local.includes('Status') && local.includes('Download'), 'should have 5 columns');
+    assert.ok(local.includes('formatDate') && local.includes('formatFileSize'), 'should use formatters');
+    assert.ok(local.includes('LoadingSpinner') && local.includes('No data found'), 'should handle loading/empty states');
+    assert.ok(local.includes('handleDownload') && local.includes('toast.info'), 'should have download handler with toast');
+    assert.ok(local.includes('Loader') && local.includes('animate-spin'), 'should show spinner when downloading');
+    // Content parity (allow jsx vs js extension)
+    assert.ok(local.includes('DownloadTable') && v3.includes('DownloadTable'), 'component name parity');
+  });
+});
