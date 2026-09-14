@@ -2,14 +2,18 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import useAppTheme from "@/app/hooks/useAppTheme";
 import { useAuth } from "../AuthProvider";
 import { apiGet } from "@/lib/api";
+import Modal from "../modal/Modal";
+import { useProject } from "@/app/hooks/useProject";
+import { ArrowLeft, PencilLine } from "lucide-react";
 
 export default function Navbar({ onToggleSidebar }) {
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
   const { theme, toggleTheme, isDark, accent, bg: headerBg, border: borderColor, textPri: textPrimary, textSec: textSecondary, hover: hoverBg, bgSub: buttonActiveBg, bgDrop: dropdownBg } = useAppTheme();
   const { logout } = useAuth();
 
@@ -18,10 +22,13 @@ export default function Navbar({ onToggleSidebar }) {
   const hoverTimeoutRef = useRef(null);
 
   const isRetailerPlanogram = pathname?.startsWith("/retailerPlanogram");
+  const isProjectPlanogram = pathname?.startsWith("/projectplanogram");
   const parts = pathname?.split("/") || [];
   const retailerId = parts[2];
 
   const [retailerName, setRetailerName] = useState("Retailer Planogram");
+  const { project: currentProject, loading: projectLoading } = useProject();
+  const [editModal, setEditModal] = useState(false);
 
   useEffect(() => {
     if (!isRetailerPlanogram || !retailerId) {
@@ -66,6 +73,13 @@ export default function Navbar({ onToggleSidebar }) {
     router.push("/login");
   };
 
+  const handleCancel = () => {
+    setEditModal(false);
+  };
+  const closeModal = () => {
+    setEditModal(false);
+  };
+
   // Navbar-specific derived colors (not part of the shared theme palette)
   const dropdownBorder = isDark ? "#3f3f3f" : "#e5e7eb";
   const menuItemHover = isDark ? "#3f3f3f" : "#f3f4f6";
@@ -103,7 +117,41 @@ export default function Navbar({ onToggleSidebar }) {
         </Link>
         <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} className="ml-5"/>
 
-        {/* Left Section - Back Button & Project Info */}
+        {/* Project Planogram context — V3 behavior */}
+        {isProjectPlanogram && (
+          <div className="flex items-center gap-2">
+            <Link
+              href={'/manageReports'}
+              className="flex items-center gap-1 px-2 py-1 border border-gray-400 ml-2 cursor-pointer text-sm"
+              style={{ color: textSecondary, borderColor: dropdownBorder }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Exit Project
+            </Link>
+            {projectLoading ? (
+              <div className="h-5 w-96 bg-gray-200 rounded animate-pulse"></div>
+            ) : currentProject ? (
+              <div className="flex gap-2 items-center ">
+                <span
+                  className="text-gray-600 italic text-base max-w-[150px] md:max-w-[400px] truncate block"
+                  title={currentProject?.projName}
+                  style={{ color: isDark ? textPrimary : "#4b5563" }}
+                >
+                  {currentProject?.projName}
+                </span>
+                <button
+                  onClick={() => setEditModal(true)}
+                  className="cursor-pointer text-blue-500 hover:text-blue-600"
+                >
+                  <PencilLine className="w-4 h-4" />
+                </button>
+                <button className="border px-1 border-gray-400 text-gray-400 text-sm">{currentProject?.retailerName}</button>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {/* Left Section - Retailer Back Button & Project Info (existing) */}
         {isRetailerPlanogram && (
           <div className="flex items-center gap-4">
             <button
@@ -200,22 +248,7 @@ export default function Navbar({ onToggleSidebar }) {
               aria-haspopup="menu"
               aria-expanded={showUserMenu}
             >
-              {/* <div
-                className="w-9 h-9 rounded-full text-white flex items-center justify-center text-xs font-semibold flex-shrink-0 shadow-md"
-                style={{
-                  background: "linear-gradient(135deg, #F40009 0%, #D60008 100%)",
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-3.3137 3.58172-6 8-6s8 2.6863 8 6" strokeLinecap="round" />
-                </svg>
-              </div> */}
-
               <div className="flex flex-col gap-0.5">
-                {/* <span style={{ color: textPrimary }} className="text-sm font-semibold">
-                  Account
-                </span> */}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M4 20c0-3.3137 3.58172-6 8-6s8 2.6863 8 6" strokeLinecap="round" />
@@ -305,6 +338,194 @@ export default function Navbar({ onToggleSidebar }) {
           </div>
         </div>
       </div>
+      {/* Project Details Modal — V3 exact */}
+      <Modal
+        isOpen={editModal}
+        onClose={handleCancel}
+        maxWidth="max-w-2xl"
+        maxHeight="h-[450px]"
+      >
+        <div className="h-full flex flex-col gap-2">
+          <div className="px-6 py-2 border-b border-gray-200 flex-shrink-0">
+            <h2 className="text-lg font-semibold">Project Details</h2>
+          </div>
+          <div className="flex flex-col gap-4 px-8 py-4 flex-1 overflow-auto">
+            <div className="flex items-center gap-4">
+              <label className="w-40 text-gray-700 font-medium">Project Name:</label>
+              <input
+                defaultValue={currentProject?.projName || ""}
+                className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                placeholder="Enter project name"
+                readOnly
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="w-40 text-gray-700 font-medium">Retailer Name:</label>
+              <input
+                defaultValue={currentProject?.retailerName || ""}
+                className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                placeholder="Enter retailer name"
+                readOnly
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="w-40 text-gray-700 font-medium">Store Extraction:</label>
+              {currentProject?.storeExtraction == 1 && (
+                <input
+                  defaultValue='From File Name / Use PSA File Name'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 2 && (
+                <input
+                  defaultValue='Use PSA File Name / Use Planogram Project Name'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 3 && (
+                <input
+                  defaultValue='Use PSA File Name / Use Planogram Name'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 4 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 1'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 5 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 2'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 6 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 3'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 7 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 4'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 8 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 5'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 9 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 6'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 10 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 7'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 11 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 8'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 12 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 9'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+              {currentProject?.storeExtraction == 13 && (
+                <input
+                  defaultValue='Use Planogram Description Field / Desc 10'
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder="Enter store extraction"
+                  readOnly
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="w-40 text-gray-700 font-medium">Product Key:</label>
+              {currentProject?.productKey ? (
+                <input
+                  defaultValue={currentProject?.productKey}
+                  className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none opacity-60"
+                  placeholder=""
+                  readOnly
+                />
+              ) : null}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <label className="w-40 text-gray-700 font-medium">Reset Time:</label>
+              <select
+                className="flex-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                defaultValue={currentProject?.projectTime}
+                disabled
+              >
+                <option value='Q12020'>Q1 2020</option>
+                <option value='Q22020'>Q2 2020</option>
+                <option value='Q32020'>Q3 2020</option>
+                <option value='Q42020'>Q4 2020</option>
+                <option value='Q12021'>Q1 2021</option>
+                <option value='Q22021'>Q2 2021</option>
+                <option value='Q32021'>Q3 2021</option>
+                <option value='Q42021'>Q4 2021</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="px-6 flex items-end justify-end gap-2 flex-shrink-0 pb-2">
+            <button
+              onClick={handleCancel}
+              className="px-4 py-2 text-sm rounded cursor-pointer border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                closeModal();
+              }}
+              className="px-4 py-2 text-sm cursor-pointer rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </Modal>
     </header>
   );
 }

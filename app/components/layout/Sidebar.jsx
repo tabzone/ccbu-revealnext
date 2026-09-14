@@ -2,15 +2,65 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import useAppTheme from "@/app/hooks/useAppTheme";
 
 export default function Sidebar({ isOpen }) {
   const pathname = usePathname();
+  const params = useParams();
   const [expandedItems, setExpandedItems] = useState([]);
   const { bg, border, textPri, textSec, hover, accent } = useAppTheme();
 
   const getNavItems = () => {
+    if (pathname?.startsWith("/projectplanogram/")) {
+      const projectId = params?.id || pathname.split("/")[2] || "0";
+      return [
+        {
+          label: "Project Setup",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M12 2V5M12 19V22M2 12H5M19 12H22M4.9 4.9L7 7M17 17L19.1 19.1M19.1 4.9L17 7M7 17L4.9 19.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Uploads", href: `/projectplanogram/${projectId}/uploads` },
+          ],
+        },
+        {
+          label: "Data Validation",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 10h16M4 14h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <rect x="13" y="12" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+          ),
+          children: [
+            { label: "Dashboard", href: `/projectplanogram/${projectId}/validation` },
+            { label: "Project Planogram", href: `/projectplanogram/${projectId}/planogram` },
+            { label: "Project Products", href: `/projectplanogram/${projectId}/projectproducts` },
+            { label: "Project Stores", href: `/projectplanogram/${projectId}/projectstores` },
+            { label: "Publish for Reporting", href: `/projectplanogram/${projectId}/submitreport` },
+          ],
+        },
+        {
+          label: "Download Datasets",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path d="M12 3v13M5 10l7 7 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 17h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Download Datasets", href: `/projectplanogram/${projectId}/download` },
+          ],
+        },
+      ];
+    }
+
     if (pathname?.startsWith("/retailerPlanogram")) {
       const parts = pathname.split("/");
       const id = parts[2] || "0";
@@ -119,7 +169,8 @@ export default function Sidebar({ isOpen }) {
     ];
   };
 
-  const navItems = useMemo(() => getNavItems(), [pathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const navItems = useMemo(() => getNavItems(), [pathname, params?.id]);
 
   // Check if item should be expanded (user toggle OR pathname match)
   const isItemExpanded = (item) => {

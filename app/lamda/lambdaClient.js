@@ -1,7 +1,9 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL;
+  process.env.NEXT_PUBLIC_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "";
 
 const getToken = async () => {
   try {

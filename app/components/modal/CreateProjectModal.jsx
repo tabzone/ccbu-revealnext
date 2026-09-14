@@ -1,22 +1,10 @@
 "use client";
 import { useState } from "react";
 import Modal from "./Modal";
-import { fetchAuthSession } from "aws-amplify/auth";
 import { storeExtraction } from "@/app/utils/constants";
 import { useRouter } from "next/navigation";
-import { lambdaGet } from "@/app/lamda/lambdaClient";
-
-// local toast stub (react-toastify not installed in this project — keeps same API)
-const toast = {
-  success: (msg) => {
-    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("app-toast", { detail: { message: msg, type: "success" } }));
-    console.log(msg);
-  },
-  error: (msg) => {
-    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("app-toast", { detail: { message: msg, type: "error" } }));
-    console.error(msg);
-  },
-};
+import { lambdaGet, lambdaPost } from "@/app/lamda/lambdaClient";
+import { toast } from "react-toastify";
 
 const getRetailerIdValue = (ret) => ret?.retailerid;
 
@@ -114,9 +102,7 @@ export default function CreateProjectModal({ onCreated }) {
 
     const handleSubmit = async () => {
         try {
-            const session = await fetchAuthSession();
-            const token = session.tokens?.idToken?.toString();
-            setSubmitLoading(true)
+            setSubmitLoading(true);
 
             const retailerId = getRetailerIdValue(selectedRetailer);
 
@@ -134,25 +120,16 @@ export default function CreateProjectModal({ onCreated }) {
                 slkey: DEFAULT_SLKEY,
                 setStatus:"Final"
             };
-            const response = await fetch(`/api/post/createProject`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await response.json();
-            if (response.ok) {
-                toast.success("Project Created Successfully");
-                if (onCreated) onCreated(data);
-                router.push(`projectplanogram/${data?.projectid}/uploads`)
-            } else {
-                toast.error("Failed to create project");
-            }
+            // Direct API call - no Next.js /api route (see app/lamda/projectApi.js for global reuse)
+            const data = await lambdaPost("/createproject", payload);
+            toast.success("Project created successfully! Please wait, redirecting to uploads...");
+            if (onCreated) onCreated(data);
+            setTimeout(() => {
+                router.push(`/projectplanogram/${data?.projectid}/uploads`);
+            }, 800);
         } catch (err) {
             console.error("Error submitting project:", err);
+            toast.error(err?.message || "Failed to create project");
         }
         finally {
             setSubmitLoading(false)
