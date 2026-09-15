@@ -1,5 +1,6 @@
 'use client'
 import DownloadTable from "./components/DownloadTable";
+import useAppTheme from "@/app/hooks/useAppTheme";
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -8,6 +9,8 @@ import AppLayout from "@/app/components/layout/AppLayout";
 import { useProject } from "@/app/hooks/useProject";
 
 const Page = () => {
+  const th = useAppTheme();
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   const [isLoading, setIsLoading] = useState(false)
   const [extractFilesData, setExtractFilesData] = useState(null)
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,11 +111,11 @@ const Page = () => {
 
   return (
     <AppLayout>
-    <div className="relative w-full h-full flex flex-col text-gray-600">
+    <div className="relative w-full h-full flex flex-col" style={{ backgroundColor: th.bg, color: th.textSec }}>
       <div className="flex justify-end items-center mb-2 p-2">
         <button
           onClick={() => fetchExtractFiles()}
-          className="cursor-pointer flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-white rounded-full shadow-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:hover:bg-blue-500"
+          className="cursor-pointer flex items-center gap-2 px-4 py-1.5 text-white rounded-full shadow-sm transition disabled:opacity-50 hover:opacity-90" style={{ backgroundColor: th.accent }}
         >
           <RefreshCcw
             className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
@@ -121,6 +124,7 @@ const Page = () => {
         </button>
       </div>
       <DownloadTable
+        theme={th}
         data={paginatedData}
         isLoading={isLoading}
         sortConfig={sortConfig}
@@ -129,63 +133,63 @@ const Page = () => {
       />
 
       {!isLoading && extractFilesData?.length > 0 && (
-        <div className="border-t bg-gray-50 px-4 py-3">
+        <div className="border-t px-4 py-3" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Rows per page:</span>
+              <span className="text-sm" style={{ color: th.textPri }}>Rows per page:</span>
               <select
                 value={rowsPerPage}
                 onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
-                className="cursor-pointer border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="cursor-pointer border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2" style={{ borderColor: th.border, backgroundColor: th.bg, color: th.textPri }}
               >
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-              <span className="text-sm text-gray-600 ml-4">
+              <span className="text-sm ml-4" style={{ color: th.textSec }}>
                 Showing {totalRows > 0 ? startIndex + 1 : 0}–
                 {Math.min(endIndex, totalRows)} of {totalRows}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 mr-2">
+              <span className="text-sm mr-2" style={{ color: th.textSec }}>
                 Page {totalRows > 0 ? currentPage : 0} of {totalPages || 0}
               </span>
 
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1 || totalPages === 0}
-                className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 title="First page"
               >
-                <ChevronsLeft className="w-5 h-5 text-gray-600" />
+                <ChevronsLeft className="w-5 h-5" style={{ color: th.textSec }} />
               </button>
 
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1 || totalPages === 0}
-                className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 title="Previous page"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <ChevronLeft className="w-5 h-5" style={{ color: th.textSec }} />
               </button>
 
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 title="Next page"
               >
-                <ChevronRight className="w-5 h-5 text-gray-600" />
+                <ChevronRight className="w-5 h-5" style={{ color: th.textSec }} />
               </button>
 
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                 title="Last page"
               >
-                <ChevronsRight className="w-5 h-5 text-gray-600" />
+                <ChevronsRight className="w-5 h-5" style={{ color: th.textSec }} />
               </button>
             </div>
           </div>

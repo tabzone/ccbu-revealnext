@@ -120,7 +120,7 @@ const UploadStoresModal = ({
             }
 
             // API returns a number
-            if (typeof data === "number") {
+            if (typeof data === "number") { 
                 return { count: data };
             }
 

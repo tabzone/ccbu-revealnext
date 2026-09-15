@@ -293,8 +293,8 @@ describe('CCBU Download V3 exact parity (folder match)', () => {
   it('page.js reproduces V3 layout/styling/controls and preserves CCBU data flow with retailerId', () => {
     const ccbuPage = fs.readFileSync(path.join(root, 'app/projectplanogram/[id]/download/page.js'), 'utf8');
     const v3Page = fs.readFileSync(path.join('/home/nobin/projects/revealv3-pog/src/app/(app)/projectplanogram/[id]/download/page.js'), 'utf8');
-    // V3 UI/layout must be reproduced
-    assert.ok(ccbuPage.includes('relative w-full h-full flex flex-col text-gray-600'), 'should have V3 outer container');
+    // V3 UI/layout must be reproduced (theme-aware: text color via th.textSec, class may be inline style)
+    assert.ok(ccbuPage.includes('relative w-full h-full flex flex-col'), 'should have V3 outer container');
     assert.ok(ccbuPage.includes('RefreshCcw') && ccbuPage.includes('Reload'), 'should have Reload button with RefreshCcw');
     assert.ok(ccbuPage.includes('DownloadTable'), 'should use DownloadTable');
     assert.ok(ccbuPage.includes('Rows per page:'), 'should have Rows per page control');
@@ -323,5 +323,46 @@ describe('CCBU Download V3 exact parity (folder match)', () => {
     assert.ok(local.includes('Loader') && local.includes('animate-spin'), 'should show spinner when downloading');
     // Content parity (allow jsx vs js extension)
     assert.ok(local.includes('DownloadTable') && v3.includes('DownloadTable'), 'component name parity');
+  });
+});
+
+describe('CCBU Planogram download resilience', () => {
+  it('uses retailer-aware downloadurl with fallback and validates URL', () => {
+    const pagePath = path.join(root, 'app/projectplanogram/[id]/planogram/page.js');
+    const content = fs.readFileSync(pagePath, 'utf8');
+    // Must use retailerId-aware primary path
+    assert.ok(content.includes('/downloadurl/${retailerId}/${id}/POG'), 'should call /downloadurl/${retailerId}/${id}/POG when retailerId available');
+    // Legacy fallback for mixed backend
+    assert.ok(content.includes('/downloadurl/${id}/POG'), 'should fallback to /downloadurl/${id}/POG');
+    // Flexible extraction: downloadUrl || url || data.downloadUrl || string
+    assert.ok(content.includes('downloadUrl') && content.includes('|| res?.url'), 'should handle both downloadUrl and url shapes');
+    assert.ok(content.includes('typeof res === "string"'), 'should handle string response');
+    // Validates URL before triggering download
+    assert.ok(content.includes('startsWith') || content.includes('^https?'), 'should validate URL is http');
+    assert.ok(content.includes('Download URL not available'), 'should throw when URL missing');
+    // Shows detailed error toast, not generic
+    assert.ok(content.includes('Download failed:'), 'should surface error message in toast');
+    // Uses retailerId from useProject
+    assert.ok(content.includes('useProject') && content.includes('retailerId'), 'should get retailerId from useProject');
+    // Guards missing id
+    assert.ok(content.includes('Missing project id'), 'should guard missing id');
+  });
+});
+
+describe('CCBU lamdaClient binary handling', () => {
+  it('handles JSON vs Blob (PDF/qrcode) without SyntaxError', () => {
+    const lambdaPath = path.join(root, 'app/lamda/lambdaClient.js');
+    const content = fs.readFileSync(lambdaPath, 'utf8');
+    // Must inspect content-type before parsing, like V3
+    assert.ok(content.includes('content-type') || content.includes('contentType') || content.includes('get("content-type"'), 'should check content-type header');
+    assert.ok(content.includes('application/json'), 'should handle application/json');
+    // PDF / image / octet-stream → blob (fix for %PDF-1.3 SyntaxError)
+    assert.ok(content.includes('application/pdf') || content.includes('pdf'), 'should handle PDF blob');
+    assert.ok(content.includes('response.blob()'), 'should return blob for binary');
+    assert.ok(content.includes('response.text()'), 'should fallback to text for non-JSON');
+    // Should not blindly JSON-parse every response
+    assert.ok(!content.includes('const data =\n    await response.json();\n\n  if (!response.ok)'), 'should not parse JSON before checking ok/content-type');
+    // Handle non-ok with text, not JSON message
+    assert.ok(content.includes('!response.ok'), 'should check response.ok');
   });
 });

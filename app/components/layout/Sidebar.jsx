@@ -142,7 +142,7 @@ export default function Sidebar({ isOpen }) {
           </svg>
         ),
         children: [
-          { label: "Manage Masterdata", href: "/managePlanograms/masterdata" },
+          { label: "Manage Projects", href: "/managePlanograms/masterdata" },
           { label: "Manage Timeperiod", href: "/managePlanograms/timeperiod" },
         ],
       },

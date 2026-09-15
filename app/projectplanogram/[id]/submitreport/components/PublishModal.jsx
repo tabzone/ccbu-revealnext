@@ -15,8 +15,10 @@ const PublishModal = ({
     setValidationData,
     createReqLoading,
     validationLoading,
-    fetchProjectRequestData
+    fetchProjectRequestData,
+    theme,
 }) => {
+    const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = theme || {};
     const [step, setStep] = useState(1);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [process, setProcess] = useState(false);
@@ -279,11 +281,11 @@ const PublishModal = ({
     return (
         <Modal isOpen={open} onClose={handleCancel} maxWidth="max-w-4xl" maxHeight="h-[500px]">
             <div className="h-full flex flex-col -m-6">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold">Submit Report</h2>
+                <div className="px-6 py-4 border-b" style={{ borderColor: border || "#e5e7eb" }}>
+                    <h2 className="text-lg font-semibold" style={{ color: textPri || "#111827" }}>Submit Report</h2>
                 </div>
 
-                <div className="flex items-center gap-6 px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center gap-6 px-6 py-4 border-b" style={{ borderColor: border || "#e5e7eb" }}>
                     {["Select Report Type", "Review And Submit", "Check Status"].map((label, i) => {
                         const count = i + 1;
                         return (
@@ -295,14 +297,15 @@ const PublishModal = ({
                                 <div
                                     className={`w-8 h-8 flex items-center justify-center rounded-full border ${step >= count
                                         ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-gray-100 text-gray-600 border-gray-300"
+                                        : "border"
                                         }`}
+                                    style={step >= count ? {} : { backgroundColor: bgSub || "#f9fafb", color: textSec || "#6b7280", borderColor: border || "#e5e7eb" }}
                                 >
                                     {step > count ? "✓" : count}
                                 </div>
                                 <span
-                                    className={`text-sm font-medium ${step === count ? "text-blue-600" : "text-gray-500"
-                                        }`}
+                                    className="text-sm font-medium"
+                                    style={{ color: step === count ? "#2563eb" : (textSec || "#6b7280") }}
                                 >
                                     {label}
                                 </span>
@@ -319,17 +322,17 @@ const PublishModal = ({
                     )}
 
                     {step === 1 && (
-                        <div className="bg-white shadow rounded-lg p-4">
+                        <div className="shadow rounded-lg p-4" style={{ backgroundColor: bg || "#fff", borderColor: border || "#e5e7eb" }}>
                             {validationLoading ? (
                                 <div className="flex items-center gap-2 w-full justify-center">
                                     <div
-                                        className="border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"
-                                        style={{ width: 32, height: 32 }}
+                                        className="border-4 border-t-blue-600 rounded-full animate-spin"
+                                        style={{ width: 32, height: 32, borderColor: border || "#e5e7eb", borderTopColor: "#2563eb" }}
                                     />
                                     <p className="text-blue-600 animate-pulse">Loading...</p>
                                 </div>
                             ) : !validationData ? (
-                                <div className="flex items-center justify-center py-10 text-gray-500">
+                                <div className="flex items-center justify-center py-10" style={{ color: textSec || "#6b7280" }}>
                                     Waiting for validation results...
                                 </div>
                             ) : (
@@ -360,13 +363,14 @@ const PublishModal = ({
                                             validationData.messages.map((msg, i) => (
                                                 <div
                                                     key={i}
-                                                    className="flex justify-between items-center p-3 border-l-4 border-gray-200 bg-gray-50 text-gray-800 rounded"
+                                                    className="flex justify-between items-center p-3 border-l-4 rounded"
+                                                    style={{ borderColor: border || "#e5e7eb", backgroundColor: bgSub || "#f9fafb", color: textPri || "#1f2937" }}
                                                 >
                                                     <span className="text-sm">{msg.split("#")[0]}</span>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-gray-500 text-sm text-center py-2">
+                                            <div className="text-sm text-center py-2" style={{ color: textSec || "#6b7280" }}>
                                                 No validation messages.
                                             </div>
                                         )}
@@ -383,32 +387,32 @@ const PublishModal = ({
                                 {projectTotalLoading || submitLoading ? (
                                     <div className="flex items-center gap-2">
                                         <div
-                                            className="border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"
-                                            style={{ width: 32, height: 32 }}
+                                            className="border-4 border-t-blue-600 rounded-full animate-spin"
+                                            style={{ width: 32, height: 32, borderColor: border || "#e5e7eb", borderTopColor: "#2563eb" }}
                                         />
                                         <p className="text-blue-600 animate-pulse">Loading...</p>
                                     </div>
                                 ) : (
                                     <>
                                         <div className="w-full sm:w-1/4 p-2">
-                                            <div className="bg-white shadow rounded-lg p-4 text-center">
-                                                <p className="text-gray-500 text-sm">Total Planograms</p>
+                                            <div className="shadow rounded-lg p-4 text-center" style={{ backgroundColor: bg || "#fff" }}>
+                                                <p className="text-sm" style={{ color: textSec || "#6b7280" }}>Total Planograms</p>
                                                 <span className="text-2xl font-semibold text-blue-600">
                                                     {projectTotalData?.totalplanograms ?? 0}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="w-full sm:w-1/4 p-2">
-                                            <div className="bg-white shadow rounded-lg p-4 text-center">
-                                                <p className="text-gray-500 text-sm">Total Products</p>
+                                            <div className="shadow rounded-lg p-4 text-center" style={{ backgroundColor: bg || "#fff" }}>
+                                                <p className="text-sm" style={{ color: textSec || "#6b7280" }}>Total Products</p>
                                                 <span className="text-2xl font-semibold text-blue-600">
                                                     {projectTotalData?.totalproducts ?? 0}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="w-full sm:w-1/4 p-2">
-                                            <div className="bg-white shadow rounded-lg p-4 text-center">
-                                                <p className="text-gray-500 text-sm">Total Stores</p>
+                                            <div className="shadow rounded-lg p-4 text-center" style={{ backgroundColor: bg || "#fff" }}>
+                                                <p className="text-sm" style={{ color: textSec || "#6b7280" }}>Total Stores</p>
                                                 <span className="text-2xl font-semibold text-blue-600">
                                                     {projectTotalData?.totalstores ?? 0}
                                                 </span>
@@ -419,11 +423,11 @@ const PublishModal = ({
                             </div>
 
                             {/* Stores Exclude multi-select */}
-                            <div className="bg-white border border-gray-200 rounded-lg">
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                            <div className="border rounded-lg" style={{ backgroundColor: bg || "#fff", borderColor: border || "#e5e7eb" }}>
+                                <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: border || "#e5e7eb" }}>
                                     <div>
-                                        <h3 className="text-sm font-semibold text-gray-800">Stores Exclude</h3>
-                                        <p className="text-xs text-gray-500">
+                                        <h3 className="text-sm font-semibold" style={{ color: textPri || "#1f2937" }}>Stores Exclude</h3>
+                                        <p className="text-xs" style={{ color: textSec || "#6b7280" }}>
                                             {selectedExcludedStores.length > 0
                                                 ? `${selectedExcludedStores.length} store(s) excluded`
                                                 : "No stores excluded — all stores will be included"}
@@ -434,7 +438,10 @@ const PublishModal = ({
                                             type="button"
                                             onClick={handleSelectAllStores}
                                             disabled={storeLoading || !storeList.length}
-                                            className="text-xs px-3 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            className="text-xs px-3 py-1 rounded border disabled:opacity-40 disabled:cursor-not-allowed"
+                                            style={{ borderColor: border || "#e5e7eb", backgroundColor: bg || "#fff", color: textPri || "#1f2937" }}
+                                            onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = bg || "#fff"; }}
                                         >
                                             Select all
                                         </button>
@@ -442,7 +449,10 @@ const PublishModal = ({
                                             type="button"
                                             onClick={handleClearAllStores}
                                             disabled={!selectedExcludedStores.length}
-                                            className="text-xs px-3 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            className="text-xs px-3 py-1 rounded border disabled:opacity-40 disabled:cursor-not-allowed"
+                                            style={{ borderColor: border || "#e5e7eb", backgroundColor: bg || "#fff", color: textPri || "#1f2937" }}
+                                            onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = bg || "#fff"; }}
                                         >
                                             Clear
                                         </button>
@@ -452,17 +462,17 @@ const PublishModal = ({
                                 <div className="p-3">
                                     {storeLoading ? (
                                         <div className="flex items-center justify-center gap-2 py-8">
-                                            <div className="border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin" style={{ width: 24, height: 24 }} />
-                                            <span className="text-sm text-gray-500">Loading stores...</span>
+                                            <div className="border-4 border-t-blue-600 rounded-full animate-spin" style={{ width: 24, height: 24, borderColor: border || "#e5e7eb", borderTopColor: "#2563eb" }} />
+                                            <span className="text-sm" style={{ color: textSec || "#6b7280" }}>Loading stores...</span>
                                         </div>
                                     ) : storeError ? (
-                                        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-3">
+                                        <div className="text-sm bg-red-50 border border-red-200 rounded p-3" style={{ color: "#dc2626" }}>
                                             Failed to load stores: {storeError}
                                         </div>
                                     ) : !storeList.length ? (
-                                        <div className="text-sm text-gray-500 text-center py-6">No stores available</div>
+                                        <div className="text-sm text-center py-6" style={{ color: textSec || "#6b7280" }}>No stores available</div>
                                     ) : (
-                                        <div className="max-h-[220px] overflow-auto border border-gray-200 rounded divide-y divide-gray-100">
+                                        <div className="max-h-[220px] overflow-auto border rounded divide-y" style={{ borderColor: border || "#e5e7eb" }}>
                                             {orderedStoreList.map((store, idx) => {
                                                 const sid = String(getStoreId(store) ?? "").trim();
                                                 const normalizedSelected = (Array.isArray(selectedExcludedStores) ? selectedExcludedStores : []).map((s) => String(s ?? "").trim()).filter(Boolean);
@@ -470,7 +480,10 @@ const PublishModal = ({
                                                 return (
                                                     <label
                                                         key={`${sid}-${idx}`}
-                                                        className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50 ${checked ? "bg-blue-50/60" : ""}`}
+                                                        className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+                                                        style={{ backgroundColor: checked ? (isDark ? "#1f2937" : "#eff6ff99") : "transparent" }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hover || "#f9fafb"; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = checked ? (isDark ? "#1f2937" : "#eff6ff99") : "transparent"; }}
                                                     >
                                                         <input
                                                             type="checkbox"
@@ -478,10 +491,10 @@ const PublishModal = ({
                                                             onChange={() => toggleStore(sid)}
                                                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                         />
-                                                        <span className="text-sm text-gray-700 truncate" title={getStoreLabel(store)}>
+                                                        <span className="text-sm truncate" style={{ color: textPri || "#1f2937" }} title={getStoreLabel(store)}>
                                                             {getStoreLabel(store)}
                                                         </span>
-                                                        <span className="ml-auto text-xs text-gray-400 shrink-0">{sid}</span>
+                                                        <span className="ml-auto text-xs shrink-0" style={{ color: textSec || "#9ca3af" }}>{sid}</span>
                                                     </label>
                                                 );
                                             })}
@@ -498,8 +511,8 @@ const PublishModal = ({
                             {isPolling ? (
                                 <div className="flex items-center gap-2">
                                     <div
-                                        className="border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"
-                                        style={{ width: 32, height: 32 }}
+                                        className="border-4 border-t-blue-600 rounded-full animate-spin"
+                                        style={{ width: 32, height: 32, borderColor: border || "#e5e7eb", borderTopColor: "#2563eb" }}
                                     />
                                     <p className="text-blue-600 animate-pulse">Loading...</p>
                                 </div>
@@ -514,7 +527,7 @@ const PublishModal = ({
                                     ) : dataReq?.status === "timeout" ? (
                                         <p className="text-yellow-600">Timeout: Request took too long</p>
                                     ) : (
-                                        <p className="text-gray-600">No status yet.</p>
+                                        <p style={{ color: textSec || "#6b7280" }}>No status yet.</p>
                                     )}
                                 </>
                             )}
@@ -526,12 +539,15 @@ const PublishModal = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2 bg-white">
+                <div className="px-6 py-4 border-t flex items-center justify-end gap-2" style={{ backgroundColor: bg || "#fff", borderColor: border || "#e5e7eb" }}>
                     {step === 1 && (
                         <>
                             <button
                                 onClick={handleCancel}
-                                className="cursor-pointer px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded hover:bg-gray-50"
+                                className="cursor-pointer px-4 py-2 text-sm border rounded"
+                                style={{ borderColor: border || "#e5e7eb", color: textPri || "#374151", backgroundColor: bg || "#fff" }}
+                                onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = bg || "#fff"; }}
                             >
                                 Cancel
                             </button>

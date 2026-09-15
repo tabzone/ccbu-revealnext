@@ -8,8 +8,11 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-r
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import AdditionalStoreTable from "./components/AdditionalStoreTable";
 import { useProject } from "@/app/hooks/useProject";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 const Page = () => {
+  const th = useAppTheme();
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
 
 
   const [data, setData] = useState();
@@ -267,34 +270,34 @@ const Page = () => {
     <AppLayout>
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl shadow-md p-4 h-36">
-          <h3 className="text-sm font-semibold mb-2 text-gray-700">Total Planograms</h3>
+        <div style={{ backgroundColor: th.bg, borderColor: th.border }} className="rounded-2xl shadow-md p-4 h-36 border">
+          <h3 style={{ color: th.textPri }} className="text-sm font-semibold mb-2">Total Planograms</h3>
           {loading ? (
-            <div className="h-8 w-24 bg-gray-200 rounded-md animate-pulse" />
+            <div style={{ backgroundColor: th.bgSub }} className="h-8 w-24 rounded-md animate-pulse" />
           ) : (
-            <p className="text-4xl text-gray-700 font-medium">
+            <p style={{ color: th.textPri }} className="text-4xl font-medium">
               {data?.totalplanograms ?? "N/A"}
             </p>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-md p-4">
-          <h3 className="text-sm font-semibold mb-2 text-gray-700">Total Products</h3>
+        <div style={{ backgroundColor: th.bg, borderColor: th.border }} className="rounded-2xl shadow-md p-4 border">
+          <h3 style={{ color: th.textPri }} className="text-sm font-semibold mb-2">Total Products</h3>
           {loading ? (
-            <div className="h-8 w-24 bg-gray-200 rounded-md animate-pulse" />
+            <div style={{ backgroundColor: th.bgSub }} className="h-8 w-24 rounded-md animate-pulse" />
           ) : (
-            <p className="text-4xl text-gray-700 font-medium">
+            <p style={{ color: th.textPri }} className="text-4xl font-medium">
               {data?.totalproducts ?? "N/A"}
             </p>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-md p-4">
-          <h3 className="text-sm font-semibold mb-2 text-gray-700">Total Stores</h3>
+        <div style={{ backgroundColor: th.bg, borderColor: th.border }} className="rounded-2xl shadow-md p-4 border">
+          <h3 style={{ color: th.textPri }} className="text-sm font-semibold mb-2">Total Stores</h3>
           {loading ? (
-            <div className="h-8 w-24 bg-gray-200 rounded-md animate-pulse" />
+            <div style={{ backgroundColor: th.bgSub }} className="h-8 w-24 rounded-md animate-pulse" />
           ) : (
-            <p className="text-4xl text-gray-700 font-medium">
+            <p style={{ color: th.textPri }} className="text-4xl font-medium">
               {data?.totalstores ?? "N/A"}
             </p>
           )}
@@ -302,9 +305,9 @@ const Page = () => {
       </div>
 
 
-      <div className="w-full bg-white rounded-2xl shadow-md p-6">
+      <div style={{ backgroundColor: th.bg, borderColor: th.border }} className="w-full rounded-2xl shadow-md p-6 border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Validation Status</h2>
+          <h2 style={{ color: th.textPri }} className="text-lg font-semibold">Validation Status</h2>
           {!validationLoading && validationData?.status && (
             <span
               className={`px-3 py-1 text-sm font-medium rounded-full
@@ -330,10 +333,10 @@ const Page = () => {
 
         {validationLoading ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-3 bg-gray-200 rounded w-full"></div>
-            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-            <div className="h-3 bg-gray-200 rounded w-4/6"></div>
+            <div style={{ backgroundColor: th.bgSub }} className="h-4 rounded w-1/3"></div>
+            <div style={{ backgroundColor: th.bgSub }} className="h-3 rounded w-full"></div>
+            <div style={{ backgroundColor: th.bgSub }} className="h-3 rounded w-5/6"></div>
+            <div style={{ backgroundColor: th.bgSub }} className="h-3 rounded w-4/6"></div>
           </div>
         ) : validationData?.messages?.length ? (
           <ul className="space-y-3">
@@ -360,14 +363,16 @@ const Page = () => {
                   {status === 'failed' ? (
                     <button
                       onClick={() => download(filePath)}
-                      className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
+                      style={{ backgroundColor: th.accent, color: '#fff' }}
+                      className="rounded px-3 py-1 text-xs text-white hover:opacity-90 transition"
                     >
                       Download Error Report
                     </button>
                   ) : status === 'warning' ? (
                     <button
                       onClick={() => warBtnClck(filePath)}
-                      className="text-xs text-yellow-700 underline hover:text-yellow-800 cursor-pointer"
+                      className="text-xs underline cursor-pointer"
+                      style={{ color: isDark ? '#facc15' : '#a16207' }}
                     >
                       Show Report
                     </button>
@@ -377,30 +382,32 @@ const Page = () => {
             })}
           </ul>
         ) : (
-          <div className="text-gray-500 text-sm italic py-6 text-center">
+          <div style={{ color: th.textSec }} className="text-sm italic py-6 text-center">
             No validation messages available.
           </div>
         )}
       </div>
       <Modal
+        theme={th}
         isOpen={visible}
         onClose={() => setVisible(false)}
         maxWidth="max-w-5xl"
         maxHeight="h-[600px]"
       >
         <div className="flex flex-col h-[500px]">
-          <div className="flex justify-between items-center border-b px-6 py-3">
-            <h2 className="text-lg font-semibold text-gray-800">
+          <div style={{ borderColor: th.border }} className="flex justify-between items-center border-b px-6 py-3">
+            <h2 style={{ color: th.textPri }} className="text-lg font-semibold">
               Missing Planograms Report
             </h2>
 
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-3 bg-white">
+          <div style={{ backgroundColor: th.bg }} className="flex-1 overflow-y-auto px-4 py-3">
             {tableLoading ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <div style={{ color: th.textSec }} className="flex flex-col items-center justify-center h-full">
                 <svg
-                  className="animate-spin h-6 w-6 text-blue-600 mb-3"
+                  className="animate-spin h-6 w-6 mb-3"
+                  style={{ color: th.accent }}
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -423,32 +430,34 @@ const Page = () => {
               </div>
             ) : missingData?.length > 0 ? (
               <MissingStoreTable
+                theme={th}
                 data={paginatedData}
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
             ) : (
 
-              <div className="text-center text-gray-500 italic py-10">
+              <div style={{ color: th.textSec }} className="text-center italic py-10">
                 No missing planogram data available.
               </div>
             )}
           </div>
 
           {!tableLoading && missingData?.length > 0 && (
-            <div className="border-t bg-gray-50 px-4 py-3">
+            <div style={{ backgroundColor: th.bgSub, borderColor: th.border }} className="border-t px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700">Rows per page:</span>
+                  <span style={{ color: th.textPri }} className="text-sm">Rows per page:</span>
                   <select
                     value={rowsPerPage}
                     onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
-                    className="cursor-pointer border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }}
+                    className="cursor-pointer border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2"
                   >
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-                  <span className="text-sm text-gray-600 ml-4">
+                  <span style={{ color: th.textSec }} className="text-sm ml-4">
                     Showing {totalRows > 0 ? startIndex + 1 : 0}–
                     {Math.min(endIndex, totalRows)} of {totalRows}
                     {searchTerm && ` (filtered from ${projectList.length})`}
@@ -456,44 +465,56 @@ const Page = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 mr-2">
+                  <span style={{ color: th.textSec }} className="text-sm mr-2">
                     Page {totalRows > 0 ? currentPage : 0} of {totalPages || 0}
                   </span>
 
                   <button
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1 || totalPages === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="First page"
                   >
-                    <ChevronsLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronsLeft style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1 || totalPages === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Previous page"
                   >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronLeft style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Next page"
                   >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                    <ChevronRight style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Last page"
                   >
-                    <ChevronsRight className="w-5 h-5 text-gray-600" />
+                    <ChevronsRight style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -504,24 +525,26 @@ const Page = () => {
       </Modal>
 
       <Modal
+        theme={th}
         isOpen={visible2}
         onClose={() => setVisible2(false)}
         maxWidth="max-w-5xl"
         maxHeight="h-[600px]"
       >
         <div className="flex flex-col h-[500px]">
-          <div className="flex justify-between items-center border-b px-6 py-3">
-            <h2 className="text-lg font-semibold text-gray-800">
+          <div style={{ borderColor: th.border }} className="flex justify-between items-center border-b px-6 py-3">
+            <h2 style={{ color: th.textPri }} className="text-lg font-semibold">
               Additionl Planograms Report
             </h2>
 
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-3 bg-white">
+          <div style={{ backgroundColor: th.bg }} className="flex-1 overflow-y-auto px-4 py-3">
             {tableLoading ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <div style={{ color: th.textSec }} className="flex flex-col items-center justify-center h-full">
                 <svg
-                  className="animate-spin h-6 w-6 text-blue-600 mb-3"
+                  className="animate-spin h-6 w-6 mb-3"
+                  style={{ color: th.accent }}
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -544,32 +567,34 @@ const Page = () => {
               </div>
             ) : additionalData?.length > 0 ? (
               <AdditionalStoreTable
+                theme={th}
                 data={paginatedData2}
                 sortConfig={sortConfig}
                 onSort={handleSort}
               />
             ) : (
 
-              <div className="text-center text-gray-500 italic py-10">
+              <div style={{ color: th.textSec }} className="text-center italic py-10">
                 No additional planogram data available.
               </div>
             )}
           </div>
 
           {!tableLoading && additionalData?.length > 0 && (
-            <div className="border-t bg-gray-50 px-4 py-3">
+            <div style={{ backgroundColor: th.bgSub, borderColor: th.border }} className="border-t px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700">Rows per page:</span>
+                  <span style={{ color: th.textPri }} className="text-sm">Rows per page:</span>
                   <select
                     value={rowsPerPage}
                     onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
-                    className="cursor-pointer border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }}
+                    className="cursor-pointer border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2"
                   >
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-                  <span className="text-sm text-gray-600 ml-4">
+                  <span style={{ color: th.textSec }} className="text-sm ml-4">
                     Showing {totalRows2 > 0 ? startIndex2 + 1 : 0}–
                     {Math.min(endIndex2, totalRows2)} of {totalRows2}
                     {searchTerm && ` (filtered from ${projectList.length})`}
@@ -577,44 +602,56 @@ const Page = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 mr-2">
+                  <span style={{ color: th.textSec }} className="text-sm mr-2">
                     Page {totalRows2 > 0 ? currentPage : 0} of {totalPages2 || 0}
                   </span>
 
                   <button
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1 || totalPages2 === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="First page"
                   >
-                    <ChevronsLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronsLeft style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1 || totalPages2 === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Previous page"
                   >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronLeft style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages2, prev + 1))}
                     disabled={currentPage === totalPages2 || totalPages2 === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Next page"
                   >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                    <ChevronRight style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
 
                   <button
                     onClick={() => setCurrentPage(totalPages2)}
                     disabled={currentPage === totalPages2 || totalPages2 === 0}
-                    className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    style={{ color: th.textSec }}
+                    className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = th.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Last page"
                   >
-                    <ChevronsRight className="w-5 h-5 text-gray-600" />
+                    <ChevronsRight style={{ color: th.textSec }} className="w-5 h-5" />
                   </button>
                 </div>
               </div>

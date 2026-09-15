@@ -8,8 +8,11 @@ import { CloseCircleIcon, DownloadIcon, SearchIcon } from "./components/icons";
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
 import { useProject } from "@/app/hooks/useProject";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 const Page = () => {
+  const th = useAppTheme();
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   const [projectTotalData, setProjectTotalData] = useState(null);
   const [projectTotalLoading, setProjectTotalLoading] = useState(true);
   const [filterData, setFilterData] = useState([]);
@@ -231,7 +234,25 @@ const Page = () => {
         draggable: true,
       });
 
-      const { downloadUrl } = await lambdaGet(`/downloadurl/${id}/POG`);
+      if (!id) throw new Error("Missing project id");
+      // Use retailer-aware path when available, with legacy fallback for backward compat
+      const primaryPath = retailerId ? `/downloadurl/${retailerId}/${id}/POG` : `/downloadurl/${id}/POG`;
+      let res;
+      try {
+        res = await lambdaGet(primaryPath);
+      } catch (innerErr) {
+        // Fallback to legacy without retailer if primary 404s (covers mixed backend rollout)
+        if (retailerId && /404|Failed/i.test(innerErr?.message || "")) {
+          res = await lambdaGet(`/downloadurl/${id}/POG`);
+        } else {
+          throw innerErr;
+        }
+      }
+      const downloadUrl =
+        res?.downloadUrl || res?.url || res?.data?.downloadUrl || res?.data?.url || (typeof res === "string" ? res : null);
+      if (!downloadUrl || typeof downloadUrl !== "string" || !/^https?:\/\//.test(downloadUrl)) {
+        throw new Error(res?.message || "Download URL not available");
+      }
 
       const a = document.createElement("a");
       a.href = downloadUrl;
@@ -250,7 +271,7 @@ const Page = () => {
       });
     } catch (error) {
       console.error(error);
-      toast.error("Download failed!");
+      toast.error(error?.message ? `Download failed: ${error.message}` : "Download failed!");
     }
   };
 
@@ -266,47 +287,48 @@ const Page = () => {
 
   return (
     <AppLayout>
-    <div className="flex justify-between gap-4 w-full h-[98%] p-2 bg-gray-50 rounded-2xl">
+    <div className="flex justify-between gap-4 w-full h-[98%] p-2 rounded-2xl" style={{ backgroundColor: bgSub }}>
       <div className="w-[20%] flex flex-col gap-3">
-        <div className="w-full max-h-[120px] min-h-[120px] bg-white shadow rounded-2xl flex flex-col justify-center items-start p-4 gap-2">
+        <div className="w-full max-h-[120px] min-h-[120px] shadow rounded-2xl flex flex-col justify-center items-start p-4 gap-2" style={{ backgroundColor: bg, borderColor: border, borderWidth: "1px" }}>
           {projectTotalLoading ? (
             <>
-              <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
-              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-16 h-8 rounded animate-pulse" style={{ backgroundColor: bgSub }}></div>
+              <div className="w-24 h-4 rounded animate-pulse" style={{ backgroundColor: bgSub }}></div>
             </>
           ) : (
             <>
-              <span className="text-4xl font-semibold text-gray-700">
+              <span className="text-4xl font-semibold" style={{ color: textPri }}>
                 {projectTotalData?.totalplanograms || 0}
               </span>
-              <span className="text-sm text-gray-500">Planograms</span>
+              <span className="text-sm" style={{ color: textSec }}>Planograms</span>
             </>
           )}
         </div>
-        <div className="w-full flex-1 bg-white shadow rounded-2xl flex flex-col items-start p-4 gap-4">
+        <div className="w-full flex-1 shadow rounded-2xl flex flex-col items-start p-4 gap-4" style={{ backgroundColor: bg, borderColor: border, borderWidth: "1px" }}>
           {projectTotalLoading ? (
             <>
               <div className="w-full">
-                <div className="w-28 h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div className="w-full h-9 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-28 h-4 rounded animate-pulse mb-2" style={{ backgroundColor: bgSub }}></div>
+                <div className="w-full h-9 rounded animate-pulse" style={{ backgroundColor: bgSub }}></div>
               </div>
               <div className="w-full mt-2">
-                <div className="w-full h-6 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-full h-6 rounded animate-pulse" style={{ backgroundColor: bgSub }}></div>
               </div>
               <ul className="w-full space-y-2 mt-2">
                 {[...Array(5)].map((_, i) => (
-                  <li key={i} className="w-full h-4 bg-gray-200 rounded animate-pulse"></li>
+                  <li key={i} className="w-full h-4 rounded animate-pulse" style={{ backgroundColor: bgSub }}></li>
                 ))}
               </ul>
             </>
           ) : (
             <>
               <div className="w-full">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Select Hierarchy</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: textSec }}>Select Hierarchy</label>
                 <select
                   onChange={handleHierarchyChange}
                   value={activeHierarchy}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2"
+                  style={{ backgroundColor: bg, borderColor: border, color: textPri }}
                 >
                   <option value="footage">Footage</option>
                   <option value="doorcount">Door Count</option>
@@ -314,13 +336,14 @@ const Page = () => {
               </div>
 
               {selectedFilter && selectedFilter !== "No Data" && (
-                <div className="w-full bg-blue-50 border border-blue-200 rounded-md px-2 py-1 flex items-center justify-between animate-fadeIn">
-                  <span className="text-sm text-blue-700 font-medium">
+                <div className="w-full rounded-md px-2 py-1 flex items-center justify-between animate-fadeIn" style={{ backgroundColor: isDark ? `${accent}22` : "#eff6ff", borderColor: isDark ? accent : "#bfdbfe", borderWidth: "1px" }}>
+                  <span className="text-sm font-medium" style={{ color: isDark ? textPri : "#1d4ed8" }}>
                     Filter: {selectedFilter}
                   </span>
                   <button
                     onClick={clearFilter}
-                    className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 underline ml-2"
+                    className="cursor-pointer text-xs underline ml-2"
+                    style={{ color: accent }}
                   >
                     Clear
                   </button>
@@ -331,11 +354,11 @@ const Page = () => {
                 {filterLoading ? (
                   <div className="space-y-2 mt-2">
                     {[...Array(6)].map((_, i) => (
-                      <div key={i} className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                      <div key={i} className="h-4 w-3/4 rounded animate-pulse" style={{ backgroundColor: bgSub }}></div>
                     ))}
                   </div>
                 ) : filterData?.length > 0 ? (
-                  <ul className="text-sm text-gray-600 space-y-1 overflow-y-auto h-64 pr-1">
+                  <ul className="text-sm space-y-1 overflow-y-auto h-64 pr-1" style={{ color: textSec }}>
                     {Array.isArray(filterData) ?
                       (filterData?.map((item, idx) => {
                         const count = Number(item?.count || 0);
@@ -349,12 +372,15 @@ const Page = () => {
                             onClick={() => hasData && handleHierarchyItemClick(item)}
                             title={!hasData ? "No data available" : ""}
                             className={`px-2 py-1 rounded transition-colors ${hasData
-                              ? "cursor-pointer hover:bg-blue-100 hover:text-blue-700"
-                              : "cursor-not-allowed text-gray-400"
+                              ? "cursor-pointer"
+                              : "cursor-not-allowed"
                               } ${isActive && hasData
-                                ? "text-blue-600 font-semibold bg-blue-100"
+                                ? "font-semibold"
                                 : ""
                               }`}
+                            style={isActive && hasData ? { backgroundColor: hover, color: accent } : hasData ? { color: textSec } : { color: textSec, opacity: 0.5 }}
+                            onMouseEnter={(e) => { if (hasData && !isActive) e.currentTarget.style.backgroundColor = hover; }}
+                            onMouseLeave={(e) => { if (hasData && !isActive) e.currentTarget.style.backgroundColor = ""; }}
                           >
                             {label} {hasData && `(${count})`}
                           </li>
@@ -364,7 +390,7 @@ const Page = () => {
                     }
                   </ul>
                 ) : (
-                  <p className="text-sm text-gray-400 italic mt-2">
+                  <p className="text-sm italic mt-2" style={{ color: textSec }}>
                     No hierarchy data available
                   </p>
                 )}
@@ -376,20 +402,20 @@ const Page = () => {
 
       </div>
 
-      <div className="w-[79%] bg-white shadow rounded-2xl flex flex-col gap-4 p-4">
+      <div className="w-[79%] shadow rounded-2xl flex flex-col gap-4 p-4" style={{ backgroundColor: bg, borderColor: border, borderWidth: "1px" }}>
         <div className="flex flex-wrap justify-between gap-4 relative">
-          <div className="w-40 h-24 bg-gray-50 shadow-sm rounded-2xl flex flex-col justify-center items-start p-4 gap-1">
+          <div className="w-40 h-24 shadow-sm rounded-2xl flex flex-col justify-center items-start p-4 gap-1" style={{ backgroundColor: bgSub, borderColor: border, borderWidth: "1px" }}>
             {projectTotalLoading ? (
               <>
-                <div className="w-16 h-7 bg-gray-200 rounded animate-pulse"></div>
-                <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-16 h-7 rounded animate-pulse" style={{ backgroundColor: isDark ? border : "#e5e7eb" }}></div>
+                <div className="w-20 h-4 rounded animate-pulse" style={{ backgroundColor: isDark ? border : "#e5e7eb" }}></div>
               </>
             ) : (
               <>
-                <span className="text-3xl font-semibold text-gray-700">
+                <span className="text-3xl font-semibold" style={{ color: textPri }}>
                   {projectTotalData?.totalpogfootage || 0}
                 </span>
-                <span className="text-sm text-gray-500">Footage</span>
+                <span className="text-sm" style={{ color: textSec }}>Footage</span>
               </>
             )}
           </div>
@@ -402,7 +428,8 @@ const Page = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border-2 bg-white border-gray-200 rounded-full px-4 py-1.5 pr-10 shadow-sm focus:border-blue-300 focus:ring-0 focus:outline-none"
+                  className="w-full border-2 rounded-full px-4 py-1.5 pr-10 shadow-sm focus:ring-0 focus:outline-none"
+                  style={{ backgroundColor: bg, borderColor: border, color: textPri }}
                   placeholder="Search Schematic Files..."
                 />
 
@@ -410,16 +437,18 @@ const Page = () => {
                   <button
                     type="button"
                     onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    style={{ color: textSec }}
                   >
-                    <CloseCircleIcon className="w-4 h-4 text-gray-500 cursor-pointer" />
+                    <CloseCircleIcon className="w-4 h-4 cursor-pointer" style={{ color: textSec }} />
                   </button>
                 ) : <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                  style={{ color: textSec }}
                 >
-                  <SearchIcon className="w-4 h-4 text-gray-500 cursor-pointer" />
+                  <SearchIcon className="w-4 h-4 cursor-pointer" style={{ color: textSec }} />
                 </button>}
               </div>
 
@@ -428,21 +457,27 @@ const Page = () => {
             <div className="flex items-end gap-2">
               {projectTotalLoading ? (
                 <>
-                  <div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-                  <div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="w-24 h-8 rounded-full animate-pulse" style={{ backgroundColor: bgSub }}></div>
+                  <div className="w-24 h-8 rounded-full animate-pulse" style={{ backgroundColor: bgSub }}></div>
                 </>
               ) : (
                 <>
                   <button
                     onClick={downloadDataFile}
-                    className="px-4 py-1.5 border border-blue-200 hover:border-blue-400 rounded-full text-blue-400 hover:text-blue-600 cursor-pointer"
+                    className="px-4 py-1.5 border rounded-full cursor-pointer transition hover:opacity-80"
+                    style={{ borderColor: border, color: accent, backgroundColor: bg }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = bg)}
                   >
                     <DownloadIcon className={`w-5 h-5`} />
                   </button>
 
                   <button
                     onClick={getProjectPlanograms}
-                    className="flex gap-2 items-center px-4 py-1.5 border border-blue-200 hover:border-blue-400 rounded-full text-blue-400 hover:text-blue-600 cursor-pointer"
+                    className="flex gap-2 items-center px-4 py-1.5 border rounded-full cursor-pointer transition hover:opacity-80"
+                    style={{ borderColor: border, color: accent, backgroundColor: bg }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = hover)}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = bg)}
                   >
                     <RefreshCcw className={`w-5 h-5   ${tableLoading ? 'animate-spin' : ''}`} />
                   </button>
@@ -456,8 +491,9 @@ const Page = () => {
 
 
         <div className="flex flex-col gap-2 flex-1">
-          <div className="overflow-auto max-h-[55vh] border border-gray-200 rounded-lg">
+          <div className="overflow-auto max-h-[55vh] border rounded-lg" style={{ borderColor: border, backgroundColor: bg }}>
             <ProjectPlanogramTables
+        theme={th}
               data={paginatedData}
               isLoading={tableLoading}
               sortConfig={sortConfig}
@@ -466,41 +502,42 @@ const Page = () => {
           </div>
 
           {totalRows > 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center justify-between">
+            <div className="rounded-lg shadow-sm border px-4 py-3 flex items-center justify-between" style={{ backgroundColor: bg, borderColor: border }}>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">Rows per page:</span>
+                <span className="text-sm" style={{ color: textPri }}>Rows per page:</span>
                 <select
                   value={rowsPerPage}
                   onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
-                  className="cursor-pointer border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="cursor-pointer border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2"
+                  style={{ backgroundColor: bg, borderColor: border, color: textPri }}
                 >
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
-                <span className="text-sm text-gray-600 ml-4">
+                <span className="text-sm ml-4" style={{ color: textSec }}>
                   Showing {totalRows > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, totalRows)} of {totalRows}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 mr-2">Page {currentPage} of {totalPages}</span>
+                <span className="text-sm mr-2" style={{ color: textSec }}>Page {currentPage} of {totalPages}</span>
 
-                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                  <ChevronsLeft className="w-5 h-5 text-gray-600" />
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" style={{ color: textSec }} onMouseEnter={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
+                  <ChevronsLeft className="w-5 h-5" style={{ color: textSec }} />
                 </button>
-                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" style={{ color: textSec }} onMouseEnter={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
+                  <ChevronLeft className="w-5 h-5" style={{ color: textSec }} />
                 </button>
-                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" style={{ color: textSec }} onMouseEnter={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
+                  <ChevronRight className="w-5 h-5" style={{ color: textSec }} />
                 </button>
-                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                  <ChevronsRight className="w-5 h-5 text-gray-600" />
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" style={{ color: textSec }} onMouseEnter={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}>
+                  <ChevronsRight className="w-5 h-5" style={{ color: textSec }} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="mt-4 text-center text-gray-500">No rows to display</div>
+            <div className="mt-4 text-center" style={{ color: textSec }}>No rows to display</div>
           )}
         </div>
       </div>

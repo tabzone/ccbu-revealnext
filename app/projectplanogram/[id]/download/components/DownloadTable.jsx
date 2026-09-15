@@ -6,19 +6,20 @@ import React, { useState } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { toast } from "react-toastify";
 
-const DownloadTable = ({ data, isLoading, sortConfig, onSort }) => {
+const DownloadTable = ({ data, isLoading, sortConfig, onSort, theme }) => {
+    const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = theme || {};
     const [downloadingFile, setDownloadingFile] = useState(null);
 
     const SortIcon = ({ columnKey }) => {
 
         const isActive = sortConfig?.key === columnKey && sortConfig.direction;
         if (!isActive) {
-            return <ArrowUpDown className="w-4 h-4 text-gray-400 cursor-pointer" />;
+            return <ArrowUpDown className="w-4 h-4 cursor-pointer" style={{ color: textSec || "#9ca3af" }} />;
         }
         if (sortConfig.direction === "asc") {
-            return <ArrowUp className="w-4 h-4 text-blue-600 cursor-pointer" />;
+            return <ArrowUp className="w-4 h-4 cursor-pointer" style={{ color: accent || "#334155" }} />;
         }
-        return <ArrowDown className="w-4 h-4 text-blue-600 cursor-pointer" />;
+        return <ArrowDown className="w-4 h-4 cursor-pointer" style={{ color: accent || "#334155" }} />;
     };
 
 
@@ -55,14 +56,15 @@ const DownloadTable = ({ data, isLoading, sortConfig, onSort }) => {
     return (
         <>
 
-            <div className="overflow-auto h-full bg-white">
-                <table className="w-full border border-gray-200 bg-white">
-                    <thead className="bg-gray-50 border-b">
+            <div className="overflow-auto h-full" style={{ backgroundColor: bg || "#fff" }}>
+                <table className="w-full border" style={{ backgroundColor: bg || "#fff", borderColor: border || "#e5e7eb" }}>
+                    <thead className="border-b" style={{ backgroundColor: bgSub || "#f9fafb", borderColor: border || "#e5e7eb" }}>
                         <tr>
                             <th
                                 onClick={() => onSort('filename')}
                                  title={getSortTitle("filename")}
-                                className="px-4 py-3 text-left sticky left-0 bg-gray-50"
+                                className="px-4 py-3 text-left sticky left-0"
+                                style={{ backgroundColor: bgSub || "#f9fafb", color: textPri || "#1f2937" }}
                             >
                                 <div className="flex items-center gap-1">
                                     File Name
@@ -72,27 +74,28 @@ const DownloadTable = ({ data, isLoading, sortConfig, onSort }) => {
                             <th
                                 onClick={() => onSort('lastmodified')}
                                 title={getSortTitle("lastmodified")}
-                                className="px-4 py-3 text-left">
+                                className="px-4 py-3 text-left"
+                                style={{ color: textPri || "#1f2937" }}>
 
                                 Updated At
                                 <SortIcon columnKey="lastmodified" />
                             </th>
-                            <th className="px-4 py-3 text-left">Size</th>
-                            <th className="px-4 py-3 text-left">Status</th>
-                            <th className="px-4 py-3 text-left">Download</th>
+                            <th className="px-4 py-3 text-left" style={{ color: textPri || "#1f2937" }}>Size</th>
+                            <th className="px-4 py-3 text-left" style={{ color: textPri || "#1f2937" }}>Status</th>
+                            <th className="px-4 py-3 text-left" style={{ color: textPri || "#1f2937" }}>Download</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white">
+                    <tbody style={{ backgroundColor: bg || "#fff" }}>
                         {
                             isLoading ? (
                                 <tr>
-                                    <td colSpan="50" className="h-[250px] text-center">
+                                    <td colSpan="50" className="h-[250px] text-center" style={{ color: textSec || "#6b7280" }}>
                                         <LoadingSpinner text="Loading..." />
                                     </td>
                                 </tr>
                             ) : data?.length === 0 ? (
                                 <tr>
-                                    <td colSpan="50" className="text-center py-10">
+                                    <td colSpan="50" className="text-center py-10" style={{ color: textSec || "#6b7280" }}>
                                         No data found
                                     </td>
                                 </tr>
@@ -102,15 +105,15 @@ const DownloadTable = ({ data, isLoading, sortConfig, onSort }) => {
                                     const fileUrl = item.link;
 
                                     return (
-                                        <tr key={i} className="bg-white hover:bg-gray-100 transition">
-                                            <td className="px-4 py-3 sticky left-0 bg-white">{filename}</td>
-                                            <td className="px-4 py-3 text-sm">{formatDate(item.lastmodified)}</td>
-                                            <td className="px-4 py-3 text-sm">{formatFileSize(item.size)}</td>
-                                            <td className="px-4 py-3 text-sm">{item.status ?? "N/A"}</td>
+                                        <tr key={i} className="transition-colors" style={{ borderColor: border || "#e5e7eb" }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hover || "#f9fafb"; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                                            <td className="px-4 py-3 sticky left-0" style={{ backgroundColor: bg || "#fff", color: textPri || "#1f2937" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hover || "#f9fafb"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = bg || "#fff"}>{filename}</td>
+                                            <td className="px-4 py-3 text-sm" style={{ color: textSec || "#6b7280" }}>{formatDate(item.lastmodified)}</td>
+                                            <td className="px-4 py-3 text-sm" style={{ color: textSec || "#6b7280" }}>{formatFileSize(item.size)}</td>
+                                            <td className="px-4 py-3 text-sm" style={{ color: textSec || "#6b7280" }}>{item.status ?? "N/A"}</td>
 
                                             <td
-                                                className={`px-4 py-3 text-sm flex gap-2 items-center ${fileUrl ? "cursor-pointer text-blue-600 hover:underline" : "text-gray-300"
-                                                    }`}
+                                                className={`px-4 py-3 text-sm flex gap-2 items-center ${fileUrl ? "cursor-pointer hover:underline" : ""}`}
+                                                style={{ color: fileUrl ? (accent || "#2563eb") : (textSec || "#d1d5db") }}
                                                 onClick={() =>
                                                     fileUrl &&
                                                     downloadingFile !== filename &&

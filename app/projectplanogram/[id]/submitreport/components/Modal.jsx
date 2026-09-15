@@ -1,7 +1,8 @@
 "use client";
 import { useEffect } from "react";
 
-export default function Modal({ isOpen, onClose, children, maxWidth='max-w-4xl', maxHeight='max-h-3xl' }) {
+export default function Modal({ isOpen, onClose, children, maxWidth='max-w-4xl', maxHeight='max-h-3xl', theme }) {
+    const {bg,bgSub,border,textPri,textSec,hover,accent,isDark}=theme||{};
     useEffect(() => {
         const handleEsc = (event) => {
             if (event.key === "Escape") onClose();
@@ -18,13 +19,23 @@ export default function Modal({ isOpen, onClose, children, maxWidth='max-w-4xl',
             onClick={onClose}
         >
             <div
-                className={`bg-white rounded-2xl shadow-lg p-6 ${maxWidth} ${maxHeight} w-full relative`}
+                className={`rounded-2xl shadow-lg p-6 ${maxWidth} ${maxHeight} w-full relative border`}
+                style={{backgroundColor: bg||"#fff", borderColor: border||"#e5e7eb", color: textPri||undefined}}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}
                 <button
                     onClick={onClose}
-                    className="absolute top-3 cursor-pointer right-3 text-gray-500 hover:text-gray-700"
+                    className="absolute top-3 cursor-pointer right-3 rounded-md px-1"
+                    style={{color: textSec||"#6b7280", backgroundColor: "transparent"}}
+                    onMouseEnter={(e) => {
+                        if (hover) e.currentTarget.style.backgroundColor = hover;
+                        if (textPri) e.currentTarget.style.color = textPri;
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = textSec||"#6b7280";
+                    }}
                 >
                     ✕
                 </button>

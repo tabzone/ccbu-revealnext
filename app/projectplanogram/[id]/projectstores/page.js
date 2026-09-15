@@ -9,6 +9,7 @@ import { lambdaGet, lambdaPost } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
 import { useProject } from "@/app/hooks/useProject";
 import UploadStoresModal from "@/app/components/modal/UploadStoresModal";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 const CloseCircleIcon = ({ className = "w-4 h-4" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2">
@@ -31,6 +32,8 @@ const DownloadIcon = ({ className = "w-5 h-5" }) => (
 export default function ProjectStoresPage() {
   const { id } = useParams();
   const { retailerId } = useProject();
+  const th = useAppTheme();
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   const [projectTotalData, setProjectTotalData] = useState(null);
   const [projectTotalLoading, setProjectTotalLoading] = useState(true);
   const [projectStoreData, setProjectStoreData] = useState([]);
@@ -224,92 +227,92 @@ export default function ProjectStoresPage() {
 
   return (
     <AppLayout>
-      <div className="flex justify-between gap-4 w-full h-[98%] p-2 bg-gray-50 rounded-2xl">
+      <div className="flex justify-between gap-4 w-full h-[98%] p-2 rounded-2xl" style={{ backgroundColor: th.bgSub }}>
         <div className="w-[20%] flex flex-col gap-3">
-          <div className="w-full min-h-[160px] max-h-[160px] bg-white shadow rounded-2xl flex flex-col justify-center items-start p-4 gap-2">
+          <div className="w-full min-h-[160px] max-h-[160px] shadow rounded-2xl flex flex-col justify-center items-start p-4 gap-2 border" style={{ backgroundColor: th.bg, borderColor: th.border }}>
             {projectTotalLoading ? (
               <>
-                <div className="w-16 h-10 bg-gray-200 rounded animate-pulse"></div>
-                <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-16 h-10 rounded animate-pulse" style={{ backgroundColor: th.bgSub }}></div>
+                <div className="w-20 h-4 rounded animate-pulse" style={{ backgroundColor: th.bgSub }}></div>
               </>
             ) : (
               <>
-                <span className="text-4xl font-semibold text-gray-700">{projectTotalData?.totalstores || 0}</span>
-                <span className="text-sm text-gray-500">Stores</span>
+                <span className="text-4xl font-semibold" style={{ color: th.textPri }}>{projectTotalData?.totalstores || 0}</span>
+                <span className="text-sm" style={{ color: th.textSec }}>Stores</span>
               </>
             )}
           </div>
           {projectTotalLoading ? (
             <div className="w-full">
-              <div className="w-32 h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
-              <div className="w-full h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-4 rounded mb-2 animate-pulse" style={{ backgroundColor: th.bgSub }}></div>
+              <div className="w-full h-10 rounded animate-pulse" style={{ backgroundColor: th.bgSub }}></div>
             </div>
           ) : (
             <>
               <div className="w-full">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Select Hierarchy</label>
-                <select onChange={handleHierarchyChange} value={activeHierarchy} className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label className="block text-sm font-medium mb-1" style={{ color: th.textPri }}>Select Hierarchy</label>
+                <select onChange={handleHierarchyChange} value={activeHierarchy} className="w-full border rounded-md p-2 text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }}>
                   <option value="region">Region</option>
                   <option value="division">Division</option>
                   <option value="state">State</option>
                 </select>
               </div>
               {selectedFilter && selectedFilter !== "No Data" && (
-                <div className="w-full bg-blue-50 border border-blue-200 rounded-md px-2 py-1 flex items-center justify-between">
-                  <span className="text-sm text-blue-700 font-medium">Filter: {selectedFilter}</span>
-                  <button onClick={clearFilter} className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 underline ml-2">Clear</button>
+                <div className="w-full border rounded-md px-2 py-1 flex items-center justify-between" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
+                  <span className="text-sm font-medium" style={{ color: th.accent }}>Filter: {selectedFilter}</span>
+                  <button onClick={clearFilter} className="cursor-pointer text-xs underline ml-2" style={{ color: th.accent }}>Clear</button>
                 </div>
               )}
               <div className="w-full">
                 {filterLoading ? (
-                  <div className="space-y-2 mt-2">{[...Array(6)].map((_, i) => (<div key={i} className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>))}</div>
+                  <div className="space-y-2 mt-2">{[...Array(6)].map((_, i) => (<div key={i} className="h-4 w-3/4 rounded animate-pulse" style={{ backgroundColor: th.bgSub }}></div>))}</div>
                 ) : hierarchyItems.length > 0 ? (
-                  <ul className="text-sm text-gray-600 space-y-1 overflow-y-auto h-64 pr-1">
+                  <ul className="text-sm space-y-1 overflow-y-auto h-64 pr-1" style={{ color: th.textSec }}>
                     {hierarchyItems.map((item, idx) => {
                       const count = Number(item?.count || 0);
                       const hasData = count > 0;
                       const label = item?.title?.trim() || "No Data";
                       const isActive = selectedFilter === label;
                       return (
-                        <li key={idx} onClick={() => hasData && handleHierarchyItemClick(item)} title={!hasData ? "No data available" : ""} className={`px-2 py-1 rounded transition-colors ${hasData ? "cursor-pointer hover:bg-blue-100 hover:text-blue-700" : "cursor-not-allowed text-gray-400"} ${isActive && hasData ? "text-blue-600 font-semibold bg-blue-100" : ""}`}>
+                        <li key={idx} onClick={() => hasData && handleHierarchyItemClick(item)} title={!hasData ? "No data available" : ""} className={`px-2 py-1 rounded transition-colors ${hasData ? "cursor-pointer" : "cursor-not-allowed"}`} style={{ backgroundColor: isActive && hasData ? th.hover : "transparent", color: isActive && hasData ? th.accent : hasData ? th.textSec : th.textSec, opacity: !hasData ? 0.5 : 1, fontWeight: isActive && hasData ? 600 : 400 }} onMouseEnter={(e) => { if (hasData && !isActive) e.currentTarget.style.backgroundColor = th.hover; }} onMouseLeave={(e) => { if (hasData && !isActive) e.currentTarget.style.backgroundColor = "transparent"; }}>
                           {label} {hasData && `(${count})`}
                         </li>
                       );
                     })}
                   </ul>
-                ) : (<p className="text-sm text-gray-400 italic mt-2">No hierarchy data available</p>)}
+                ) : (<p className="text-sm italic mt-2" style={{ color: th.textSec }}>No hierarchy data available</p>)}
               </div>
             </>
           )}
         </div>
-        <div className="w-[79%] bg-white shadow rounded-2xl flex flex-col gap-4 p-4">
+        <div className="w-[79%] shadow rounded-2xl flex flex-col gap-4 p-4 border" style={{ backgroundColor: th.bg, borderColor: th.border }}>
           <div className="w-full flex justify-between">
-            <button onClick={() => { setUploadModal(true); createProjRequest(); }} className="flex gap-2 items-center px-3 py-1 border border-blue-200 hover:border-blue-400 rounded-full text-blue-400 hover:text-blue-600 cursor-pointer">
+            <button onClick={() => { setUploadModal(true); createProjRequest(); }} className="flex gap-2 items-center px-3 py-1 border rounded-full cursor-pointer transition hover:opacity-80" style={{ borderColor: th.accent, color: th.accent, backgroundColor: th.bg }}>
               <Upload className="w-4 h-4" />Upload Store Data
             </button>
             <div className="flex gap-2 items-center">
               <div className="relative">
-                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full border bg-white border-gray-300 rounded-4xl px-4 py-1.5 pr-10 focus:border-blue-300 focus:ring-0 focus:outline-none" placeholder="Store number or address" />
+                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full border rounded-4xl px-4 py-1.5 pr-10 focus:ring-0 focus:outline-none" style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }} placeholder="Store number or address" />
                 {searchTerm ? (
-                  <button type="button" onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"><CloseCircleIcon className="w-4 h-4 text-gray-500 cursor-pointer" /></button>
-                ) : <button type="button" onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"><SearchIcon className="w-4 h-4 text-gray-500 cursor-pointer" /></button>}
+                  <button type="button" onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3 hover:opacity-80" style={{ color: th.textSec }}><CloseCircleIcon className="w-4 h-4 cursor-pointer" /></button>
+                ) : <button type="button" onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 flex items-center pr-3 hover:opacity-80" style={{ color: th.textSec }}><SearchIcon className="w-4 h-4 cursor-pointer" /></button>}
               </div>
               <div className="flex gap-2">
                 {projectStoreLoading && projectTotalLoading ? (
-                  <><div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div><div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div></>
+                  <><div className="w-24 h-8 rounded-full animate-pulse" style={{ backgroundColor: th.bgSub }}></div><div className="w-24 h-8 rounded-full animate-pulse" style={{ backgroundColor: th.bgSub }}></div></>
                 ) : (
                   <>
                     <div className="relative h-full flex items-center z-[70]" onMouseEnter={() => setDownloadDropdownOpen(true)} onMouseLeave={() => setDownloadDropdownOpen(false)}>
-                      <button className="px-4"><DownloadIcon className="w-6 h-6 cursor-pointer" /></button>
+                      <button className="px-4" style={{ color: th.textPri }}><DownloadIcon className="w-6 h-6 cursor-pointer" /></button>
                       {downloadDropdownOpen && (
-                        <div className="absolute top-full right-0 w-48 bg-white border border-gray-200 rounded shadow-lg z-[200]">
-                          <button className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => downloadDataFile("STR-U")}>Unmatched Stores</button>
-                          <button className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => downloadDataFile("STR-M")}>Matched Stores</button>
-                          <button className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer" onClick={() => downloadDataFile("STR-A")}>All Stores</button>
+                        <div className="absolute top-full right-0 w-48 border rounded shadow-lg z-[200]" style={{ backgroundColor: th.bg, borderColor: th.border }}>
+                          <button className="w-full text-left px-4 py-2 cursor-pointer transition" style={{ color: th.textPri }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} onClick={() => downloadDataFile("STR-U")}>Unmatched Stores</button>
+                          <button className="w-full text-left px-4 py-2 cursor-pointer transition" style={{ color: th.textPri }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} onClick={() => downloadDataFile("STR-M")}>Matched Stores</button>
+                          <button className="w-full text-left px-4 py-2 cursor-pointer transition" style={{ color: th.textPri }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} onClick={() => downloadDataFile("STR-A")}>All Stores</button>
                         </div>
                       )}
                     </div>
-                    <button onClick={() => fetchProjectStore('projectstores')} className="flex gap-2 items-center px-3 py-1 border border-blue-200 hover:border-blue-400 rounded-full text-blue-400 hover:text-blue-600 cursor-pointer">
+                    <button onClick={() => fetchProjectStore('projectstores')} className="flex gap-2 items-center px-3 py-1 border rounded-full cursor-pointer transition hover:opacity-80" style={{ borderColor: th.accent, color: th.accent, backgroundColor: th.bg }}>
                       <RefreshCcw className={`w-4 h-4 ${projectStoreLoading ? 'animate-spin' : ''}`} />Refresh
                     </button>
                   </>
@@ -321,22 +324,22 @@ export default function ProjectStoresPage() {
             <ProjectStoresTable data={paginatedData} isLoading={projectStoreLoading} sortConfig={sortConfig} onSort={handleSort} />
           </div>
           {!projectStoreLoading && projectStoreData?.length > 0 && (
-            <div className="border-t bg-gray-50 px-4 py-3">
+            <div className="border-t px-4 py-3" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700">Rows per page:</span>
-                  <select value={rowsPerPage} onChange={(e) => handleRowsPerPageChange(Number(e.target.value))} className="cursor-pointer border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <span className="text-sm" style={{ color: th.textPri }}>Rows per page:</span>
+                  <select value={rowsPerPage} onChange={(e) => handleRowsPerPageChange(Number(e.target.value))} className="cursor-pointer border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2" style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }}>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
-                  <span className="text-sm text-gray-600 ml-4">Showing {totalRows > 0 ? startIndex + 1 : 0}–{Math.min(endIndex, totalRows)} of {totalRows}{searchTerm && ` (filtered from ${projectStoreData.length})`}</span>
+                  <span className="text-sm ml-4" style={{ color: th.textSec }}>Showing {totalRows > 0 ? startIndex + 1 : 0}–{Math.min(endIndex, totalRows)} of {totalRows}{searchTerm && ` (filtered from ${projectStoreData.length})`}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 mr-2">Page {totalRows > 0 ? currentPage : 0} of {totalPages || 0}</span>
-                  <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1 || totalPages === 0} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition" title="First page"><ChevronsLeft className="w-5 h-5 text-gray-600" /></button>
-                  <button onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1 || totalPages === 0} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition" title="Previous page"><ChevronLeft className="w-5 h-5 text-gray-600" /></button>
-                  <button onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages || totalPages === 0} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition" title="Next page"><ChevronRight className="w-5 h-5 text-gray-600" /></button>
-                  <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages || totalPages === 0} className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition" title="Last page"><ChevronsRight className="w-5 h-5 text-gray-600" /></button>
+                  <span className="text-sm mr-2" style={{ color: th.textSec }}>Page {totalRows > 0 ? currentPage : 0} of {totalPages || 0}</span>
+                  <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1 || totalPages === 0} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} title="First page"><ChevronsLeft className="w-5 h-5" /></button>
+                  <button onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))} disabled={currentPage === 1 || totalPages === 0} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} title="Previous page"><ChevronLeft className="w-5 h-5" /></button>
+                  <button onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages || totalPages === 0} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} title="Next page"><ChevronRight className="w-5 h-5" /></button>
+                  <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages || totalPages === 0} className="p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition" style={{ color: th.textSec }} onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = th.hover)} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")} title="Last page"><ChevronsRight className="w-5 h-5" /></button>
                 </div>
               </div>
             </div>

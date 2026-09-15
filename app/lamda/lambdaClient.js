@@ -20,20 +20,24 @@ const getToken = async () => {
   }
 };
 
-const handleResponse = async (
-  response
-) => {
-  const data =
-    await response.json();
-
+const handleResponse = async (response) => {
+  const ct = response.headers.get("content-type") || "";
   if (!response.ok) {
-    throw new Error(
-      data?.message ||
-        `Request failed with status ${response.status}`
-    );
+    const txt = await response.text().catch(() => "");
+    throw new Error(txt || `Request failed with status ${response.status}`);
   }
-
-  return data;
+  if (ct.includes("application/json")) return response.json();
+  // PDF / image / octet-stream (e.g. %PDF-1.3 from /getqrcode) → return Blob for caller to download
+  if (ct.includes("application/pdf") || ct.includes("image/") || ct.includes("octet-stream")) {
+    return response.blob();
+  }
+  // Non-JSON success (rare) — return text and try parse as JSON
+  const txt = await response.text();
+  try {
+    return JSON.parse(txt);
+  } catch {
+    return txt;
+  }
 };
 
 export const lambdaGet = async (

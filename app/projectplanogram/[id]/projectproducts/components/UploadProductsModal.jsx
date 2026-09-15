@@ -17,8 +17,10 @@ const UploadProductsModal = ({
     createProjRequest,
     fetchProjectReqList,
     createReqData,
-    typeToUpload
+    typeToUpload,
+    theme
 }) => {
+    const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = theme || {};
     const [files, setFiles] = useState([]);
     const [rawFiles, setRawFiles] = useState([]);
     const [step, setStep] = useState(1);
@@ -384,15 +386,16 @@ const UploadProductsModal = ({
             onClose={handleCancel}
             maxWidth="max-w-4xl"
             maxHeight="h-[500px]"
+            theme={theme}
         >
             <div className="h-full flex flex-col -m-6">
-                <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
-                    <h2 className="text-lg font-semibold">
+                <div className="px-6 py-4 border-b flex-shrink-0" style={{ borderColor: border || "#e5e7eb", backgroundColor: bg || "#fff" }}>
+                    <h2 className="text-lg font-semibold" style={{ color: textPri || "#1f2937" }}>
                         Upload Products Data
                     </h2>
                 </div>
 
-                <div className="flex items-center gap-6 px-6 py-4 border-b border-gray-200 flex-shrink-0">
+                <div className="flex items-center gap-6 px-6 py-4 border-b flex-shrink-0" style={{ borderColor: border || "#e5e7eb", backgroundColor: bg || "#fff" }}>
                     {["Upload", "Review & Submit", "Upload Status"].map((label, index) => {
                         const count = index + 1;
                         return (
@@ -405,12 +408,13 @@ const UploadProductsModal = ({
                                         ? "bg-blue-600 text-white border-blue-600"
                                         : step > count
                                             ? "bg-blue-600 text-white border-blue-600"
-                                            : "bg-gray-100 text-gray-600 border-gray-300"
+                                            : "border"
                                         }`}
+                                    style={step > count || step === count ? {} : { backgroundColor: bgSub || "#f9fafb", color: textSec || "#6b7280", borderColor: border || "#e5e7eb" }}
                                 >
                                     {step > count ? "✓" : count}
                                 </div>
-                                <span className={`text-sm font-medium ${step === count ? "text-blue-600" : "text-gray-500"}`}>
+                                <span className={`text-sm font-medium ${step === count ? "text-blue-600" : ""}`} style={{ color: step === count ? undefined : (textSec || "#6b7280") }}>
                                     {label}
                                 </span>
                             </div>
@@ -418,7 +422,7 @@ const UploadProductsModal = ({
                     })}
                 </div>
 
-                <div className="flex-1 px-6 py-4 overflow-auto min-h-[300px]">
+                <div className="flex-1 px-6 py-4 overflow-auto min-h-[300px]" style={{ backgroundColor: bg || "#fff" }}>
                     {uploadError && (
                         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
                             {uploadError}
@@ -432,7 +436,7 @@ const UploadProductsModal = ({
                             ) : (
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="animate-spin h-8 w-8 border-4 border-gray-300 border-t-blue-600 rounded-full" />
-                                    <p className="text-gray-500">Preparing for upload...</p>
+                                    <p style={{ color: textSec || "#6b7280" }}>Preparing for upload...</p>
                                 </div>
                             )}
                         </div>
@@ -446,7 +450,7 @@ const UploadProductsModal = ({
                                         className="border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"
                                         style={{ width: 44, height: 44 }}
                                     />
-                                    <p className="mt-4 text-gray-600 text-lg font-medium">
+                                    <p className="mt-4 text-lg font-medium" style={{ color: textSec || "#6b7280" }}>
                                         {/* Show correct status text depending on uploadProgress and validation */}
                                         {isUploading && uploadProgress !== 100
                                             ? `Uploading... ${uploadProgress}%`
@@ -455,7 +459,7 @@ const UploadProductsModal = ({
                                     </p>
 
                                     {/* small hint if validation hasn't completed yet */}
-                                    <p className="mt-2 text-sm text-gray-500">
+                                    <p className="mt-2 text-sm" style={{ color: textSec || "#9ca3af" }}>
                                         {validationComplete ? 'Validation complete — preparing UI...' : 'Waiting for files to appear...'}
                                     </p>
                                 </div>
@@ -472,18 +476,18 @@ const UploadProductsModal = ({
                                         </div>
                                     )}
 
-                                    <div className="bg-white rounded-lg shadow-inner max-h-72 overflow-auto p-4">
+                                    <div className="rounded-lg shadow-inner max-h-72 overflow-auto p-4" style={{ backgroundColor: bg || "#fff", borderColor: border || "#e5e7eb", borderWidth: "1px" }}>
                                         {fileCountLoading ? (
                                             <div className="w-full h-full flex justify-center items-center py-8">
                                                 <div className="flex items-center gap-2">
                                                     <div className="animate-spin h-5 w-5 border-2 border-gray-300 border-t-blue-600 rounded-full" />
-                                                    <span className="text-gray-600">Processing...</span>
+                                                    <span style={{ color: textSec || "#6b7280" }}>Processing...</span>
                                                 </div>
                                             </div>
                                         ) : files && files.length > 0 ? (
-                                            <table className="min-w-full text-sm text-left text-gray-700 border-collapse">
+                                            <table className="min-w-full text-sm text-left border-collapse" style={{ color: textPri || "#1f2937" }}>
                                                 <thead>
-                                                    <tr className="border-b bg-gray-50 text-gray-600 uppercase text-xs">
+                                                    <tr className="border-b uppercase text-xs" style={{ backgroundColor: bgSub || "#f9fafb", color: textSec || "#6b7280", borderColor: border || "#e5e7eb" }}>
                                                         <th className="py-2 px-3 font-medium">
                                                             {typeToUpload === 'folders' ? 'Folder Name' : 'File Name'}
                                                         </th>
@@ -496,25 +500,25 @@ const UploadProductsModal = ({
                                                 <tbody>
                                                     {typeToUpload === 'folders'
                                                         ? folderList?.data.map((folderName, index) => (
-                                                            <tr key={index} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                                                                <td className="py-2 px-3 font-medium text-gray-800">
+                                                            <tr key={index} className="border-b last:border-0 transition-colors" style={{ borderColor: border || "#e5e7eb" }} onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                                                                <td className="py-2 px-3 font-medium" style={{ color: textPri || "#1f2937" }}>
                                                                     {folderName}
                                                                 </td>
-                                                                <td className="py-2 px-3 text-gray-600">
+                                                                <td className="py-2 px-3" style={{ color: textSec || "#6b7280" }}>
                                                                     {rawFiles.filter(f => f.meta?.relativePath?.startsWith(folderName)).length} files
                                                                 </td>
-                                                                <td className="py-2 px-3 text-gray-600">Folder</td>
+                                                                <td className="py-2 px-3" style={{ color: textSec || "#6b7280" }}>Folder</td>
                                                             </tr>
                                                         ))
                                                         : files.map((file, index) => (
-                                                            <tr key={index} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                                                                <td className="py-2 px-3 font-medium text-gray-800">
+                                                            <tr key={index} className="border-b last:border-0 transition-colors" style={{ borderColor: border || "#e5e7eb" }} onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                                                                <td className="py-2 px-3 font-medium" style={{ color: textPri || "#1f2937" }}>
                                                                     {file.name || "—"}
                                                                 </td>
-                                                                <td className="py-2 px-3 text-gray-600">
+                                                                <td className="py-2 px-3" style={{ color: textSec || "#6b7280" }}>
                                                                     {(file.size / 1024).toFixed(1)} KB
                                                                 </td>
-                                                                <td className="py-2 px-3 text-gray-600">
+                                                                <td className="py-2 px-3" style={{ color: textSec || "#6b7280" }}>
                                                                     {uploadType || "unknown"}
                                                                 </td>
                                                             </tr>
@@ -522,7 +526,7 @@ const UploadProductsModal = ({
                                                 </tbody>
                                             </table>
                                         ) : (
-                                            <p className="text-gray-500 text-sm text-center py-8">
+                                            <p className="text-sm text-center py-8" style={{ color: textSec || "#6b7280" }}>
                                                 No {typeToUpload === 'folders' ? 'folders' : 'files'} selected yet.
                                             </p>
                                         )}
@@ -532,32 +536,6 @@ const UploadProductsModal = ({
                         </>
                     )}
 
-                    {/* {step === 3 && (
-                        <>
-                            {process ? (
-                                <div className="flex flex-col items-center justify-center p-6">
-                                    <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
-                                    <p className="mt-3 text-gray-600">Processing...</p>
-                                </div>
-                            ) : dataReq.status === "complete" ? (
-                                <div className="flex flex-col items-center justify-center p-6">
-                                    <svg className="w-16 h-16 text-green-600 mb-2" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <h4 className="text-green-600 font-medium text-lg">Process Completed</h4>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center p-6">
-                                    <div className="w-11 h-11 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin mb-2" />
-                                    <p className="text-orange-500 font-medium text-lg">
-                                        {dataReq.filecount === 1
-                                            ? `${dataReq.status} 1 file`
-                                            : `${dataReq.status} ${dataReq.filecount || ""} files`}
-                                    </p>
-                                </div>
-                            )}
-                        </>
-                    )} */}
                     {step === 3 && (
                         <>
                             {uploadError ? (
@@ -574,7 +552,7 @@ const UploadProductsModal = ({
                                     <h4 className="text-red-600 font-medium text-lg mb-1">
                                         Upload Failed
                                     </h4>
-                                    <p className="text-gray-700 text-sm text-center max-w-sm">
+                                    <p className="text-sm text-center max-w-sm" style={{ color: textPri || "#1f2937" }}>
                                         {uploadError.message}
                                     </p>
                                     <button
@@ -587,7 +565,7 @@ const UploadProductsModal = ({
                             ) : process ? (
                                 <div className="flex flex-col items-center justify-center p-6">
                                     <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
-                                    <p className="mt-3 text-gray-600">Processing...</p>
+                                    <p className="mt-3" style={{ color: textSec || "#6b7280" }}>Processing...</p>
                                 </div>
                             ) : dataReq.status === "complete" ? (
                                 <div className="flex flex-col items-center justify-center p-6">
@@ -617,11 +595,14 @@ const UploadProductsModal = ({
 
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2 flex-shrink-0 bg-white">
+                <div className="px-6 py-4 border-t flex items-center justify-end gap-2 flex-shrink-0" style={{ borderColor: border || "#e5e7eb", backgroundColor: bg || "#fff" }}>
                     {step === 1 && (
                         <button
                             onClick={handleCancel}
-                            className="px-4 py-2 text-sm rounded cursor-pointer border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="px-4 py-2 text-sm rounded cursor-pointer border transition-colors"
+                            style={{ borderColor: border || "#e5e7eb", color: textPri || "#1f2937", backgroundColor: "transparent" }}
+                            onMouseEnter={(e) => { if (hover) e.currentTarget.style.backgroundColor = hover; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                         >
                             Cancel
                         </button>

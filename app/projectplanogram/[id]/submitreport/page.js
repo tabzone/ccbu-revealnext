@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw, Loa
 import { useParams } from "next/navigation";
 import React, { useState, useMemo, useEffect } from "react";
 import AppLayout from "@/app/components/layout/AppLayout";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 const dummyData = Array.from({ length: 200 }, (_, i) => ({
   id: i + 1,
@@ -16,6 +17,8 @@ const dummyData = Array.from({ length: 200 }, (_, i) => ({
 }));
 
 function Page() {
+  const th = useAppTheme();
+  const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   const [isEnabled, setIsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [compareProjectList, setCompareProjectList] = useState([])
@@ -362,13 +365,13 @@ function Page() {
 
   return (
     <AppLayout>
-    <div className="flex flex-col gap-4 w-full h-full min-h-0 overflow-hidden p-2 bg-gray-50 rounded-2xl">
+    <div className="flex flex-col gap-4 w-full h-full min-h-0 overflow-hidden p-2 rounded-2xl" style={{ backgroundColor: th.bgSub }}>
 
       <div className="flex flex-col md:flex-row gap-6 shrink-0 relative">
-        <div className="w-full rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="w-full rounded-2xl border shadow-sm" style={{ backgroundColor: th.bg, borderColor: th.border }}>
           {/* Header */}
-          <div className="border-b border-gray-200 px-6 py-5">
-            <h3 className="text-xl font-semibold text-gray-900">
+          <div className="border-b px-6 py-5" style={{ borderColor: th.border }}>
+            <h3 className="text-xl font-semibold" style={{ color: th.textPri }}>
               Publish For Extraction
             </h3>
           </div>
@@ -377,7 +380,7 @@ function Page() {
           <div className="p-4">
             <div className="space-y-5">
               {/* Comparison Settings */}
-              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+              <div className="rounded-xl border p-4" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
                 <div
                   className={`grid gap-4 ${isEnabled
                     ? "md:grid-cols-2 md:items-start"
@@ -386,7 +389,7 @@ function Page() {
                 >
                   {/* Toggle */}
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    <label className="mb-2 block text-sm font-medium" style={{ color: th.textPri }}>
                       Comparison Report
                     </label>
 
@@ -424,13 +427,13 @@ function Page() {
                       </button>
 
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium" style={{ color: th.textPri }}>
                           Create Comparison Report
                         </span>
 
                         <span
-                          className={`text-xs ${isEnabled ? "text-green-600" : "text-gray-500"
-                            }`}
+                          className="text-xs"
+                          style={{ color: isEnabled ? "#16a34a" : th.textSec }}
                         >
                           {isLoading
                             ? "Loading..."
@@ -447,7 +450,8 @@ function Page() {
                     <div className="min-w-0">
                       <label
                         htmlFor="comparison-project"
-                        className="mb-2 block text-sm font-medium text-gray-700"
+                        className="mb-2 block text-sm font-medium"
+                        style={{ color: th.textPri }}
                       >
                         Comparison Project
                       </label>
@@ -455,9 +459,9 @@ function Page() {
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                           {compareProjectLoading ? (
-                            <div className="flex h-[42px] w-full items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3">
+                            <div className="flex h-[42px] w-full items-center gap-2 rounded-lg border px-3" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
                               <Loader2 className="h-4 w-4 shrink-0 animate-spin text-blue-500" />
-                              <span className="text-sm text-gray-500">Loading projects...</span>
+                              <span className="text-sm" style={{ color: th.textSec }}>Loading projects...</span>
                             </div>
                           ) : (
                             <select
@@ -469,14 +473,8 @@ function Page() {
                               }
                               onChange={handleCompareProjectSelect}
                               disabled={!compareProjectList.length}
-                              className="truncate
-                      h-[42px] w-full rounded-lg border border-gray-300
-                      bg-white px-3 text-sm text-gray-700
-                      outline-none transition
-                      focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-                      disabled:cursor-not-allowed disabled:bg-gray-100
-                      disabled:text-gray-500 truncate
-                    "
+                              className="truncate h-[42px] w-full rounded-lg border px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed truncate"
+                              style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textPri }}
                             >
                               <option value="">
                                 {compareProjectList.length
@@ -504,7 +502,10 @@ function Page() {
                             onClick={() => setSelectedCompareProject(null)}
                             title="Clear selection"
                             aria-label="Clear comparison project"
-                            className="shrink-0 inline-flex h-[42px] w-[42px] items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition"
+                            className="shrink-0 inline-flex h-[42px] w-[42px] items-center justify-center rounded-lg border transition"
+                            style={{ backgroundColor: th.bg, borderColor: th.border, color: th.textSec }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = th.hover)}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = th.bg)}
                           >
                             ×
                           </button>
@@ -513,9 +514,12 @@ function Page() {
                           <button
                             type="button"
                             onClick={() => setIsActiveReport(!isActiveReport)}
-                            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActiveReport ? "bg-blue-600 text-white" : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"}`}
+                            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200"
+                            style={isActiveReport ? { backgroundColor: th.accent, color: "#fff" } : { backgroundColor: th.bg, color: th.textPri, borderWidth: "1px", borderStyle: "solid", borderColor: th.border }}
+                            onMouseEnter={(e) => { if (!isActiveReport) e.currentTarget.style.backgroundColor = th.hover; }}
+                            onMouseLeave={(e) => { if (!isActiveReport) e.currentTarget.style.backgroundColor = th.bg; }}
                           >
-                            <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${isActiveReport ? "bg-blue-500" : "bg-gray-300"}`}>
+                            <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${isActiveReport ? "" : ""}`} style={{ backgroundColor: isActiveReport ? "#64748b" : "#d1d5db" }}>
                               <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${isActiveReport ? "translate-x-3.5" : "translate-x-0.5"}`} />
                             </span>
                             Active Report
@@ -537,28 +541,28 @@ function Page() {
 
                 {/* Selected Project Details */}
                 {isEnabled && selectedCompareProject && (
-                  <div className="mt-5 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-                      <h4 className="text-sm font-semibold text-gray-800">
+                  <div className="mt-5 overflow-hidden rounded-xl border" style={{ backgroundColor: th.bg, borderColor: th.border }}>
+                    <div className="border-b px-4 py-3" style={{ backgroundColor: th.bgSub, borderColor: th.border }}>
+                      <h4 className="text-sm font-semibold" style={{ color: th.textPri }}>
                         Comparison Report Details
                       </h4>
                     </div>
 
-                    <div className="grid grid-cols-1 divide-y divide-gray-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4" style={{ borderColor: th.border }}>
                       <div className="p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: th.textSec }}>
                           Project Name
                         </p>
-                        <p className="mt-1 text-sm font-medium text-gray-900 truncate" title={getProjectLabel(selectedCompareProject)}>
+                        <p className="mt-1 text-sm font-medium truncate" style={{ color: th.textPri }} title={getProjectLabel(selectedCompareProject)}>
                           {getProjectLabel(selectedCompareProject)}
                         </p>
                       </div>
 
                       <div className="p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: th.textSec }}>
                           Product Count
                         </p>
-                        <p className="mt-1 text-sm font-medium text-gray-900">
+                        <p className="mt-1 text-sm font-medium" style={{ color: th.textPri }}>
                           {getProjectValue(
                             selectedCompareProject,
                             "prodCount",
@@ -568,10 +572,10 @@ function Page() {
                       </div>
 
                       <div className="p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: th.textSec }}>
                           Store Extraction
                         </p>
-                        <p className="mt-1 text-sm font-medium text-gray-900">
+                        <p className="mt-1 text-sm font-medium" style={{ color: th.textPri }}>
                           {getProjectValue(
                             selectedCompareProject,
                             "storeExtraction",
@@ -581,10 +585,10 @@ function Page() {
                       </div>
 
                       <div className="p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: th.textSec }}>
                           POG Count
                         </p>
-                        <p className="mt-1 text-sm font-medium text-gray-900">
+                        <p className="mt-1 text-sm font-medium" style={{ color: th.textPri }}>
                           {getProjectValue(
                             selectedCompareProject,
                             "pogCount",
@@ -598,7 +602,7 @@ function Page() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-start  border-t border-gray-200 pt-5">
+              <div className="flex items-center justify-start border-t pt-5" style={{ borderColor: th.border }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -609,15 +613,16 @@ function Page() {
                   disabled={isPublishDisabled}
                   className={`
               inline-flex min-w-[100px] items-center justify-center
-              rounded-lg bg-blue-600 px-5 py-2.5
+              rounded-lg px-5 py-2.5
               text-sm font-medium text-white
               shadow-sm transition
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
               ${isPublishDisabled
                       ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer hover:bg-blue-700 active:bg-blue-800"
+                      : "cursor-pointer hover:opacity-90 active:opacity-80"
                     }
             `}
+                  style={{ backgroundColor: th.accent, color: "#fff" }}
                 >
                   Publish
                 </button>
@@ -630,15 +635,16 @@ function Page() {
       </div>
 
       <div className="flex justify-between items-center shrink-0 mb-2">
-        <h2 className="text-lg font-semibold text-gray-700">Project Requests</h2>
+        <h2 className="text-lg font-semibold" style={{ color: th.textPri }}>Project Requests</h2>
         <button
-          onClick={() => fetchProjectRequestData('SUB')} className="cursor-pointer flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-white rounded-full shadow-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:hover:bg-blue-500">
+          onClick={() => fetchProjectRequestData('SUB')} className="cursor-pointer flex items-center gap-2 px-4 py-1.5 rounded-full shadow-sm transition disabled:opacity-50 hover:opacity-90" style={{ backgroundColor: th.accent, color: "#fff" }}>
           <RefreshCcw className={`w-4 h-4 ${loadingReqData && 'animate-spin'}`} />
           Reload
         </button>
       </div>
       <div className="flex-1 overflow-auto min-h-0">
         <PublishProjectReqTable
+          theme={th}
           data={paginatedData}
           isLoading={loadingReqData}
           sortConfig={null}
