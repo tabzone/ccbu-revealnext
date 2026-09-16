@@ -31,10 +31,30 @@ const Page = () => {
   const fetchRetailerList = React.useCallback(async () => {
     try {
       setRetailerListLoading(true);
-      const data = await lambdaGet(`/getretailers`);
-      setRetailerList(data?.retailers || []);
+      // Try new apiGet /retailers first (new base), fallback to legacy /getretailers
+      let data;
+      try {
+        const { apiGet } = await import("@/lib/api");
+        data = await apiGet("/retailers").catch(() => null);
+        if (data) {
+          const list = data?.retailers ?? data?.retailerid ?? data?.data ?? data;
+          if (Array.isArray(list) && list.length) {
+            setRetailerList(list);
+            return;
+          }
+          if (Array.isArray(data) && data.length) {
+            setRetailerList(data);
+            return;
+          }
+        }
+      } catch {}
+      // Fallback to legacy lambda
+      data = await lambdaGet(`/getretailers`);
+      const list = data?.retailerid ?? data?.retailers ?? data?.data ?? data;
+      setRetailerList(Array.isArray(list) ? list : Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching retailer list:", err);
+      setRetailerList([]);
     } finally {
       setRetailerListLoading(false);
     }
@@ -146,7 +166,8 @@ const Page = () => {
   useEffect(() => {
     if (!retailerListLoading && retailerList?.length) {
       const storedRetailerId = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : "";
-      if (storedRetailerId && retailerList.some((ret) => ret.retailerid === storedRetailerId)) {
+      const hasStored = storedRetailerId && retailerList.some((ret) => (ret.retailerid ?? ret.id ?? ret.retailerId) === storedRetailerId);
+      if (hasStored) {
         if (selectedRetailer !== storedRetailerId) {
           setSelectedRetailer(storedRetailerId);
         }
@@ -228,11 +249,15 @@ const Page = () => {
                         <option value="" disabled>
                           -- Select a retailer --
                         </option>
-                        {retailerList?.map((ret) => (
-                          <option key={ret.retailerid} value={ret.retailerid}>
-                            {ret.name}
-                          </option>
-                        ))}
+                        {retailerList?.map((ret) => {
+                          const rid = ret.retailerid ?? ret.id ?? ret.retailerId ?? "";
+                          const rname = ret.name ?? ret.retailer_name ?? rid;
+                          return (
+                            <option key={rid} value={rid}>
+                              {rname}
+                            </option>
+                          );
+                        })}
                       </>
                     )}
                   </select>

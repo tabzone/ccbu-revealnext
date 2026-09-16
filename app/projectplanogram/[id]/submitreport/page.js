@@ -56,19 +56,34 @@ function Page() {
 
   const getRetailerIdFromProject = (project) => {
     if (!project) return "";
-
-    return (
-      project?.retailID ||
-      project?.retailerid ||
-      project?.retailerId ||
-      project?.baseCallPoints?.[0] ||
-      project?.basecCallPoints?.[0] ||
-      project?.baseCallPoints?.[0]?.id ||
-      project?.basecCallPoints?.[0]?.id ||
-      project?.ri ||
-      project?.rl ||
-      ""
-    );
+    // Unwrap if API returns {project: {...}} wrapper (common for /getproject)
+    const raw = project?.project || project;
+    const candidate =
+      raw?.retailID ??
+      raw?.retailerid ??
+      raw?.retailerId ??
+      raw?.retailId ??
+      raw?.retailer_id ??
+      raw?.baseCallPoints ??
+      raw?.basecallpoints ??
+      raw?.baseCallpoints ??
+      raw?.retailer ??
+      raw?.retailerID ??
+      raw?.ri ??
+      raw?.rl ??
+      "";
+    // Normalize: array → first element, object → id field, string → trimmed
+    if (Array.isArray(candidate)) {
+      const first = candidate[0];
+      if (first == null) return "";
+      if (typeof first === "string") return String(first).trim();
+      if (typeof first === "object") return String(first?.id ?? first?.retailerid ?? first?.retailerId ?? first?.retailID ?? "").trim();
+      return String(first).trim();
+    }
+    if (typeof candidate === "object" && candidate !== null) {
+      return String(candidate?.id ?? candidate?.retailerid ?? candidate?.retailerId ?? candidate?.retailID ?? "").trim();
+    }
+    return String(candidate ?? "").trim();
   };
 
   const getProjectLabel = (project) => {
@@ -229,7 +244,18 @@ function Page() {
         throw new Error("Missing retailer id for comparison project lookup");
       }
 
-      const data = await lambdaGet(`/listprojects/${retailerId}`);
+      // Retailer-aware: try new apiGet first, fallback to legacy lambdaGet (both require retailerId)
+      let data;
+      try {
+        const { apiGet } = await import("@/lib/api");
+        const res = await apiGet(`/retailers/listprojects/${retailerId}`).catch(() => null);
+        if (res) {
+          data = res;
+        }
+      } catch {}
+      if (!data) {
+        data = await lambdaGet(`/listprojects/${retailerId}`);
+      }
       const list = Array.isArray(data)
         ? data
         : (data?.projects ?? data?.data ?? []);

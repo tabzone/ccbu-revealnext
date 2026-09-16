@@ -244,7 +244,18 @@ describe('CCBU SubmitReport V3 exact parity (folder match)', () => {
     assert.ok(ccbuPage.includes('PublishModal'), 'should use PublishModal');
     // Core V3 logic must be present
     assert.ok(ccbuPage.includes('getRetailerIdFromProject'), 'should have getRetailerIdFromProject helper');
-    assert.ok(ccbuPage.includes('/listprojects/${retailerId}'), 'should fetch listprojects with retailerId');
+    // Robust retailerId extraction — must handle all CCBU shapes (retailID, retailerId, retailerid, baseCallPoints, etc.)
+    assert.ok(ccbuPage.includes('retailID') && ccbuPage.includes('retailerId') && ccbuPage.includes('retailerid'), 'getRetailerIdFromProject should handle retailID/retailerId/retailerid variants');
+    assert.ok(ccbuPage.includes('baseCallPoints') || ccbuPage.includes('basecallpoints'), 'should handle baseCallPoints array shape');
+    assert.ok(ccbuPage.includes('project?.project') || ccbuPage.includes('data?.project'), 'should unwrap data.project wrapper');
+    // Must handle retailerId as string, not object, and trim
+    assert.ok(ccbuPage.includes('String(') || ccbuPage.includes('.trim()'), 'should normalize retailerId to string');
+    // Must call retailer-aware listprojects — tolerate both legacy lambda and new api path, with robust fallback
+    const hasLegacy = ccbuPage.includes('/listprojects/${retailerId}');
+    const hasNew = ccbuPage.includes('/retailers/listprojects/${retailerId}') || ccbuPage.includes('/retailers/${retailerId}/projects') || ccbuPage.includes('apiGet');
+    assert.ok(hasLegacy || hasNew, 'should fetch listprojects with retailerId (legacy /listprojects/${retailerId} or new /retailers/listprojects/${retailerId})');
+    // Must handle empty retailerId fallback fetch
+    assert.ok(ccbuPage.includes('fetchCurrentProjectDetails()'), 'should refetch project if retailerId initially missing');
     assert.ok(ccbuPage.includes('/getprojectrequest/${id}/${filetype}'), 'should fetch getprojectrequest');
     assert.ok(ccbuPage.includes('/getvalidation/${id}'), 'should fetch getvalidation');
     assert.ok(ccbuPage.includes('isPublishDisabled'), 'should have isPublishDisabled logic');
@@ -364,5 +375,24 @@ describe('CCBU lamdaClient binary handling', () => {
     assert.ok(!content.includes('const data =\n    await response.json();\n\n  if (!response.ok)'), 'should not parse JSON before checking ok/content-type');
     // Handle non-ok with text, not JSON message
     assert.ok(content.includes('!response.ok'), 'should check response.ok');
+  });
+});
+
+describe('MANAGE PROJECTS retailer select', () => {
+  it('fetches retailers resiliently and renders options for both shapes', () => {
+    const pagePath = path.join(root, 'app/managePlanograms/masterdata/page.js');
+    const content = fs.readFileSync(pagePath, 'utf8');
+    // Should try new apiGet /retailers first, fallback to legacy /getretailers
+    assert.ok(content.includes('apiGet("/retailers")') || content.includes("apiGet('/retailers')"), 'should try apiGet /retailers');
+    assert.ok(content.includes('/getretailers'), 'should fallback to lambdaGet /getretailers');
+    // Must handle both response shapes: retailerid vs id vs retailers
+    assert.ok(content.includes('retailerid ??') && content.includes('?? ret.id'), 'should handle retailerid and id shapes');
+    // Render must not hardcode retailerid only
+    assert.ok(content.includes('const rid = ret.retailerid'), 'should derive rid from multiple keys');
+    assert.ok(content.includes('ret.retailer_name'), 'should handle retailer_name fallback');
+    // Hydration must validate stored id against both shapes
+    assert.ok(content.includes('ret.retailerid ?? ret.id'), 'should validate stored retailer against both shapes');
+    // localStorage key
+    assert.ok(content.includes('manageReportsSelectedRetailer'), 'should use correct storage key');
   });
 });
