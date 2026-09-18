@@ -1,0 +1,59 @@
+(node:7) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> ccbu-reveal@0.1.0 dev
+> next dev --webpack --webpack --port 3002
+
+(node:19) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▲ Next.js 16.2.7 (webpack)
+- Local:         http://localhost:3002
+- Environments: .env
+✓ Ready in 828ms
+
+○ Compiling /manageReports ...
+ GET /manageReports 200 in 20.8s (next.js: 18.6s, application-code: 2.2s)
+○ Compiling /retailerPlanogram/[retailerId]/projectplanogram/[projectId]/uploads ...
+(node:72) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /retailerPlanogram/testRetailer/projectplanogram/proj123/uploads 200 in 17.1s (next.js: 16.2s, application-code: 832ms)
+(node:9) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> ccbu-reveal@0.1.0 dev
+> next dev --webpack --webpack --port 3002
+
+(node:21) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▲ Next.js 16.2.7 (webpack)
+- Local:         http://localhost:3002
+- Environments: .env
+✓ Ready in 920ms
+
+○ Compiling /retailerPlanogram/[retailerId]/projectplanogram/[projectId]/projectproducts ...
+(node:89) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /retailerPlanogram/testRetailer/projectplanogram/proj123/projectproducts 200 in 32.8s (next.js: 31.9s, application-code: 894ms)
+(node:9) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> ccbu-reveal@0.1.0 dev
+> next dev --webpack --webpack --port 3002
+
+(node:21) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▲ Next.js 16.2.7 (webpack)
+- Local:         http://localhost:3002
+- Environments: .env
+✓ Ready in 864ms
+
+○ Compiling /retailerPlanogram/[retailerId]/projectplanogram/[projectId]/projectproducts ...
+(node:73) [UNDICI-EHPA] Warning: EnvHttpProxyAgent is experimental, expect them to change at any time.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /retailerPlanogram/testRetailer/projectplanogram/proj123/projectproducts 200 in 12.5s (next.js: 11.8s, application-code: 694ms)

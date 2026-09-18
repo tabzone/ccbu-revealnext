@@ -12,8 +12,60 @@ export default function Sidebar({ isOpen }) {
   const { bg, border, textPri, textSec, hover, accent } = useAppTheme();
 
   const getNavItems = () => {
+    // New retailer+project scoped route: /retailerPlanogram/:retailerId/projectplanogram/:projectId/*
+    if (pathname?.includes("/projectplanogram/") && pathname?.startsWith("/retailerPlanogram/")) {
+      const parts = pathname.split("/");
+      const retailerId = parts[2] || params?.retailerId || params?.id || "0";
+      const projectId = parts[4] || params?.projectId || params?.id || "0";
+      return [
+        {
+          label: "Project Setup",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M12 2V5M12 19V22M2 12H5M19 12H22M4.9 4.9L7 7M17 17L19.1 19.1M19.1 4.9L17 7M7 17L4.9 19.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Uploads", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/uploads` },
+          ],
+        },
+        {
+          label: "Data Validation",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 10h16M4 14h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <rect x="13" y="12" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+          ),
+          children: [
+            { label: "Dashboard", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/validation` },
+            { label: "Project Planogram", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/planogram` },
+            { label: "Project Products", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/projectproducts` },
+            { label: "Project Stores", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/projectstores` },
+            { label: "Publish for Reporting", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/submitreport` },
+          ],
+        },
+        {
+          label: "Download Datasets",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path d="M12 3v13M5 10l7 7 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 17h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Download Datasets", href: `/retailerPlanogram/${retailerId}/projectplanogram/${projectId}/download` },
+          ],
+        },
+      ];
+    }
+
     if (pathname?.startsWith("/projectplanogram/")) {
-      const projectId = params?.id || pathname.split("/")[2] || "0";
+      const projectId = params?.projectId || params?.id || pathname.split("/")[2] || "0";
       return [
         {
           label: "Project Setup",
@@ -63,7 +115,7 @@ export default function Sidebar({ isOpen }) {
 
     if (pathname?.startsWith("/retailerPlanogram")) {
       const parts = pathname.split("/");
-      const id = parts[2] || "0";
+      const id = (params?.retailerId ?? params?.id ?? parts[2]) || "0";
 
       return [
         {
@@ -81,18 +133,6 @@ export default function Sidebar({ isOpen }) {
             { label: "Week Setup", href: `/retailerPlanogram/${id}/timesetup` },
           ],
         },
-        // {
-        //   label: "Planogram",
-        //   href: `https://revealpog.vercel.app/manageReports`,
-        //   target: "_blank",
-        //   rel: "noopener noreferrer",
-        //   icon: (
-        //     <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-        //       <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-        //       <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        //     </svg>
-        //   ),
-        // },
         {
           label: "Weekly Sales Upload",
           href: `/retailerPlanogram/${id}/weeklySalesUpload`,
@@ -116,6 +156,20 @@ export default function Sidebar({ isOpen }) {
             </svg>
           ),
         },
+        {
+          label: "Manage Planograms",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
+            { label: "Manage Timeperiod", href: `/retailerPlanogram/${id}/timeperiod` },
+          ],
+        },
       ];
     }
 
@@ -131,20 +185,6 @@ export default function Sidebar({ isOpen }) {
             <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
           </svg>
         ),
-      },
-      {
-        label: "Manage Planograms",
-        href: "#",
-        icon: (
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-            <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        ),
-        children: [
-          { label: "Manage Projects", href: "/managePlanograms/masterdata" },
-          { label: "Manage Timeperiod", href: "/managePlanograms/timeperiod" },
-        ],
       },
       {
         label: "Manage Reports",
@@ -170,7 +210,7 @@ export default function Sidebar({ isOpen }) {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const navItems = useMemo(() => getNavItems(), [pathname, params?.id]);
+  const navItems = useMemo(() => getNavItems(), [pathname, params?.id, params?.projectId, params?.retailerId]);
 
   // Check if item should be expanded (user toggle OR pathname match)
   const isItemExpanded = (item) => {

@@ -202,7 +202,7 @@ const ProjectsTable = ({ projectListData, projectListLoading, userListLoading, n
                                             </td>
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 sticky left-32 bg-white min-w-[200px] max-w-[350px] whitespace-normal break-words border-r shadow-xl border-gray-200 hover:bg-gray-50">
                                                 <Link
-                                                    href={`/projectplanogram/${item?.projectid}/uploads`}
+                                                    href={`/retailerPlanogram/${selectedRetailer}/projectplanogram/${item?.projectid}/uploads`}
                                                     className="text-blue-500 hover:text-blue-600"
                                                     title={item?.projName}
                                                 >

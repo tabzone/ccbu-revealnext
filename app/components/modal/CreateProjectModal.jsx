@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { storeExtraction } from "@/app/utils/constants";
 import { useRouter } from "next/navigation";
@@ -8,14 +8,22 @@ import { toast } from "react-toastify";
 
 const getRetailerIdValue = (ret) => ret?.retailerid;
 
-export default function CreateProjectModal({ onCreated }) {
+export default function CreateProjectModal({ onCreated, retailerId: scopedRetailerId, retailerName: scopedRetailerName }) {
+    const isScoped = !!scopedRetailerId;
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(1);
 
     const [loadingRetailers, setLoadingRetailers] = useState(false);
     const [retailerList, setRetailerList] = useState([]);
-    const [selectedRetailer, setSelectedRetailer] = useState(null);
+    const [selectedRetailer, setSelectedRetailer] = useState(
+        isScoped ? { retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId } : null
+    );
     const [submitLoading, setSubmitLoading] = useState(false);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => {
+        if (isScoped) setSelectedRetailer({ retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId });
+    }, [scopedRetailerId, scopedRetailerName, isScoped]);
 
     // Store Extraction is hidden from the UI but still required in the payload.
     // Default: "From File Name / Use PSA File Name"
@@ -50,8 +58,10 @@ export default function CreateProjectModal({ onCreated }) {
     );
 
 
-    const step1Valid = !!selectedRetailer;
+    const step1Valid = isScoped ? true : !!selectedRetailer;
     const step2Valid = !!formData.timePeriod;
+    // When scoped, step 1 = timePeriod, step 2 = review; when global, step 1 = retailer, step 2 = timePeriod, step 3 = review
+    const maxStep = isScoped ? 2 : 3;
 
     const getRetailerList = async () => {
         try {
@@ -86,7 +96,12 @@ export default function CreateProjectModal({ onCreated }) {
 
     const openModal = () => {
         setOpen(true);
-        getRetailerList();
+        if (isScoped) {
+            // scoped mode: keep retailer fixed, fetch time periods early
+            setSelectedRetailer({ retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId });
+        } else {
+            getRetailerList();
+        }
     };
 
     const closeModal = () => {
@@ -97,7 +112,8 @@ export default function CreateProjectModal({ onCreated }) {
         });
 
         setRetailerList([]);
-        setSelectedRetailer(null);
+        if (!isScoped) setSelectedRetailer(null);
+        else setSelectedRetailer({ retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId });
     };
 
     const handleSubmit = async () => {
@@ -125,7 +141,9 @@ export default function CreateProjectModal({ onCreated }) {
             toast.success("Project created successfully! Please wait, redirecting to uploads...");
             if (onCreated) onCreated(data);
             setTimeout(() => {
-                router.push(`/projectplanogram/${data?.projectid}/uploads`);
+                const rid = scopedRetailerId || getRetailerIdValue(selectedRetailer);
+                if (rid) router.push(`/retailerPlanogram/${rid}/projectplanogram/${data?.projectid}/uploads`);
+                else router.push(`/projectplanogram/${data?.projectid}/uploads`);
             }, 800);
         } catch (err) {
             console.error("Error submitting project:", err);
@@ -164,7 +182,7 @@ export default function CreateProjectModal({ onCreated }) {
                     </div>
 
                     <div className="flex items-center gap-0 px-8 py-5 border-b border-gray-100 bg-white flex-shrink-0">
-                        {["Select retailer", "Project settings", "Review"].map((label, index) => {
+                        {(isScoped ? ["Project settings", "Review"] : ["Select retailer", "Project settings", "Review"]).map((label, index) => {
                             const count = index + 1;
                             const active = step === count;
                             const completed = step > count;
@@ -187,7 +205,7 @@ export default function CreateProjectModal({ onCreated }) {
                                             {label}
                                         </span>
                                     </div>
-                                    {index < 2 && (
+                                    {index < (isScoped ? 1 : 2) && (
                                         <div className={`mx-3 hidden h-px flex-1 sm:block ${completed ? "bg-blue-600" : "bg-gray-200"}`} />
                                     )}
                                 </div>
@@ -196,7 +214,7 @@ export default function CreateProjectModal({ onCreated }) {
                     </div>
 
                     <div className="flex-1 overflow-y-auto px-8 py-7">
-                        {step === 1 && (
+                        {!isScoped && step === 1 && (
                             <div className="space-y-5">
                                 <div>
                                     <label className="mb-1.5 block text-sm font-medium text-gray-700">Retailer <span className="text-red-500">*</span></label>
@@ -232,7 +250,7 @@ export default function CreateProjectModal({ onCreated }) {
                                 </div>
                             </div>
                         )}
-                        {step === 2 && (
+                        {(isScoped ? step === 1 : step === 2) && (
                             <div className="space-y-5">
                                 <div>
                                     <label className="mb-1.5 block text-sm font-medium text-gray-700">Time period <span className="text-red-500">*</span></label>
@@ -265,7 +283,7 @@ export default function CreateProjectModal({ onCreated }) {
                             </div>
                         )}
 
-                        {step === 3 && (
+                        {(isScoped ? step === 2 : step === 3) && (
                             <div className="space-y-4">
                                 <h3 className="text-sm font-semibold tracking-wide text-gray-900">Review project details</h3>
                                 <p className="text-xs text-gray-500">Confirm the information before creating</p>
@@ -307,17 +325,20 @@ export default function CreateProjectModal({ onCreated }) {
                                     Back
                                 </button>
                             )}
-                            {step < 3 ? (
+                            {step < maxStep ? (
                                 <button
                                     type="button"
-                                    disabled={(step === 1 && !step1Valid) || (step === 2 && !step2Valid)}
+                                    disabled={isScoped ? !step2Valid : (step === 1 && !step1Valid) || (step === 2 && !step2Valid)}
                                     onClick={async () => {
-                                        if (step === 1) {
+                                        if (!isScoped && step === 1) {
+                                            await getTimePeriodList();
+                                        }
+                                        if (isScoped && step === 1 && timePeriodList.length === 0) {
                                             await getTimePeriodList();
                                         }
                                         setStep((s) => s + 1);
                                     }}
-                                    className={`rounded-lg px-5 py-2 text-sm font-semibold shadow-sm transition ${((step === 1 && !step1Valid) || (step === 2 && !step2Valid))
+                                    className={`rounded-lg px-5 py-2 text-sm font-semibold shadow-sm transition ${(isScoped ? !step2Valid : ((step === 1 && !step1Valid) || (step === 2 && !step2Valid)))
                                         ? "cursor-not-allowed bg-gray-200 text-gray-500"
                                         : "bg-blue-600 text-white hover:bg-blue-700"
                                         }`}

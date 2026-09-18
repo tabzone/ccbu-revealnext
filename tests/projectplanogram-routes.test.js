@@ -379,20 +379,25 @@ describe('CCBU lamdaClient binary handling', () => {
 });
 
 describe('MANAGE PROJECTS retailer select', () => {
-  it('fetches retailers resiliently and renders options for both shapes', () => {
-    const pagePath = path.join(root, 'app/managePlanograms/masterdata/page.js');
-    const content = fs.readFileSync(pagePath, 'utf8');
-    // Should try new apiGet /retailers first, fallback to legacy /getretailers
-    assert.ok(content.includes('apiGet("/retailers")') || content.includes("apiGet('/retailers')"), 'should try apiGet /retailers');
-    assert.ok(content.includes('/getretailers'), 'should fallback to lambdaGet /getretailers');
-    // Must handle both response shapes: retailerid vs id vs retailers
-    assert.ok(content.includes('retailerid ??') && content.includes('?? ret.id'), 'should handle retailerid and id shapes');
-    // Render must not hardcode retailerid only
-    assert.ok(content.includes('const rid = ret.retailerid'), 'should derive rid from multiple keys');
-    assert.ok(content.includes('ret.retailer_name'), 'should handle retailer_name fallback');
-    // Hydration must validate stored id against both shapes
-    assert.ok(content.includes('ret.retailerid ?? ret.id'), 'should validate stored retailer against both shapes');
-    // localStorage key
-    assert.ok(content.includes('manageReportsSelectedRetailer'), 'should use correct storage key');
+  it('retailer-scoped masterdata gets retailerId from route and fetches without selector', () => {
+    const retailerPathId = path.join(root, 'app/retailerPlanogram/[id]/masterdata/page.js');
+    const retailerPathRetailer = path.join(root, 'app/retailerPlanogram/[retailerId]/masterdata/page.js');
+    const retailerPath = fs.existsSync(retailerPathRetailer) ? retailerPathRetailer : retailerPathId;
+    const content = fs.readFileSync(retailerPath, 'utf8');
+    // Must get retailerId from route params (supports retailerId or id)
+    assert.ok(content.includes('useParams') && (content.includes('params?.id') || content.includes('params?.retailerId') || content.includes('retailerId')), 'retailer-scoped masterdata must get retailerId from useParams');
+    assert.ok(content.includes('/listprojects/${retailerId'), 'should fetch /listprojects/${retailerId}');
+    // Must pass retailerId to CreateProjectModal
+    assert.ok(content.includes('CreateProjectModal') && content.includes('retailerId={retailerId}'), 'should pass retailerId to CreateProjectModal');
+    // Must NOT use legacy global retailer selector storage
+    assert.ok(!content.includes('manageReportsSelectedRetailer') && !content.includes('STORAGE_KEY'), 'retailer-scoped must not use legacy retailer selector storage');
+    assert.ok(!content.includes('Select retailer:') && !content.includes('Select retailer</label>'), 'must not have legacy retailer dropdown label');
+  });
+  it('legacy global managePlanograms redirects to manageReports', () => {
+    const legacyPath = path.join(root, 'app/managePlanograms/masterdata/page.js');
+    const content = fs.readFileSync(legacyPath, 'utf8');
+    assert.ok(content.includes('/manageReports'), 'legacy global page should redirect to /manageReports');
+    // proxy redirect is optional - legacy page client redirect is sufficient
+    assert.ok(fs.existsSync(legacyPath), 'legacy global page should exist as redirect');
   });
 });

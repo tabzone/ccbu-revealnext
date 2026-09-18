@@ -26,8 +26,9 @@ function extractRetailerId(project) {
 export function useProject() {
   const params = useParams();
   const pathname = usePathname();
-  const id = params?.id;
-  const isProjectPlanogram = pathname?.startsWith("/projectplanogram");
+  const id = params?.projectId ?? params?.id;
+  const retailerIdParam = params?.retailerId ?? params?.id;
+  const isProjectPlanogram = pathname?.includes("/projectplanogram");
   const [project, setProject] = useState(() => (cache.id === id ? cache.project : null));
   const [loading, setLoading] = useState(() => !(cache.id === id && cache.project));
   const [error, setError] = useState(null);
@@ -61,9 +62,10 @@ export function useProject() {
     };
   }, [id, isProjectPlanogram]);
 
-  const retailerId = extractRetailerId(project);
+  const isRetailerScoped = pathname?.includes("/retailerPlanogram/") && pathname?.includes("/projectplanogram/");
+  const retailerId = isRetailerScoped ? retailerIdParam : extractRetailerId(project);
 
-  return { project, retailerId, loading, error, id };
+  return { project, retailerId, loading, error, id, projectId: id };
 }
 
 export function getRetailerIdFromProject(project) {
