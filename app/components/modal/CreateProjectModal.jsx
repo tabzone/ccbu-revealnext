@@ -182,7 +182,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                     <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200 flex-shrink-0">
                         <div>
                             <h2 className="text-[18px] font-semibold tracking-tight text-gray-900">Create project</h2>
-                            <p className="mt-1 text-sm text-gray-500">Set up a new planogram project</p>
+                            {/* <p className="mt-1 text-sm text-gray-500">Set up a new planogram project</p> */}
                         </div>
                         <button
                             type="button"
@@ -194,14 +194,14 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-0 px-8 py-5 border-b border-gray-100 bg-white flex-shrink-0">
+                    <div className="flex items-center justify-center w-full gap-0 px-8 py-5 border-b border-gray-100 bg-white flex-shrink-0">
                         {(isScoped ? ["Project settings", "Review"] : ["Select retailer", "Project settings", "Review"]).map((label, index) => {
                             const count = index + 1;
                             const active = step === count;
                             const completed = step > count;
                             return (
-                                <div key={count} className="flex flex-1 items-center gap-3">
-                                    <div className="flex items-center gap-2.5">
+                                <div key={count} className="flex flex-1 items-center justify-center gap-3">
+                                    <div className="flex items-center justify-center gap-2.5">
                                         <div
                                             className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold transition ${active
                                                 ? "border-blue-600 bg-blue-600 text-white shadow-sm"
@@ -214,13 +214,13 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
                                             ) : count}
                                         </div>
-                                        <span className={`text-sm ${active ? "font-semibold text-gray-900" : completed ? "font-medium text-gray-700" : "font-medium text-gray-500"}`}>
+                                        
+                                        <span className={`text-sm ${active ? "font-semibold text-gray-900 border-b-2 border-blue-600" : completed ? "font-medium text-gray-700 " : "font-medium text-gray-500 "}`}>
                                             {label}
                                         </span>
+                                        
                                     </div>
-                                    {index < (isScoped ? 1 : 2) && (
-                                        <div className={`mx-3 hidden h-px flex-1 sm:block ${completed ? "bg-blue-600" : "bg-gray-200"}`} />
-                                    )}
+                                    
                                 </div>
                             );
                         })}
@@ -267,7 +267,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                             <div className="space-y-5">
                                 <div>
                                     <label className="mb-1.5 block text-sm font-medium text-gray-700">Time period <span className="text-red-500">*</span></label>
-                                    <p className="mb-3 text-xs text-gray-500">Select the fiscal period for this recap</p>
+                                    {/* <p className="mb-3 text-xs text-gray-500">Select the fiscal period for this recap</p> */}
                                     <select
                                         value={formData.timePeriod}
                                         onChange={(e) => handleChange("timePeriod", e.target.value)}
@@ -323,7 +323,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                             type="button"
                             disabled={submitLoading}
                             onClick={closeModal}
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 transition"
+                            className="rounded-lg cursor-pointer border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 transition"
                         >
                             Cancel
                         </button>
@@ -351,7 +351,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                         }
                                         setStep((s) => s + 1);
                                     }}
-                                    className={`rounded-lg px-5 py-2 text-sm font-semibold shadow-sm transition ${(isScoped ? !step2Valid : ((step === 1 && !step1Valid) || (step === 2 && !step2Valid)))
+                                    className={`cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold shadow-sm transition ${(isScoped ? !step2Valid : ((step === 1 && !step1Valid) || (step === 2 && !step2Valid)))
                                         ? "cursor-not-allowed bg-gray-200 text-gray-500"
                                         : "bg-blue-600 text-white hover:bg-blue-700"
                                         }`}
@@ -363,7 +363,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                     type="button"
                                     disabled={submitLoading}
                                     onClick={handleSubmit}
-                                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-40 transition"
+                                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-40 transition"
                                 >
                                     {submitLoading && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />}
                                     {submitLoading ? 'Creating...' : 'Create project'}
