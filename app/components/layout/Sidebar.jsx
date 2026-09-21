@@ -143,8 +143,9 @@ export default function Sidebar({ isOpen }) {
             </svg>
           ),
           children: [
-            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
             { label: "Manage Timeperiod", href: `/retailerPlanogram/${id}/timeperiod` },
+            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
+
           ],
         },
         {
@@ -170,7 +171,7 @@ export default function Sidebar({ isOpen }) {
             </svg>
           ),
         },
-        
+
       ];
     }
 
