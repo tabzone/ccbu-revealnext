@@ -45,17 +45,17 @@ describe('CreateProjectModal - getTimePeriod on Create Project click (scoped mas
   });
 });
 
-describe('CreateProjectModal - project name uses retailer name + state (dynamic)', () => {
-  it('project name format is Recap_{retailerName}_{timePeriod}_{state}_{date} with actual retailer name and state, not ID', () => {
+describe('CreateProjectModal - project name uses retailer name (dynamic) without state', () => {
+  it('project name format is Recap_{retailerName}_{timePeriod}_{date} with actual retailer name, not ID, no state', () => {
     const modal = fs.readFileSync(path.join(root, 'app/components/modal/CreateProjectModal.jsx'), 'utf8');
-    // Must include retailer name and state in projectName, not hardcoded retailer ID literal
+    // Must include retailer name in projectName, not hardcoded retailer ID literal, and must NOT include state
     assert.ok(modal.includes('selectedRetailer?.name'), 'projectName must use selectedRetailer.name (actual retailer name) not retailer ID');
-    assert.ok(modal.includes('formData.state'), 'projectName must include formData.state');
-    // Check format: Recap_ + retailer + timePeriod + state + todays
+    assert.ok(!modal.includes('formData.state'), 'projectName must NOT include formData.state after state removal');
+    assert.ok(!modal.includes('US_STATES'), 'must not define US_STATES after state removal');
+    assert.ok(!modal.includes('String(formData.state'), 'state must not be part of projectName');
+    // Check format: Recap_ + retailer + timePeriod + todays (without state)
     assert.ok(modal.includes('`Recap_${'), 'projectName must start with Recap_ (capital R only, not RECAP_)');
     assert.ok(!modal.includes('RECAP_'), 'must not use RECAP_ uppercase - required is Recap_');
-    // Ensure state is part of projectName with underscore replacement
-    assert.ok(modal.includes('String(formData.state'), 'state must be sanitized with replace for projectName');
     // Ensure no hardcoded retailer ID in projectName formation
     assert.ok(!modal.includes('4e221Q27Pk'), 'CreateProjectModal must not hardcode retailer ID in projectName');
     // Ensure formatted name is not uppercased (required mixed case)
@@ -67,18 +67,23 @@ describe('CreateProjectModal - project name uses retailer name + state (dynamic)
     // Retailer display in Review must be without underscore
     assert.ok(modal.includes("replace(/_/g, \" \")") || modal.includes("replace(/_/g, ' ')"), 'Retailer in Review must display without underscores (replace _ with space)');
     assert.ok(modal.includes("Parker's Kitchen") || modal.includes("Parker"), 'review should be able to show Parkers Kitchen (test allows dynamic)');
+    // Verify projectName block does not contain state
+    const projIdx = modal.indexOf('const projectName');
+    const projBlock = modal.slice(projIdx, projIdx + 500);
+    assert.ok(!projBlock.includes('formData.state'), 'projectName block must not reference formData.state');
   });
 
-  it('has dynamic state dropdown with US states including South Carolina', () => {
+  it('has no state dropdown and Review has no State row', () => {
     const modal = fs.readFileSync(path.join(root, 'app/components/modal/CreateProjectModal.jsx'), 'utf8');
-    assert.ok(modal.includes('US_STATES'), 'must define US_STATES list for dynamic state selection');
-    assert.ok(modal.includes('South Carolina'), 'US_STATES must include South Carolina');
-    assert.ok(modal.includes('value={formData.state}'), 'state dropdown must bind to formData.state');
-    assert.ok(modal.includes('US_STATES.map'), 'state dropdown must map over US_STATES dynamically, not hardcoded single option');
-    assert.ok(modal.includes('State') && modal.includes('Please Select'), 'state dropdown must have label State and placeholder');
-    // Validation requires state
-    assert.ok(modal.includes('!!formData.state') || modal.includes('formData.state'), 'step validation must require state');
-    // Review must show State
-    assert.ok(modal.includes('"State"') || modal.includes("'State'"), 'Review must include State row');
+    assert.ok(!modal.includes('US_STATES'), 'must not define US_STATES after removal');
+    assert.ok(!modal.includes('South Carolina'), 'must not include South Carolina after removal');
+    assert.ok(!modal.includes('value={formData.state}'), 'state dropdown must be removed');
+    assert.ok(!modal.includes('US_STATES.map'), 'must not map over US_STATES');
+    // Validation must NOT require state (only timePeriod)
+    assert.ok(modal.includes('const step2Valid = !!formData.timePeriod'), 'step2Valid must be !!formData.timePeriod only');
+    assert.ok(!modal.includes('!!formData.state'), 'step validation must not require state');
+    // Review must NOT show State row
+    assert.ok(!modal.includes('"State"') && !modal.includes("'State'"), 'Review must not include State row');
+    assert.ok(modal.includes('"Project Name"') && modal.includes('"Retailer"') && modal.includes('"Time Period"'), 'Review must include Project Name, Retailer, Time Period');
   });
 });

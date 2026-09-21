@@ -10,11 +10,11 @@ export default function ProjectRootRedirect() {
   const th = useAppTheme();
   const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   useEffect(() => {
-    if (id) router.replace(`/projectplanogram/${projectId}/uploads`);
-  }, [id, router]);
+    if (projectId) router.replace(`/projectplanogram/${projectId}/uploads`);
+  }, [projectId, router]);
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: th.bg }}>
-      <p className="text-sm" style={{ color: th.textSec }}>Redirecting to project {id}...</p>
+      <p className="text-sm" style={{ color: th.textSec }}>Redirecting to project {projectId}...</p>
     </div>
   );
 }

@@ -198,14 +198,14 @@ const SwipeCards = () => {
   }, [projectId]);
 
   useEffect(() => {
-    if (id && retailerId) {
+    if (projectId && retailerId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchProjectProducts();
     }
   }, [projectId, retailerId]);
 
   useEffect(() => {
-    if (id && retailerId) {
+    if (projectId && retailerId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchProjectPlanogramHierarchy(selectedFilter);
     }

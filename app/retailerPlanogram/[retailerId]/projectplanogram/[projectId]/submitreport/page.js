@@ -52,7 +52,7 @@ function Page() {
 
   // CCBU adaptation: no Redux store — use local project fetch instead
   const singleProject = null;
-  const currentProjectId = id;
+  const currentProjectId = projectId;
   const setSingleProjectLoading = false;
 
   const getRetailerIdFromProject = (project) => {
