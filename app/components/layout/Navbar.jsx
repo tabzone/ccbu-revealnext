@@ -21,13 +21,15 @@ export default function Navbar({ onToggleSidebar }) {
   const menuRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
-  const isRetailerPlanogram = pathname?.startsWith("/retailerPlanogram");
-  const isProjectPlanogram = pathname?.startsWith("/projectplanogram");
+  const isProjectRoute = pathname?.includes("/projectplanogram");
+  const isRetailerPlanogram = pathname?.startsWith("/retailerPlanogram") && !pathname?.includes("/projectplanogram");
+  const isProjectPlanogram = isProjectRoute;
   const parts = pathname?.split("/") || [];
   const retailerId = parts[2];
 
   const [retailerName, setRetailerName] = useState("Retailer Planogram");
   const { project: currentProject, loading: projectLoading } = useProject();
+  const projectName = currentProject?.projName || currentProject?.projectName || currentProject?.name || currentProject?.project?.projName || currentProject?.project?.projectName || "";
   const [editModal, setEditModal] = useState(false);
 
   useEffect(() => {
@@ -121,7 +123,7 @@ export default function Navbar({ onToggleSidebar }) {
         {isProjectPlanogram && (
           <div className="flex items-center gap-2">
             <Link
-              href={'/manageReports'}
+                href={`/retailerPlanogram/${retailerId}/masterdata`}
               className="flex items-center gap-1 px-2 py-1 border border-gray-400 ml-2 cursor-pointer text-sm"
               style={{ color: textSecondary, borderColor: dropdownBorder }}
             >
