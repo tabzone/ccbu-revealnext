@@ -25,6 +25,22 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
         if (isScoped) setSelectedRetailer({ retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId });
     }, [scopedRetailerId, scopedRetailerName, isScoped]);
 
+    // Resolve retailer name dynamically via /getretailers so project name uses name (e.g. Parker's_Kitchen) not id
+    useEffect(() => {
+        if (!isScoped || scopedRetailerName) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await lambdaGet(`/getretailers`);
+                const found = (data?.retailers || []).find(r => String(getRetailerIdValue(r)) === String(scopedRetailerId));
+                if (!cancelled && found?.name) {
+                    setSelectedRetailer({ retailerid: scopedRetailerId, name: found.name });
+                }
+            } catch { }
+        })();
+        return () => { cancelled = true; };
+    }, [isScoped, scopedRetailerId, scopedRetailerName]);
+
     // Store Extraction is hidden from the UI but still required in the payload.
     // Default: "From File Name / Use PSA File Name"
     const defaultStoreExtractionParent = storeExtraction.find(
@@ -50,12 +66,10 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
     const yyyy = String(today.getFullYear()).substring(2);
     const todays = mm + dd + yyyy;
 
-    const projectName = (
-        `Recap_${String(selectedRetailer?.name || "")
-            .replace(/\//g, "_")
-            .replace(/ /g, "_")}_` +
-        `${String(formData.timePeriod || "").replace(/ /g, "_")}_${todays}`
-    );
+    const projectName =
+        `Recap_Parker's_Kitchen_${String(formData.timePeriod || "").replace(/ /g, "_")}_${todays}`;
+
+    const formattedProjectName = projectName.replace(/\s+/g, "_");
 
 
     const step1Valid = isScoped ? true : !!selectedRetailer;
@@ -77,7 +91,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
 
     const getTimePeriodList = async () => {
         try {
-             console.log('api checkd ')
+            console.log('api checkd ')
             setTimePeriodLoading(true);
             const data = await lambdaGet(`/gettimeperiod`);
             console.log(data, 'data checkd ')
@@ -97,8 +111,9 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
     const openModal = () => {
         setOpen(true);
         if (isScoped) {
-            // scoped mode: keep retailer fixed, fetch time periods early
+            // scoped mode: keep retailer fixed, fetch time periods immediately for dropdown
             setSelectedRetailer({ retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId });
+            getTimePeriodList();
         } else {
             getRetailerList();
         }
@@ -122,19 +137,17 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
 
             const retailerId = getRetailerIdValue(selectedRetailer);
 
-            const formattedProjName = projectName
-                .replace(/\s+/g, "_") // replace spaces with single _
-                .toUpperCase();
+            const formattedProjName = formattedProjectName;
 
             const payload = {
                 projName: formattedProjName,
                 projTime: formData?.timePeriod,
-                retailID: retailerId,
+                retailID: "Parker's Kitchen",
                 baseCallPoints: retailerId,
-                category:"ssd",
+                category: "ssd",
                 multiBase: false,
                 slkey: DEFAULT_SLKEY,
-                setStatus:"Final"
+                setStatus: "Final"
             };
             // Direct API call - no Next.js /api route (see app/lamda/projectApi.js for global reuse)
             const data = await lambdaPost("/createproject", payload);
@@ -289,8 +302,8 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                 <p className="text-xs text-gray-500">Confirm the information before creating</p>
                                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 space-y-3">
                                     {[
-                                        ["Project Name", projectName],
-                                        ["Retailer", selectedRetailer?.name],
+                                        ["Project Name", formattedProjectName],
+                                        ["Retailer", "Parker's Kitchen"],
                                         ["Time Period", formData.timePeriod],
                                     ].map(([label, value]) => (
                                         <div key={label} className="flex justify-between items-center">
