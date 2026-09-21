@@ -117,13 +117,13 @@ const Page = () => {
           <div className="flex justify-between">
             <div className="flex gap-4 items-center">
               <CreateProjectModal retailerId={retailerId} onCreated={() => fetchProjectList(projectType)} />
-              <button
+              {/* <button
                 onClick={handleClearFilter}
                 type="button"
                 className="flex items-center gap-1 px-4 py-1 cursor-pointer bg-blue-400 hover:bg-blue-500 text-white border border-gray-300 transition"
               >
                 Clear filter
-              </button>
+              </button> */}
             </div>
             <div>
               <button
