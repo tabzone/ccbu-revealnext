@@ -27,7 +27,7 @@ describe('Retailer navigation refactor - Manage Planograms -> retailer scoped', 
     const sidebar = fs.readFileSync(path.join(root, 'app/components/layout/Sidebar.jsx'), 'utf8');
     // Retailer block should contain Manage Planograms
     assert.ok(sidebar.includes('if (pathname?.startsWith("/retailerPlanogram"))'), 'retailerPlanogram sidebar block must exist');
-    // Find retailer block and check order: Master Data, Weekly Sales Upload, Settings, Manage Planograms
+    // Find retailer block and check order: Master Data -> Manage Planograms -> Weekly Sales Upload -> Settings
     const retailerBlockStart = sidebar.indexOf('if (pathname?.startsWith("/retailerPlanogram"))');
     const retailerBlock = sidebar.slice(retailerBlockStart);
     const idxMaster = retailerBlock.indexOf('"Master Data"');
@@ -35,11 +35,14 @@ describe('Retailer navigation refactor - Manage Planograms -> retailer scoped', 
     const idxSettings = retailerBlock.indexOf('"Settings"');
     const idxManage = retailerBlock.indexOf('"Manage Planograms"');
     assert.ok(idxMaster !== -1 && idxWeekly !== -1 && idxSettings !== -1 && idxManage !== -1, 'retailer sidebar must contain all 4 sections');
-    assert.ok(idxMaster < idxWeekly && idxWeekly < idxSettings && idxSettings < idxManage, 'order must be Master Data -> Weekly Sales Upload -> Settings -> Manage Planograms (Manage Planograms below Settings)');
-    // Children of Manage Planograms
+    assert.ok(idxMaster < idxManage && idxManage < idxWeekly && idxWeekly < idxSettings, 'order must be Master Data -> Manage Planograms -> Weekly Sales Upload -> Settings (Manage Planograms after Master Data)');
+    // Children of Manage Planograms - Manage Timeperiod must be first
     const manageSection = retailerBlock.slice(idxManage, idxManage + 1000);
     assert.ok(manageSection.includes('Manage Projects'), 'Manage Planograms must have Manage Projects child');
     assert.ok(manageSection.includes('Manage Timeperiod'), 'Manage Planograms must have Manage Timeperiod child');
+    const idxTimeperiod = manageSection.indexOf('Manage Timeperiod');
+    const idxProjects = manageSection.indexOf('Manage Projects');
+    assert.ok(idxTimeperiod !== -1 && idxProjects !== -1 && idxTimeperiod < idxProjects, 'Manage Timeperiod must be first inside Manage Planograms');
     // Must use retailerId param, not hardcoded (supports ${id} or ${retailerId})
     assert.ok(manageSection.includes('/retailerPlanogram/${id}/masterdata') || manageSection.includes('/retailerPlanogram/${retailerId}/masterdata'), 'Manage Projects href must be /retailerPlanogram/${id or retailerId}/masterdata with dynamic id');
     assert.ok(manageSection.includes('/retailerPlanogram/${id}/timeperiod') || manageSection.includes('/retailerPlanogram/${retailerId}/timeperiod'), 'Manage Timeperiod href must be /retailerPlanogram/${id or retailerId}/timeperiod with dynamic id');
