@@ -58,11 +58,11 @@ const PublishModal = ({
     };
 
     const fetchStores = async () => {
-        if (!projectId) return;
+        if (!projectId || !retailerId) return;
         try {
             setStoreLoading(true);
             setStoreError(null);
-            const data = await lambdaGet(`/projectstorelist/${projectId}`);
+            const data = await lambdaGet(`/projectstorelist/${retailerId}/${projectId}`);
             let list = [];
             if (Array.isArray(data)) list = data;
             else if (Array.isArray(data?.data)) list = data.data;

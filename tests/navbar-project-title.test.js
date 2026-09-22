@@ -72,4 +72,19 @@ describe('Navbar - project routes show Project Name via GET /getproject/:id', ()
     // retailerId for retailer fetch must be dynamic from parts[2] or params
     assert.ok(navbar.includes('parts[2]') || navbar.includes('retailerId'), 'retailerId must be derived dynamically');
   });
+
+  it('prevents flash between retailer and project name with stable container', () => {
+    const navbar = fs.readFileSync(path.join(root, 'app/components/layout/Navbar.jsx'), 'utf8');
+    // Must have stable container that reserves space to avoid layout shift
+    assert.ok(navbar.includes('min-w-[280px]') && navbar.includes('min-h-[36px]'), 'Navbar must have stable container min-w/min-h to prevent flash/layout shift');
+    // Must use mounted guard to avoid hydration flash
+    assert.ok(navbar.includes('mounted') && navbar.includes('setMounted'), 'Navbar must use mounted guard to prevent initial flash');
+    // Must show skeleton only when loading and no cached project (avoid flashing skeleton over stale project name)
+    assert.ok(navbar.includes('projectLoading && !currentProject'), 'Project skeleton must only show when loading and no currentProject to avoid flashing over stale name');
+    // Retailer must not flash generic Retailer ${id} -> use retailerLoading and keep stale name
+    assert.ok(navbar.includes('retailerLoading'), 'Retailer must use loading state to avoid flashing generic name');
+    assert.ok(!navbar.includes('setRetailerName(`Retailer ${retailerId}`)'), 'Must not set generic Retailer ${id} flash');
+    // Stable container must wrap both retailer and project branches
+    assert.ok(navbar.includes('mounted && isProjectPlanogram') && navbar.includes('mounted && isRetailerPlanogram'), 'Both branches must be gated by mounted to prevent hydration flash');
+  });
 });

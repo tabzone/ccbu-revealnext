@@ -27,19 +27,21 @@ export default function Navbar({ onToggleSidebar }) {
   const parts = pathname?.split("/") || [];
   const retailerId = parts[2];
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [retailerName, setRetailerName] = useState("Retailer Planogram");
+  const [retailerLoading, setRetailerLoading] = useState(false);
   const { project: currentProject, loading: projectLoading } = useProject();
   const projectName = currentProject?.projName || currentProject?.projectName || currentProject?.name || currentProject?.project?.projName || currentProject?.project?.projectName || "";
   const [editModal, setEditModal] = useState(false);
 
   useEffect(() => {
     if (!isRetailerPlanogram || !retailerId) {
-      setRetailerName("Retailer Planogram");
       return;
     }
 
     let cancelled = false;
-    setRetailerName(`Retailer ${retailerId}`);
+    setRetailerLoading(true);
 
     apiGet(`/retailers/${retailerId}`)
       .then((res) => {
@@ -48,7 +50,10 @@ export default function Navbar({ onToggleSidebar }) {
         const name = retailer?.name ?? retailer?.retailer_name;
         if (name) setRetailerName(name);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setRetailerLoading(false);
+      });
 
     return () => {
       cancelled = true;
@@ -119,82 +124,89 @@ export default function Navbar({ onToggleSidebar }) {
         </Link>
         <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} className="ml-5"/>
 
-        {/* Project Planogram context — V3 behavior */}
-        {isProjectPlanogram && (
-          <div className="flex items-center gap-2">
-            <Link
+        {/* Retailer / Project context — stable container prevents flash between retailer and project name */}
+        <div className="flex items-center min-w-[280px] min-h-[36px] flex-shrink-0">
+          {mounted && isProjectPlanogram ? (
+            <div className="flex items-center gap-2">
+              <Link
                 href={`/retailerPlanogram/${retailerId}/masterdata`}
-              className="flex items-center gap-1 px-2 py-1 border border-gray-400 ml-2 cursor-pointer text-sm"
-              style={{ color: textSecondary, borderColor: dropdownBorder }}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Exit Project
-            </Link>
-            {projectLoading ? (
-              <div className="h-5 w-96 bg-gray-200 rounded animate-pulse"></div>
-            ) : currentProject ? (
-              <div className="flex gap-2 items-center ">
-                <span
-                  className="text-gray-600 italic text-base max-w-[150px] md:max-w-[400px] truncate block"
-                  title={currentProject?.projName}
-                  style={{ color: isDark ? textPrimary : "#4b5563" }}
-                >
-                  {currentProject?.projName}
-                </span>
-                <button
-                  onClick={() => setEditModal(true)}
-                  className="cursor-pointer text-blue-500 hover:text-blue-600"
-                >
-                  <PencilLine className="w-4 h-4" />
-                </button>
-                <button className="border px-1 border-gray-400 text-gray-400 text-sm">{currentProject?.retailerName}</button>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        {/* Left Section - Retailer Back Button & Project Info (existing) */}
-        {isRetailerPlanogram && (
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/manageReports")}
-              className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 cursor-pointer"
-              style={{
-                color: textSecondary,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = accent;
-                e.currentTarget.style.backgroundColor = hoverBg;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = textSecondary;
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-              aria-label="Go back"
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-
-            <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }}  />
-
-            <div className="flex flex-col gap-1">
-              <h1 style={{ color: textPrimary }} className="text-base font-semibold">
-                {retailerName}
-              </h1>
-              <p style={{ color: textSecondary }} className="text-xs">
-                Retailer Planogram
-              </p>
+                className="flex items-center gap-1 px-2 py-1 border border-gray-400 ml-2 cursor-pointer text-sm flex-shrink-0"
+                style={{ color: textSecondary, borderColor: dropdownBorder }}
+              >
+                <ArrowLeft className="w-5 h-5" />
+                Exit Project
+              </Link>
+              {projectLoading && !currentProject ? (
+                <div className="h-5 w-60 bg-gray-200 rounded animate-pulse flex-shrink-0" style={{ backgroundColor: isDark ? "#3f3f3f" : "#e5e7eb" }}></div>
+              ) : currentProject ? (
+                <div className="flex gap-2 items-center ">
+                  <span
+                    className="text-gray-600 italic text-base max-w-[150px] md:max-w-[400px] truncate block"
+                    title={currentProject?.projName}
+                    style={{ color: isDark ? textPrimary : "#4b5563" }}
+                  >
+                    {currentProject?.projName}
+                  </span>
+                  <button
+                    onClick={() => setEditModal(true)}
+                    className="cursor-pointer text-blue-500 hover:text-blue-600"
+                  >
+                    <PencilLine className="w-4 h-4" />
+                  </button>
+                  <button className="border px-1 border-gray-400 text-gray-400 text-sm">{currentProject?.retailerName}</button>
+                </div>
+              ) : (
+                <div className="h-5 w-40 bg-transparent flex-shrink-0"></div>
+              )}
             </div>
-          </div>
-        )}
+          ) : mounted && isRetailerPlanogram ? (
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push("/manageReports")}
+                className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 cursor-pointer flex-shrink-0"
+                style={{
+                  color: textSecondary,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = accent;
+                  e.currentTarget.style.backgroundColor = hoverBg;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = textSecondary;
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+                aria-label="Go back"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M15 18L9 12L15 6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+
+              <div style={{ height: "28px", width: "1px", backgroundColor: borderColor }} className="flex-shrink-0" />
+
+              <div className="flex flex-col gap-1 min-w-[160px]">
+                {retailerLoading && retailerName === "Retailer Planogram" ? (
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" style={{ backgroundColor: isDark ? "#3f3f3f" : "#e5e7eb" }}></div>
+                ) : (
+                  <h1 style={{ color: textPrimary }} className="text-base font-semibold truncate">
+                    {retailerName}
+                  </h1>
+                )}
+                <p style={{ color: textSecondary }} className="text-xs">
+                  Retailer Planogram
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-[280px] h-[36px] flex-shrink-0" aria-hidden="true" />
+          )}
+        </div>
 
         {/* Spacer */}
         <div className="flex-1" />

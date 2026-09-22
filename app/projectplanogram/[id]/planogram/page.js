@@ -235,19 +235,7 @@ const Page = () => {
       });
 
       if (!id) throw new Error("Missing project id");
-      // Use retailer-aware path when available, with legacy fallback for backward compat
-      const primaryPath = retailerId ? `/downloadurl/${retailerId}/${id}/POG` : `/downloadurl/${id}/POG`;
-      let res;
-      try {
-        res = await lambdaGet(primaryPath);
-      } catch (innerErr) {
-        // Fallback to legacy without retailer if primary 404s (covers mixed backend rollout)
-        if (retailerId && /404|Failed/i.test(innerErr?.message || "")) {
-          res = await lambdaGet(`/downloadurl/${id}/POG`);
-        } else {
-          throw innerErr;
-        }
-      }
+      const res = await lambdaGet(`/downloadurl/${id}/POG`);
       const downloadUrl =
         res?.downloadUrl || res?.url || res?.data?.downloadUrl || res?.data?.url || (typeof res === "string" ? res : null);
       if (!downloadUrl || typeof downloadUrl !== "string" || !/^https?:\/\//.test(downloadUrl)) {

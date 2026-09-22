@@ -391,7 +391,7 @@ function Page() {
 
   return (
     <AppLayout>
-    <div className="flex flex-col gap-4 w-full h-full min-h-0 overflow-hidden p-2 rounded-2xl" style={{ backgroundColor: th.bgSub }}>
+    <div className="flex flex-col gap-4 w-full min-h-0 p-2 pb-8 rounded-2xl" style={{ backgroundColor: th.bgSub }}>
 
       <div className="flex flex-col md:flex-row gap-6 shrink-0 relative">
         <div className="w-full rounded-2xl border shadow-sm" style={{ backgroundColor: th.bg, borderColor: th.border }}>
@@ -668,7 +668,7 @@ function Page() {
           Reload
         </button>
       </div>
-      <div className="flex-1 overflow-auto min-h-0">
+      <div className="w-full overflow-x-auto overflow-y-visible shrink-0 min-h-[320px]">
         <PublishProjectReqTable
           theme={th}
           data={paginatedData}

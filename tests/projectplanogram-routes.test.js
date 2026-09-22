@@ -341,10 +341,10 @@ describe('CCBU Planogram download resilience', () => {
   it('uses retailer-aware downloadurl with fallback and validates URL', () => {
     const pagePath = path.join(root, 'app/projectplanogram/[id]/planogram/page.js');
     const content = fs.readFileSync(pagePath, 'utf8');
-    // Must use retailerId-aware primary path
-    assert.ok(content.includes('/downloadurl/${retailerId}/${id}/POG'), 'should call /downloadurl/${retailerId}/${id}/POG when retailerId available');
-    // Legacy fallback for mixed backend
-    assert.ok(content.includes('/downloadurl/${id}/POG'), 'should fallback to /downloadurl/${id}/POG');
+    // Per user request 2026-09-22: legacy [id] planogram must call only /downloadurl/${id}/POG (no retailer-aware fallback)
+    assert.ok(content.includes('/downloadurl/${id}/POG'), 'should call /downloadurl/${id}/POG');
+    // Retailer-aware path is handled in retailerPlanogram route, not legacy [id] route
+    assert.ok(!content.includes('/downloadurl/${retailerId}/${id}/POG'), 'legacy [id] route should not use retailer-aware path');
     // Flexible extraction: downloadUrl || url || data.downloadUrl || string
     assert.ok(content.includes('downloadUrl') && content.includes('|| res?.url'), 'should handle both downloadUrl and url shapes');
     assert.ok(content.includes('typeof res === "string"'), 'should handle string response');

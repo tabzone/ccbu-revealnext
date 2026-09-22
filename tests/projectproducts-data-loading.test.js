@@ -81,8 +81,8 @@ describe('projectproducts data loading - fetching not stuck', () => {
     assert.ok(c.includes('const { retailerId, projectId } = useParams()'), 'should destructure retailerId and projectId');
     assert.ok(!c.match(/const\s*\{\s*id\s*\}\s*=\s*useParams\(\)/), 'should not destructure bare id');
     assert.ok(c.includes('/projecttotals/${projectId}'), 'should call /projecttotals/${projectId} with projectId');
-    assert.ok(c.includes('/projectstorelist/${projectId}'), 'should call /projectstorelist/${projectId}');
-    assert.ok(c.includes('if (!projectId) return') || c.includes('if (step === 2 && projectId)'), 'should guard with projectId');
+    assert.ok(c.includes('/projectstorelist/${retailerId}/${projectId}'), 'should call /projectstorelist/${retailerId}/${projectId}');
+    assert.ok(c.includes('if (!projectId || !retailerId) return') || c.includes('if (step === 2 && projectId)'), 'should guard with projectId and retailerId');
     assert.ok(c.includes('updateRequest(') && c.includes('projectId,'), 'should pass projectId to updateRequest/polling');
   });
 
