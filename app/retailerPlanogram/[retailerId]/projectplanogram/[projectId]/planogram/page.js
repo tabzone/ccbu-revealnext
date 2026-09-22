@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw } fr
 import { CloseCircleIcon, DownloadIcon, SearchIcon } from "./components/icons";
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
-import { useProject } from "@/app/hooks/useProject";
 import useAppTheme from "@/app/hooks/useAppTheme";
 
 const Page = () => {
@@ -29,8 +28,6 @@ const Page = () => {
 
 
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
-  const { retailerId: hookRetailerId } = useProject();
 
   const filteredTableData = useMemo(() => {
     let filtered = Array.isArray(tableData) ? [...tableData] : [];

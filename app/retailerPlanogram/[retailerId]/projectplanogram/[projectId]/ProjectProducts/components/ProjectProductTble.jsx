@@ -18,9 +18,7 @@ const ProjectProductTble = ({ data, loading, sortConfig, onSort, theme }) => {
 
     const [storeData, setStoreData] = useState([]);
     const [storeLoading, setStoreLoading] = useState(false);
-    const params = useParams()
-
-    const { id } = params
+    const { retailerId, projectId } = useParams();
 
     const normalizeMissingValues = (product) => Object.fromEntries(
         Object.entries(product).map(([key, value]) => [
@@ -81,7 +79,7 @@ const ProjectProductTble = ({ data, loading, sortConfig, onSort, theme }) => {
     const fetchPlanograms = async (upc) => {
         try {
             setPlanogramLoading(true);
-            const data = await lambdaGet(`/getupcpogstoredata/${id}/${upc}`);
+            const data = await lambdaGet(`/getupcpogstoredata/${projectId}/${upc}`);
             setPlanogramData(data || []);
             if (!data || data.error) {
                 console.log(data.error);
@@ -99,7 +97,7 @@ const ProjectProductTble = ({ data, loading, sortConfig, onSort, theme }) => {
     const fetchStores = async (upc) => {
         try {
             setStoreLoading(true);
-            const data = await lambdaGet(`/getupcstoredata/${id}/${upc}`);
+            const data = await lambdaGet(`/getupcstoredata/${projectId}/${upc}`);
             setStoreData(data || []);
             if (!data || data.error) {
                 console.log(data.error);

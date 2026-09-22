@@ -48,7 +48,6 @@ function Page() {
   const [rowsPerPage, setRowsPerPage] = useState(50)
 
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
 
   // CCBU adaptation: no Redux store — use local project fetch instead
   const singleProject = null;

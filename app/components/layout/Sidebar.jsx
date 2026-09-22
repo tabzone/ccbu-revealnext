@@ -134,21 +134,6 @@ export default function Sidebar({ isOpen }) {
           ],
         },
         {
-          label: "Manage Planograms",
-          href: "#",
-          icon: (
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-              <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          ),
-          children: [
-            { label: "Manage Timeperiod", href: `/retailerPlanogram/${id}/timeperiod` },
-            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
-
-          ],
-        },
-        {
           label: "Weekly Sales Upload",
           href: `/retailerPlanogram/${id}/weeklySalesUpload`,
           icon: (
@@ -170,6 +155,21 @@ export default function Sidebar({ isOpen }) {
               <path d="M12 2V5M12 19V22M2 12H5M19 12H22M4.9 4.9L7 7M17 17L19.1 19.1M19.1 4.9L17 7M7 17L4.9 19.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           ),
+        },
+        {
+          label: "Manage Planograms",
+          href: "#",
+          icon: (
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M3 9.33h18M3 14.67h18M9 4v16M15 4v16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          ),
+          children: [
+            { label: "Manage Timeperiod", href: `/retailerPlanogram/${id}/timeperiod` },
+            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
+
+          ],
         },
 
       ];

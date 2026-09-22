@@ -7,7 +7,6 @@ import ProjectStoresTable from "@/app/components/table/ProjectStoresTable";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Download, RefreshCcw, Upload } from "lucide-react";
 import { lambdaGet, lambdaPost } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
-import { useProject } from "@/app/hooks/useProject";
 import UploadStoresModal from "@/app/components/modal/UploadStoresModal";
 import useAppTheme from "@/app/hooks/useAppTheme";
 
@@ -31,8 +30,6 @@ const DownloadIcon = ({ className = "w-5 h-5" }) => (
 
 export default function ProjectStoresPage() {
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
-  const { retailerId: hookRetailerId } = useProject();
   const th = useAppTheme();
   const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
   const [projectTotalData, setProjectTotalData] = useState(null);

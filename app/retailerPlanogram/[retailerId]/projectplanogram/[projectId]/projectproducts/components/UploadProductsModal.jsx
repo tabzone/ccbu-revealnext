@@ -47,7 +47,7 @@ const UploadProductsModal = ({
     const [uploadError, setUploadError] = useState(null);
     const [validationComplete, setValidationComplete] = useState(false);
 
-    const { id } = useParams();
+    const { retailerId, projectId } = useParams();
 
     useEffect(() => {
         if (!typeToUpload) return;
@@ -236,7 +236,7 @@ const UploadProductsModal = ({
     const createProj = () => {
         const projName = `Project-${new Date().toLocaleDateString()}`;
         setName(projName);
-        compressedUpload(id, createReqData?.requestid);
+        compressedUpload(projectId, createReqData?.requestid);
     };
 
 
@@ -248,7 +248,7 @@ const UploadProductsModal = ({
         const isSafeToCancel = !submitLoading && !process && step < 3;
 
         if (isSafeToCancel) {
-            updateRequest(id, createReqData?.requestid, "cancel", 0, "PPU", "", "", []);
+            updateRequest(projectId, createReqData?.requestid, "cancel", 0, "PPU", "", "", []);
         }
         fetchProjectReqList()
         setOpen(false);
@@ -264,7 +264,7 @@ const UploadProductsModal = ({
 
     const getRequest = async () => {
         try {
-            const data = await lambdaGet(`/getrequest/${id}/${createReqData?.requestid}/${uploadType}`);
+            const data = await lambdaGet(`/getrequest/${projectId}/${createReqData?.requestid}/${uploadType}`);
             if (!data || data.error) {
                 console.log(data.error);
                 return;
@@ -297,7 +297,7 @@ const UploadProductsModal = ({
             const filename = files.map(item => {
                 return item.name
             })
-            updateRequest(id, createReqData?.requestid, 'processing', count, 'PPU', filename[0], '', []);
+            updateRequest(projectId, createReqData?.requestid, 'processing', count, 'PPU', filename[0], '', []);
             setStep(3);
             setProcess(true);
             setIsPolling(true);
@@ -343,7 +343,7 @@ const UploadProductsModal = ({
         return () => {
             clearInterval(interval);
         };
-    }, [isPolling, id, createReqData?.requestid, uploadType]);
+    }, [isPolling, projectId, createReqData?.requestid, uploadType]);
 
     const handleOk = () => {
         setIsPolling(false);

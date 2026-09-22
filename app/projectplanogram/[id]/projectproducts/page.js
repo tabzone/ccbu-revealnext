@@ -28,7 +28,7 @@ const SwipeCards = () => {
   const [updateReqData, setUpdateReqData] = useState()
   const [updtReqLoading, setUpdtReqLoading] = useState(false)
   const [projectProductData, setProjectProductData] = useState(null)
-  const [projectProducLoading, setProjectProducLoading] = useState(null)
+  const [projectProducLoading, setProjectProducLoading] = useState(false)
   const [productsError, setProductsError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('');
   const [activeHierarchy, setActiveHierarchy] = useState('footage')
@@ -164,7 +164,8 @@ const SwipeCards = () => {
       if (!data || data.error) {
         throw new Error(data?.error || data?.message || 'Failed to load products');
       }
-      setProjectProductData(data?.data);
+      const products = data?.data ?? (Array.isArray(data) ? data : []);
+      setProjectProductData(products);
     } catch (err) {
       console.error("Error fetching:", err);
       setProductsError(err.message || 'Failed to load products');
@@ -183,7 +184,8 @@ const SwipeCards = () => {
       if (!data || data.error) {
         throw new Error(data?.error || data?.message || 'Failed to load hierarchy');
       }
-      setFilterSub(data?.data);
+      const hierarchy = data?.data ?? (Array.isArray(data) ? data : []);
+      setFilterSub(hierarchy);
     } catch (err) {
       console.error("Error fetching hierarchy:", err);
       setHierarchyError(err.message || 'Failed to load hierarchy');

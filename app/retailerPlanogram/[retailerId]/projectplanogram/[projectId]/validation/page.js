@@ -7,7 +7,6 @@ import MissingStoreTable from "./components/MissingStoreTable";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import AdditionalStoreTable from "./components/AdditionalStoreTable";
-import { useProject } from "@/app/hooks/useProject";
 import useAppTheme from "@/app/hooks/useAppTheme";
 
 const Page = () => {
@@ -30,9 +29,6 @@ const Page = () => {
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'desc' });
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
-
-  const { retailerId: hookRetailerId } = useProject();
 
   // missing store data filter
   const filteredProjects = React.useMemo(() => {

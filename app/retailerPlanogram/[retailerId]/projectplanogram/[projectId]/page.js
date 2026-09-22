@@ -5,7 +5,6 @@ import useAppTheme from "@/app/hooks/useAppTheme";
 
 export default function ProjectRootRedirect() {
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
   const router = useRouter();
   const th = useAppTheme();
   const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;

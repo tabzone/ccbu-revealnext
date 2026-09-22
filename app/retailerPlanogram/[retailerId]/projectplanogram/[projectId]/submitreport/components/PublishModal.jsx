@@ -33,7 +33,7 @@ const PublishModal = ({
     const [selectedExcludedStores, setSelectedExcludedStores] = useState([]);
     const [initialExcludedIds, setInitialExcludedIds] = useState([]);
 
-    const { id } = useParams();
+    const { retailerId, projectId } = useParams();
 
     const getStoreId = (store) => {
         if (store == null) return "";
@@ -58,11 +58,11 @@ const PublishModal = ({
     };
 
     const fetchStores = async () => {
-        if (!id) return;
+        if (!projectId) return;
         try {
             setStoreLoading(true);
             setStoreError(null);
-            const data = await lambdaGet(`/projectstorelist/${id}`);
+            const data = await lambdaGet(`/projectstorelist/${projectId}`);
             let list = [];
             if (Array.isArray(data)) list = data;
             else if (Array.isArray(data?.data)) list = data.data;
@@ -86,7 +86,7 @@ const PublishModal = ({
     const fetchProjectTotals = async () => {
         try {
             setProjectTotalLoading(true);
-            const data = await lambdaGet(`/projecttotals/${id}`);
+            const data = await lambdaGet(`/projecttotals/${projectId}`);
             if (!data || data.error) {
                 console.log(data.error);
                 return;
@@ -178,7 +178,7 @@ const PublishModal = ({
                 "",
                 "SUB",
                 false,
-                id,
+                projectId,
                 "",
                 createReqData?.requestid,
                 "processing",
@@ -189,7 +189,7 @@ const PublishModal = ({
 
             if (status === "processing") {
                 console.log("Starting polling...");
-                await pollGetRequest(id, createReqData?.requestid, "SUB");
+                await pollGetRequest(projectId, createReqData?.requestid, "SUB");
 
             } else {
                 setdataReq(res?.data || res);
@@ -207,10 +207,10 @@ const PublishModal = ({
     };
 
     useEffect(() => {
-        if (step === 2 && id) {
+        if (step === 2 && projectId) {
             fetchStores();
         }
-    }, [step, id]);
+    }, [step, projectId]);
 
     const toggleStore = (storeId) => {
         const sid = String(storeId).trim();
@@ -272,7 +272,7 @@ const PublishModal = ({
         fetchProjectRequestData('SUB')
         const isSafeToCancel = !submitLoading && !process && step < 3;
         if (isSafeToCancel) {
-            updateRequest(id, createReqData?.requestid, "cancel", 0, "PSA", "", "", []);
+            updateRequest(projectId, createReqData?.requestid, "cancel", 0, "PSA", "", "", []);
         }
     };
 

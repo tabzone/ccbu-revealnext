@@ -71,4 +71,14 @@ describe('retailerPlanogram projectplanogram routes - no undefined id ReferenceE
       }
     }
   });
+
+  it('uploads UploadModal uses projectId not bare id', () => {
+    const rel = 'app/retailerPlanogram/[retailerId]/projectplanogram/[projectId]/uploads/components/UploadModal.jsx';
+    const c = read(rel);
+    assert.ok(c.includes('const { retailerId, projectId } = useParams()'), 'must destructure retailerId and projectId');
+    assert.ok(!c.match(/^\s*const\s*\{\s*id\s*\}\s*=\s*useParams\(\)/m), 'must not have bare const { id } = useParams()');
+    // Ensure projectId is used directly (or via alias) and file does not throw ReferenceError
+    assert.ok(c.includes('compressedUpload(projectId,') || c.includes('updateRequest(projectId,') || c.includes('compressedUpload(id,') || c.includes('updateRequest(id,'), 'should use projectId (or alias id) in upload calls');
+    assert.ok(!c.includes('if (id)'), 'must not have bare if (id) without alias');
+  });
 });

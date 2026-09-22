@@ -11,7 +11,6 @@ import UploadProductsModal from "./components/UploadProductsModal";
 import { lambdaGet, lambdaPost } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
 import { CloseCircleIcon, SearchIcon } from "./components/icons";
-import { useProject } from "@/app/hooks/useProject";
 
 const SwipeCards = () => {
   const th = useAppTheme();
@@ -28,7 +27,7 @@ const SwipeCards = () => {
   const [updateReqData, setUpdateReqData] = useState()
   const [updtReqLoading, setUpdtReqLoading] = useState(false)
   const [projectProductData, setProjectProductData] = useState(null)
-  const [projectProducLoading, setProjectProducLoading] = useState(null)
+  const [projectProducLoading, setProjectProducLoading] = useState(false)
   const [productsError, setProductsError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('');
   const [activeHierarchy, setActiveHierarchy] = useState('footage')
@@ -43,8 +42,6 @@ const SwipeCards = () => {
 
   const scrollRef = useRef(null);
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
-  const { retailerId: hookRetailerId } = useProject();
 
   const filteredProjectProduct = useMemo(() => {
     if (!projectProductData) return [];
@@ -164,7 +161,8 @@ const SwipeCards = () => {
       if (!data || data.error) {
         throw new Error(data?.error || data?.message || 'Failed to load products');
       }
-      setProjectProductData(data?.data);
+      const products = data?.data ?? (Array.isArray(data) ? data : []);
+      setProjectProductData(products);
     } catch (err) {
       console.error("Error fetching:", err);
       setProductsError(err.message || 'Failed to load products');
@@ -183,7 +181,8 @@ const SwipeCards = () => {
       if (!data || data.error) {
         throw new Error(data?.error || data?.message || 'Failed to load hierarchy');
       }
-      setFilterSub(data?.data);
+      const hierarchy = data?.data ?? (Array.isArray(data) ? data : []);
+      setFilterSub(hierarchy);
     } catch (err) {
       console.error("Error fetching hierarchy:", err);
       setHierarchyError(err.message || 'Failed to load hierarchy');

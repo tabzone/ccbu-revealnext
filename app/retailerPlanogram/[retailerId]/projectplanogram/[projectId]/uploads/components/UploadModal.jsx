@@ -49,7 +49,7 @@ const UploadModal = ({
     const [validationComplete, setValidationComplete] = useState(false);
     const [supportedPsa, setSupportedPsa] = useState(null)
 
-    const { id } = useParams();
+    const { retailerId, projectId } = useParams();
 
     useEffect(() => {
         if (!typeToUpload) return;
@@ -278,7 +278,7 @@ const UploadModal = ({
     const createProj = () => {
         const projName = `Project-${new Date().toLocaleDateString()}`;
         setName(projName);
-        compressedUpload(id, createReqData?.requestid);
+        compressedUpload(projectId, createReqData?.requestid);
     };
 
     const closeModal = () => {
@@ -288,7 +288,7 @@ const UploadModal = ({
         }
         const isSafeToCancel = !submitLoading && !process && step < 3;
         if (isSafeToCancel) {
-            updateRequest(id, createReqData?.requestid, "cancel", 0, uploadType === 'PSA' ? 'PMF' : uploadType, files[0]?.name, "", []);
+            updateRequest(projectId, createReqData?.requestid, "cancel", 0, uploadType === 'PSA' ? 'PMF' : uploadType, files[0]?.name, "", []);
         }
         setOpen(false);
         setStep(1);
@@ -305,8 +305,9 @@ const UploadModal = ({
 
 
     const getRequest = async () => {
+        console.log(createReqData,'createReqData')
         try {
-            const data = await lambdaGet(`/getrequest/${id}/${createReqData?.requestid}/${uploadType}`);
+            const data = await lambdaGet(`/getrequest/${projectId}/${createReqData?.requestid}/${uploadType}`);
             if (!data || data.error) {
                 console.log(data.error);
                 return;
@@ -320,7 +321,7 @@ const UploadModal = ({
 
     const fetchUnsupportedPsa = async () => {
         try {
-            const data = await lambdaGet(`/getunsupportedpsa/${id}/${createReqData?.requestid}`);
+            const data = await lambdaGet(`/getunsupportedpsa/${projectId}/${createReqData?.requestid}`);
 
             if (!data || data.error) {
                 console.log(data.error);
@@ -356,7 +357,7 @@ const UploadModal = ({
         try {
             setSubmitLoading(true)
             const count = typeToUpload === 'folders' ? rawFiles.length : filecount;
-            updateRequest(id, createReqData?.requestid, 'processing', count, uploadType, files[0]?.name, '', []);
+            updateRequest(projectId, createReqData?.requestid, 'processing', count, uploadType, files[0]?.name, '', []);
             setStep(3);
             setProcess(true);
             setIsPolling(true);
@@ -408,7 +409,7 @@ const UploadModal = ({
         return () => {
             clearInterval(interval);
         };
-    }, [isPolling, id, createReqData?.requestid, uploadType]);
+    }, [isPolling, projectId, createReqData?.requestid, uploadType]);
 
     const handleOk = () => {
         setIsPolling(false);
@@ -439,7 +440,7 @@ const UploadModal = ({
             uppy.cancelAll();
         }
 
-        updateRequest(id, createReqData?.requestid, "cancel", 0, uploadType === 'PSA' ? 'PMF' : uploadType, "", "", []);
+        updateRequest(projectId, createReqData?.requestid, "cancel", 0, uploadType === 'PSA' ? 'PMF' : uploadType, "", "", []);
 
         setOpen(false);
         setStep(1);

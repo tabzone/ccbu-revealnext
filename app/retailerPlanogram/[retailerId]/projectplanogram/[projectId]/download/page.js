@@ -6,8 +6,6 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw } fr
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
 import AppLayout from "@/app/components/layout/AppLayout";
-import { useProject } from "@/app/hooks/useProject";
-
 const Page = () => {
   const th = useAppTheme();
   const { bg, bgSub, border, textPri, textSec, hover, accent, isDark } = th;
@@ -19,8 +17,6 @@ const Page = () => {
   const [rowsPerPage, setRowsPerPage] = useState(50)
 
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
-  const { retailerId: hookRetailerId } = useProject();
   // CCBU uses retailerId-aware API: /getextractfile/{retailerId}/{id} with fallback
 
   const filteredExtractFiles = useMemo(() => {

@@ -67,9 +67,9 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
     const todays = mm + dd + yyyy;
 
     const projectName =
-        `Recap_Parker's_Kitchen_${String(formData.timePeriod || "").replace(/ /g, "_")}_${todays}`;
+        `Recap_${String(selectedRetailer?.name || "").replace(/\//g, "_").replace(/ /g, "_")}_${String(formData.timePeriod || "").replace(/ /g, "_")}_${todays}`;
 
-    const formattedProjectName = projectName?.replace(/\s+/g, "_");
+    const formattedProjectName = projectName.replace(/\s+/g, "_");
 
 
     const step1Valid = isScoped ? true : !!selectedRetailer;
@@ -303,7 +303,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                 <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 space-y-3">
                                     {[
                                         ["Project Name", formattedProjectName],
-                                        ["Retailer", "Parker's Kitchen"],
+                                        ["Retailer", selectedRetailer?.name?.replace(/_/g, " ")],
                                         ["Time Period", formData.timePeriod],
                                     ].map(([label, value]) => (
                                         <div key={label} className="flex justify-between items-center">

@@ -30,7 +30,6 @@ const Page = () => {
   const [updateReqData, setUpdateReqData] = useState()
   const [updtReqLoading, setUpdtReqLoading] = useState(false)
   const { retailerId, projectId } = useParams();
-  const params = { retailerId, projectId, id: retailerId };
 
 
 
@@ -141,9 +140,11 @@ const Page = () => {
   }
 
   const createProjRequest = async (fileType = 'PSA') => {
+    console.log('Creating project request for file type:', fileType);
     try {
       const payload = { filetype: fileType, projectid: projectId }
       const data = await lambdaPost("/createrequest", payload);
+      console.log(data, 'create request data');
       setCreateReqData(data)
       return data
     } catch (err) {
