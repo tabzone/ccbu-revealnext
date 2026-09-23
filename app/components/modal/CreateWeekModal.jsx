@@ -95,8 +95,10 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
     };
   }, [fiscalWeekPickerOpen]);
 
-  const set = (key) => (e) =>
-    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const value = key === "dataweek" ? e.target.value.replace(/\D/g, "") : e.target.value;
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const openFiscalWeekPicker = () => {
     if (fiscalWeekPickerOpen) {
@@ -132,6 +134,11 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
 
     if (!fiscalWeek || !dataWeek) {
       setError("Data Week and Fiscal Week are required");
+      return;
+    }
+
+    if (!/^\d+$/.test(dataWeek)) {
+      setError("Data Week must be a number");
       return;
     }
 
@@ -276,6 +283,8 @@ export function CreateWeekModal({ retailerId, onClose, onCreated, theme }) {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={form.dataweek}
                 onChange={set("dataweek")}
                 required

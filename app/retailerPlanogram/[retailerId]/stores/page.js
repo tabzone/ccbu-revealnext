@@ -567,6 +567,8 @@ export default function MasterStoresPage() {
               hasFilters={hasFilters}
               onSearchChange={handleSearchChange}
               onClearFilters={handleClearFilters}
+              onRefresh={fetchStores}
+              refreshing={loading}
               theme={th}
             />
             <StoresTable

@@ -428,6 +428,8 @@ export default function MasterProductsPage() {
               hasFilters={hasFilters}
               onSearchChange={handleSearchChange}
               onClearFilters={handleClearFilters}
+              onRefresh={fetchProducts}
+              refreshing={loading}
               theme={th}
             />
             <ProductsTable

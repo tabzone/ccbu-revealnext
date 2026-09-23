@@ -48,29 +48,30 @@ describe('CreateProjectModal - getTimePeriod on Create Project click (scoped mas
 describe('CreateProjectModal - project name uses retailer name (dynamic) without state', () => {
   it('project name format is Recap_{retailerName}_{timePeriod}_{date} with actual retailer name, not ID, no state', () => {
     const modal = fs.readFileSync(path.join(root, 'app/components/modal/CreateProjectModal.jsx'), 'utf8');
-    // Must include retailer name in projectName, not hardcoded retailer ID literal, and must NOT include state
-    assert.ok(modal.includes('selectedRetailer?.name'), 'projectName must use selectedRetailer.name (actual retailer name) not retailer ID');
+    // Updated spec: RECAP_{RETAILER}_{TIME_PERIOD}_{MMDDYY} uppercase with hardcoded Parker's Kitchen
+    assert.ok(modal.includes("Parker's Kitchen"), 'must hardcode retailer name as Parker\'s Kitchen');
+    assert.ok(modal.includes('HARDCODED_RETAILER_NAME'), 'must define HARDCODED_RETAILER_NAME');
+    assert.ok(modal.includes('HARDCODED_RETAILER_SLUG'), 'must define HARDCODED_RETAILER_SLUG');
     assert.ok(!modal.includes('formData.state'), 'projectName must NOT include formData.state after state removal');
     assert.ok(!modal.includes('US_STATES'), 'must not define US_STATES after state removal');
     assert.ok(!modal.includes('String(formData.state'), 'state must not be part of projectName');
-    // Check format: Recap_ + retailer + timePeriod + todays (without state)
-    assert.ok(modal.includes('`Recap_${'), 'projectName must start with Recap_ (capital R only, not RECAP_)');
-    assert.ok(!modal.includes('RECAP_'), 'must not use RECAP_ uppercase - required is Recap_');
+    // Check format: RECAP_ + retailer slug + timePeriod + todays (without state)
+    assert.ok(modal.includes('`RECAP_${'), 'projectName must start with RECAP_ uppercase');
+    assert.ok(!modal.includes('`Recap_${'), 'must not use Recap_ mixed case - required is RECAP_');
     // Ensure no hardcoded retailer ID in projectName formation
     assert.ok(!modal.includes('4e221Q27Pk'), 'CreateProjectModal must not hardcode retailer ID in projectName');
-    // Ensure formatted name is not uppercased (required mixed case)
+    // Ensure retailer slug is uppercased
+    assert.ok(modal.includes('.toUpperCase()'), 'retailer slug must be uppercased');
+    assert.ok(modal.includes('.replace(/ /g, "_")'), 'must replace spaces with underscore');
     assert.ok(modal.includes('const formattedProjectName = projectName.replace'), 'must have formattedProjectName');
-    assert.ok(!modal.includes('formattedProjectName') || !modal.slice(modal.indexOf('formattedProjectName'), modal.indexOf('formattedProjectName') + 200).includes('toUpperCase'), 'formattedProjectName must NOT call toUpperCase - required is mixed case Recap_Parker');
-    // Ensure retailer name resolved dynamically via /getretailers, not hardcoded Parkers literal alone
-    assert.ok(modal.includes("lambdaGet(`/getretailers`)") || modal.includes('lambdaGet("/getretailers")'), 'must fetch retailer name dynamically via /getretailers');
-    assert.ok(modal.includes('found.name') || modal.includes('found?.name'), 'must resolve retailer name from found.name');
-    // Retailer display in Review must be without underscore
-    assert.ok(modal.includes("replace(/_/g, \" \")") || modal.includes("replace(/_/g, ' ')"), 'Retailer in Review must display without underscores (replace _ with space)');
-    assert.ok(modal.includes("Parker's Kitchen") || modal.includes("Parker"), 'review should be able to show Parkers Kitchen (test allows dynamic)');
-    // Verify projectName block does not contain state
+    // Retailer display in Review must use hardcoded title case
+    assert.ok(modal.includes('["Retailer", HARDCODED_RETAILER_NAME]'), 'Retailer in Review must use HARDCODED_RETAILER_NAME title case');
+    assert.ok(modal.includes("Parker's Kitchen") || modal.includes("Parker"), 'review should be able to show Parkers Kitchen');
+    // Verify projectName block does not contain state and uses hardcoded slug
     const projIdx = modal.indexOf('const projectName');
-    const projBlock = modal.slice(projIdx, projIdx + 500);
+    const projBlock = modal.slice(projIdx, projIdx + 600);
     assert.ok(!projBlock.includes('formData.state'), 'projectName block must not reference formData.state');
+    assert.ok(projBlock.includes('HARDCODED_RETAILER_SLUG'), 'projectName must use HARDCODED_RETAILER_SLUG');
   });
 
   it('has no state dropdown and Review has no State row', () => {
