@@ -5,6 +5,8 @@ import { storeExtraction } from "@/app/utils/constants";
 import { useRouter } from "next/navigation";
 import { lambdaGet, lambdaPost } from "@/app/lamda/lambdaClient";
 import { toast } from "react-toastify";
+import useAppTheme from "@/app/hooks/useAppTheme";
+
 
 const getRetailerIdValue = (ret) => ret?.retailerid;
 
@@ -19,6 +21,10 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
         isScoped ? { retailerid: scopedRetailerId, name: scopedRetailerName || scopedRetailerId } : null
     );
     const [submitLoading, setSubmitLoading] = useState(false);
+  const th = useAppTheme();
+
+
+
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
@@ -175,7 +181,8 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
         <>
             <button
                 onClick={openModal}
-                className="py-1 px-3 cursor-pointer bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                className="px-4 py-1 text-white my-4 cursor-pointer rounded"
+                style={{ backgroundColor: th.accent }}
             >
                 Create Project
             </button>

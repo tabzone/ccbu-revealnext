@@ -7,6 +7,7 @@ import ProjectsTable from "@/app/components/table/ProjectsTable";
 import { ReloadIcon, SearchIcon, CloseCircleIcon, ArrowLeftIcon, ArrowRightIcon, DoubleArrowLeftIcon, DoubleArrowRightIcon } from "@/data/icons";
 import { lambdaGet } from "@/app/lamda/lambdaClient";
 import AppLayout from "@/app/components/layout/AppLayout";
+import useAppTheme from "@/app/hooks/useAppTheme";
 
 const Page = () => {
   const params = useParams();
@@ -20,6 +21,8 @@ const Page = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(50);
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+
+    const th = useAppTheme();
 
   const fetchProjectList = React.useCallback(async (type = projectType) => {
     if (!retailerId) return
@@ -129,7 +132,9 @@ const Page = () => {
               <button
                 onClick={handleReload}
                 disabled={projectListLoading}
-                className="cursor-pointer flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-white rounded-full shadow-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:hover:bg-blue-500"
+                className="cursor-pointer flex items-center gap-2 px-4 py-1.5 text-white rounded-full shadow-sm transition disabled:opacity-50"
+                style={{ backgroundColor: th.accent }}
+              // className="cursor-pointer flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-white rounded-full shadow-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:hover:bg-blue-500"
               >
                 <ReloadIcon className={`w-4 h-4 text-white ${projectListLoading ? 'animate-spin' : ''}`} />
                 {projectListLoading ? "Reloading..." : "Reload"}
@@ -158,33 +163,27 @@ const Page = () => {
                 </button>
               ))}
             </div>
-            <div className="flex">
-              <div className="flex">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full border-2 bg-white border-white rounded-l px-4 py-1.5 pr-10 shadow-sm focus:border-blue-300 focus:ring-0 focus:outline-none"
-                    placeholder="Search projects..."
-                  />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchTerm('')}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
-                    >
-                      <CloseCircleIcon className="w-4 h-4 text-gray-500 cursor-pointer " />
-                    </button>
-                  )}
-                </div>
+            <div className="relative flex-1 max-w-[320px]">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-lg border pl-9 pr-8 py-2.5 text-sm outline-none transition bg-white"
+                placeholder="Search projects..."
+                style={{ borderColor: "#e5e7eb" }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
+              />
+              {searchTerm && (
                 <button
                   type="button"
-                  className="cursor-pointer flex items-center gap-1 px-4 bg-blue-600 text-white rounded-r hover:bg-blue-700 transition"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60 transition cursor-pointer text-gray-500"
                 >
-                  <SearchIcon className="w-5 h-5 text-white cursor-pointer " />
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
