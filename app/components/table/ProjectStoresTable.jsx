@@ -174,6 +174,7 @@ const ProjectStoresTable = ({ data, isLoading, sortConfig, onSort }) => {
                                     <th onClick={() => onSort('storecity')} title={getSortTitle("storecity")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Store City<SortIcon columnKey="storecity" /></div></th>
                                     <th onClick={() => onSort('state')} title={getSortTitle("state")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Store State<SortIcon columnKey="state" /></div></th>
                                     <th onClick={() => onSort('storezip')} title={getSortTitle("storezip")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Store Zip<SortIcon columnKey="storezip" /></div></th>
+                                    <th onClick={() => onSort('openedat')} title={getSortTitle("openedat")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Opened At<SortIcon columnKey="openedat" /></div></th>
                                     <th onClick={() => onSort('desc1')} title={getSortTitle("desc1")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Desc 1<SortIcon columnKey="desc1" /></div></th>
                                     <th onClick={() => onSort('desc2')} title={getSortTitle("desc2")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Desc 2<SortIcon columnKey="desc2" /></div></th>
                                     <th onClick={() => onSort('desc3')} title={getSortTitle("desc3")} className="px-4 py-3 text-left text-sm font-semibold text-gray-900"><div className="flex items-center gap-1">Desc 3<SortIcon columnKey="desc3" /></div></th>
@@ -189,9 +190,9 @@ const ProjectStoresTable = ({ data, isLoading, sortConfig, onSort }) => {
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {isLoading ? (
-                                    <tr><td colSpan={21} className="py-10 text-center"><LoadingSpinner text="Loading..." /></td></tr>
+                                    <tr><td colSpan={22} className="py-10 text-center"><LoadingSpinner text="Loading..." /></td></tr>
                                 ) : data?.length === 0 ? (
-                                    <tr><td colSpan={21} className="py-10 text-center text-gray-500">No data found</td></tr>
+                                    <tr><td colSpan={22} className="py-10 text-center text-gray-500">No data found</td></tr>
                                 ) : data?.map((item, i) => {
                                         const qrKey = item?.storenumber ? String(item.storenumber) + "_" + i : String(i);
                                         const isQrLoading = qrLoading === qrKey;
@@ -212,6 +213,7 @@ const ProjectStoresTable = ({ data, isLoading, sortConfig, onSort }) => {
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.storecity || <span className="text-gray-300">N/A</span>}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.state || <span className="text-gray-300">N/A</span>}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.storezip || <span className="text-gray-300">N/A</span>}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">{item?.openedat ?? item?.openedAt ?? item?.opened_at ?? item?.opendate ?? <span className="text-gray-300">N/A</span>}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.desc1 || <span className="text-gray-300">N/A</span>}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.desc2 || <span className="text-gray-300">N/A</span>}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-600">{item?.desc3 || <span className="text-gray-300">N/A</span>}</td>
