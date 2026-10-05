@@ -536,20 +536,37 @@ function Page() {
                             ×
                           </button>
                         )}
-                        <div className="shrink-0">
+                        <div className="shrink-0 flex items-center gap-3">
                           <button
                             type="button"
+                            role="switch"
+                            aria-checked={isActiveReport}
                             onClick={() => setIsActiveReport(!isActiveReport)}
-                            className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200"
-                            style={isActiveReport ? { backgroundColor: th.accent, color: "#fff" } : { backgroundColor: th.bg, color: th.textPri, borderWidth: "1px", borderStyle: "solid", borderColor: th.border }}
-                            onMouseEnter={(e) => { if (!isActiveReport) e.currentTarget.style.backgroundColor = th.hover; }}
-                            onMouseLeave={(e) => { if (!isActiveReport) e.currentTarget.style.backgroundColor = th.bg; }}
+                            className={`
+                        relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
+                        transition-colors duration-200
+                        focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2
+                        ${isActiveReport
+                                ? "bg-green-500"
+                                : "bg-gray-300"
+                              }
+                        cursor-pointer
+                        `}
                           >
-                            <span className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-200 ${isActiveReport ? "" : ""}`} style={{ backgroundColor: isActiveReport ? "#64748b" : "#d1d5db" }}>
-                              <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${isActiveReport ? "translate-x-3.5" : "translate-x-0.5"}`} />
-                            </span>
-                            Active Report
+                            <span
+                              className={`
+                            inline-block h-5 w-5 rounded-full bg-white shadow-sm
+                            transition-transform duration-200
+                            ${isActiveReport
+                                  ? "translate-x-[22px]"
+                                  : "translate-x-0.5"
+                                }
+                          `}
+                            />
                           </button>
+                          <span className="text-sm font-medium" style={{ color: th.textPri }}>
+                            Active Report
+                          </span>
                         </div>
                       </div>
                     </div>
