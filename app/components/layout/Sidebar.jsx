@@ -131,10 +131,11 @@ export default function Sidebar({ isOpen }) {
             { label: "Products", href: `/retailerPlanogram/${id}/products` },
             { label: "Stores", href: `/retailerPlanogram/${id}/stores` },
             { label: "Week Setup", href: `/retailerPlanogram/${id}/timesetup` },
+            { label: "Resets", href: `/retailerPlanogram/${id}/timeperiod` },
           ],
         },
         {
-          label: "Manage Planograms",
+          label: "Planograms",
           href: "#",
           icon: (
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
@@ -143,9 +144,7 @@ export default function Sidebar({ isOpen }) {
             </svg>
           ),
           children: [
-            { label: "Manage Timeperiod", href: `/retailerPlanogram/${id}/timeperiod` },
-            { label: "Manage Projects", href: `/retailerPlanogram/${id}/masterdata` },
-
+            { label: "Project", href: `/retailerPlanogram/${id}/masterdata` },
           ],
         },
         {

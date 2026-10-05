@@ -23,36 +23,44 @@ describe('Retailer navigation refactor - Manage Planograms -> retailer scoped', 
     assert.ok(!sidebar.includes('"/managePlanograms/timeperiod"') && !sidebar.includes("'/managePlanograms/timeperiod'"), 'no stale global /managePlanograms/timeperiod link should remain');
   });
 
-  it('retailer Sidebar contains Manage Planograms below Settings with exactly 2 children', () => {
+  it('retailer Sidebar contains Planograms with Project and Master Data with Resets (renamed labels)', () => {
     const sidebar = fs.readFileSync(path.join(root, 'app/components/layout/Sidebar.jsx'), 'utf8');
-    // Retailer block should contain Manage Planograms
     assert.ok(sidebar.includes('if (pathname?.startsWith("/retailerPlanogram"))'), 'retailerPlanogram sidebar block must exist');
-    // Find retailer block and check order: Master Data -> Manage Planograms -> Weekly Sales Upload -> Settings
     const retailerBlockStart = sidebar.indexOf('if (pathname?.startsWith("/retailerPlanogram"))');
     const retailerBlock = sidebar.slice(retailerBlockStart);
+    // Old labels must be gone
+    assert.ok(!retailerBlock.includes('"Manage Planograms"'), 'retailer sidebar must NOT contain old Manage Planograms label (renamed to Planograms)');
+    assert.ok(!retailerBlock.includes('"Manage Projects"'), 'retailer sidebar must NOT contain old Manage Projects label (renamed to Project)');
+    assert.ok(!retailerBlock.includes('"Manage Timeperiod"') && !retailerBlock.includes('"Manage Time Period"'), 'retailer sidebar must NOT contain old Manage Timeperiod label (renamed to Resets)');
+    // New labels must exist
+    assert.ok(retailerBlock.includes('"Planograms"'), 'retailer sidebar must contain Planograms');
+    assert.ok(retailerBlock.includes('"Resets"'), 'retailer sidebar must contain Resets');
+    // Project label may be "Project" or "Projects" - accept either but must not be "Manage Projects"
+    assert.ok(retailerBlock.includes('"Project"') || retailerBlock.includes('"Projects"'), 'retailer sidebar must contain Project(s) under Planograms');
+    // Order: Master Data -> Planograms -> Weekly Sales Upload -> Settings
     const idxMaster = retailerBlock.indexOf('"Master Data"');
+    const idxPlanograms = retailerBlock.indexOf('"Planograms"');
     const idxWeekly = retailerBlock.indexOf('"Weekly Sales Upload"');
     const idxSettings = retailerBlock.indexOf('"Settings"');
-    const idxManage = retailerBlock.indexOf('"Manage Planograms"');
-    assert.ok(idxMaster !== -1 && idxWeekly !== -1 && idxSettings !== -1 && idxManage !== -1, 'retailer sidebar must contain all 4 sections');
-    assert.ok(idxMaster < idxManage && idxManage < idxWeekly && idxWeekly < idxSettings, 'order must be Master Data -> Manage Planograms -> Weekly Sales Upload -> Settings (Manage Planograms after Master Data)');
-    // Children of Manage Planograms - Manage Timeperiod must be first
-    const manageSection = retailerBlock.slice(idxManage, idxManage + 1000);
-    assert.ok(manageSection.includes('Manage Projects'), 'Manage Planograms must have Manage Projects child');
-    assert.ok(manageSection.includes('Manage Timeperiod'), 'Manage Planograms must have Manage Timeperiod child');
-    const idxTimeperiod = manageSection.indexOf('Manage Timeperiod');
-    const idxProjects = manageSection.indexOf('Manage Projects');
-    assert.ok(idxTimeperiod !== -1 && idxProjects !== -1 && idxTimeperiod < idxProjects, 'Manage Timeperiod must be first inside Manage Planograms');
-    // Must use retailerId param, not hardcoded (supports ${id} or ${retailerId})
-    assert.ok(manageSection.includes('/retailerPlanogram/${id}/masterdata') || manageSection.includes('/retailerPlanogram/${retailerId}/masterdata'), 'Manage Projects href must be /retailerPlanogram/${id or retailerId}/masterdata with dynamic id');
-    assert.ok(manageSection.includes('/retailerPlanogram/${id}/timeperiod') || manageSection.includes('/retailerPlanogram/${retailerId}/timeperiod'), 'Manage Timeperiod href must be /retailerPlanogram/${id or retailerId}/timeperiod with dynamic id');
-    assert.ok(!manageSection.includes('/managePlanograms/masterdata'), 'retailer Manage Planograms must NOT use old global route');
-    // Must NOT contain Manage Reports as child
-    assert.ok(!manageSection.includes('Manage Reports'), 'Manage Reports must NOT be under Manage Planograms');
-    // Exactly 2 children check: count occurrences of Manage Projects/Timeperiod in that 1000 char window
-    // Alternatively verify no third child like Manage Reports
-    const childLabels = (manageSection.match(/label: "Manage /g) || []).length;
-    assert.equal(childLabels, 2, 'Manage Planograms must have exactly 2 children');
+    assert.ok(idxMaster !== -1 && idxPlanograms !== -1 && idxWeekly !== -1 && idxSettings !== -1, 'retailer sidebar must contain Master Data, Planograms, Weekly Sales Upload, Settings');
+    assert.ok(idxMaster < idxPlanograms && idxPlanograms < idxWeekly && idxWeekly < idxSettings, 'order must be Master Data -> Planograms -> Weekly Sales Upload -> Settings');
+    // Master Data must contain Resets with timeperiod href
+    const masterSection = retailerBlock.slice(idxMaster, idxMaster + 1500);
+    assert.ok(masterSection.includes('"Resets"'), 'Master Data must contain Resets child');
+    assert.ok(masterSection.includes('"Products"') && masterSection.includes('"Stores"') && masterSection.includes('"Week Setup"'), 'Master Data must retain Products/Stores/Week Setup');
+    assert.ok(masterSection.includes('/retailerPlanogram/${id}/timeperiod') || masterSection.includes('/retailerPlanogram/${retailerId}/timeperiod'), 'Resets href must be /retailerPlanogram/${id or retailerId}/timeperiod with dynamic id');
+    assert.ok(!masterSection.includes('/managePlanograms/masterdata'), 'Master Data must NOT use old global route');
+    // Planograms must contain Project(s) with masterdata href and must NOT contain Resets
+    const planogramsSection = retailerBlock.slice(idxPlanograms, idxPlanograms + 1000);
+    assert.ok(planogramsSection.includes('/retailerPlanogram/${id}/masterdata') || planogramsSection.includes('/retailerPlanogram/${retailerId}/masterdata'), 'Project href must be /retailerPlanogram/${id or retailerId}/masterdata with dynamic id');
+    assert.ok(!planogramsSection.includes('"Resets"'), 'Planograms must NOT contain Resets (moved to Master Data)');
+    assert.ok(!planogramsSection.includes('/managePlanograms/masterdata'), 'retailer Planograms must NOT use old global route');
+    assert.ok(!planogramsSection.includes('Manage Reports'), 'Manage Reports must NOT be under Planograms');
+    // Planograms should have exactly 1 child (Project)
+    const planogramsChildCount = (planogramsSection.match(/label: "Project/g) || []).length;
+    assert.ok(planogramsChildCount === 1, 'Planograms must have exactly 1 child (Project)');
+    // Master Data should have Resets as one of its children
+    assert.ok(masterSection.includes('"Resets"'), 'Master Data must have Resets as child');
   });
 
   it('retailer DataTable links use dynamic retailerId to /retailerPlanogram/${rid}/products', () => {
