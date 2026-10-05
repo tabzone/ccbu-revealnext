@@ -116,7 +116,7 @@ const TimePeriodTable = ({ data, isLoading, sortConfig, onSort }) => {
               <thead className="bg-gray-50 border-b border-gray-200 shadow sticky top-0 z-[1]">
                 <tr>
                   <th onClick={() => onSort("isActive")} title={getSortTitle("isActive")} className="px-6 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 w-[200px]">
-                    <div className="flex items-center gap-1">Time Period <SortIcon columnKey="isActive" /></div>
+                    <div className="flex items-center gap-1">Resets <SortIcon columnKey="isActive" /></div>
                   </th>
                   <th onClick={() => onSort("isDefault")} title={getSortTitle("isDefault")} className="px-6 py-3 text-left text-sm font-semibold text-gray-900 bg-gray-50 w-[250px] border-l border-gray-200">
                     <div className="flex items-center gap-1">Options <SortIcon columnKey="isDefault" /></div>

@@ -276,7 +276,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                         {(isScoped ? step === 1 : step === 2) && (
                             <div className="space-y-5">
                                 <div>
-                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Time period <span className="text-red-500">*</span></label>
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Resets <span className="text-red-500">*</span></label>
                                     {/* <p className="mb-3 text-xs text-gray-500">Select the fiscal period for this recap</p> */}
                                     <select
                                         value={formData.timePeriod}
@@ -287,9 +287,9 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                     >
                                         <option value="">
                                             {timePeriodLoading
-                                                ? "Please wait, Loading time periods..."
+                                                ? "Please wait, Loading Resets..."
                                                 : timePeriodList.length === 0
-                                                    ? "No time periods available"
+                                                    ? "No Resets available"
                                                     : "Please Select"}
                                         </option>
                                         {timePeriodList.map((item) => {
@@ -314,7 +314,7 @@ export default function CreateProjectModal({ onCreated, retailerId: scopedRetail
                                     {[
                                         ["Project Name", formattedProjectName],
                                         ["Retailer", HARDCODED_RETAILER_NAME],
-                                        ["Time Period", formData.timePeriod],
+                                        ["Resets", formData.timePeriod],
                                     ].map(([label, value]) => (
                                         <div key={label} className="flex justify-between items-center">
                                             <span className="text-sm font-medium text-gray-700">{label}:</span>

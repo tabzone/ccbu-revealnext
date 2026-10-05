@@ -22,7 +22,7 @@ export default function AddTimePeriodModal({ fetchTimePeriod }) {
 
   const handleSubmit = async () => {
     if (!formData.timePeriod) {
-      alert("Please enter a time period name");
+      alert("Please enter a Resets name");
       return;
     }
     const payload = {
@@ -41,7 +41,7 @@ export default function AddTimePeriodModal({ fetchTimePeriod }) {
       closeModal();
     } catch (error) {
       console.error("Error adding time period:", error);
-      alert("Failed to add new time period. Please try again.");
+      alert("Failed to add new Resets. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,13 +49,13 @@ export default function AddTimePeriodModal({ fetchTimePeriod }) {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="py-1 px-3 cursor-pointer bg-blue-600 text-white rounded hover:bg-blue-700 transition">Add Time Period</button>
+      <button onClick={() => setOpen(true)} className="py-1 px-3 cursor-pointer bg-blue-600 text-white rounded hover:bg-blue-700 transition">Add Resets</button>
       <Modal isOpen={open} onClose={closeModal} maxWidth="max-w-[640px]" maxHeight="max-h-[85vh]">
         <div className="flex flex-col overflow-hidden">
-          <div className="px-8 py-5 border-b border-gray-200 flex-shrink-0"><h2 className="text-[18px] font-semibold tracking-tight text-gray-900">Add Time Period</h2></div>
+          <div className="px-8 py-5 border-b border-gray-200 flex-shrink-0"><h2 className="text-[18px] font-semibold tracking-tight text-gray-900">Add Resets</h2></div>
           <div className="flex flex-col gap-5 px-8 py-6">
             <div className="flex flex-col gap-2">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Time Period Name</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Resets Name</label>
               <input type="text" value={formData.timePeriod} onChange={(e) => setFormData({ timePeriod: e.target.value })} placeholder="e.g., Summer 2025" className="w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
             </div>
             <div className="flex items-center gap-6">
